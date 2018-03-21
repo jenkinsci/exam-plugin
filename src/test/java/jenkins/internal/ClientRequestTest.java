@@ -190,7 +190,7 @@ public class ClientRequestTest {
 
         Whitebox.invokeMethod(ClientRequest.class,"createClient");
         Mockito.clearInvocations(printMock);
-        dispatcher.removeResponse("/workspace/status");
+        dispatcher.removeResponse("/testrun/status");
         ClientRequest.disconnectClient(1000);
         Mockito.verify(printMock).println("disconnect from EXAM");
         Mockito.verify(printMock, Mockito.never()).println("ERROR: EXAM does not shutdown in 1000ms");
@@ -211,7 +211,7 @@ public class ClientRequestTest {
     public void waitForTestrunEnds() {
         Executor executor = Mockito.mock(Executor.class);
         Mockito.when(executor.isInterrupted()).thenReturn(false);
-        dispatcher.setResponse("/workspace/status", new MockResponse().setResponseCode(200)
+        dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
                 .addHeader("Content-Type", "application/json; charset=utf-8")
                 .addHeader("Cache-Control", "no-cache")
                 .setBody("{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":1}"));

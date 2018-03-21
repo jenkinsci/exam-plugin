@@ -48,7 +48,7 @@ public class ServerDispatcher extends Dispatcher {
 
     public void setDefaults(){
         clearAllResponse();
-        setResponse("/workspace/status", new MockResponse().setResponseCode(200)
+        setResponse("/testrun/status", new MockResponse().setResponseCode(200)
                 .addHeader("Content-Type", "application/json; charset=utf-8")
                 .addHeader("Cache-Control", "no-cache")
                 .setBody("{\"jobName\":\"myTestJob\",\"jobRunning\":\"true\",\"testRunState\":-1}"));
