@@ -147,7 +147,7 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
     }
 
     /**
-     * Gets the executable path of this Ant on the given target system.
+     * Gets the executable path of this EXAM on the given target system.
      */
     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
         return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {

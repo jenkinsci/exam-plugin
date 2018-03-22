@@ -217,12 +217,12 @@ public class Exam extends Builder implements SimpleBuildStep{
         if (examTool == null) {
             args.add("EXAM.exe");
         } else {
-            //Node node = Computer.currentComputer().getNode();
-            //if (node == null) {
-            //    throw new AbortException(Messages.EXAM_NodeOffline());
-            //}
-            //examTool = examTool.forNode(node, listener);
-            examTool = examTool.forEnvironment(env);
+            Node node = Computer.currentComputer().getNode();
+            if (node == null) {
+                throw new AbortException(Messages.EXAM_NodeOffline());
+            }
+            examTool = examTool.forNode(node, listener);
+            //examTool = examTool.forEnvironment(env);
             exe = examTool.getExecutable(launcher);
             if (exe == null) {
                 throw new AbortException(Messages.EXAM_ExecutableNotFound(examTool.getName()));
