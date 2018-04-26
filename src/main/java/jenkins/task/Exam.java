@@ -322,6 +322,7 @@ public class Exam extends Builder implements SimpleBuildStep{
                         ClientRequest.clearWorkspace(tc.getModelProject().getModelName());
                         ClientRequest.clearWorkspace(tc.getReportProject().getProjectName());
                     }
+                    ClientRequest.setTestrunFilter(fc);
                     ClientRequest.startTestrun(tc);
                 }
 
