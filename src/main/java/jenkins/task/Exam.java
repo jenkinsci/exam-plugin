@@ -38,6 +38,7 @@ import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
 import jenkins.internal.ClientRequest;
+import jenkins.internal.data.FilterConfiguration;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.data.ReportConfiguration;
 import jenkins.internal.data.TestConfiguration;
@@ -60,6 +61,7 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -99,16 +101,37 @@ public class Exam extends Builder implements SimpleBuildStep{
      */
     private final String systemConfiguration;
 
+    private List<TestrunFilter> testrunFilter = new ArrayList<TestrunFilter>();
+
     /**
      * Definiert die default pythonPath
      */
     private final String pythonPath;
 
+    private boolean logging;
     private String loglevel_test_ctrl = getDescriptor().getDefaultLogLevel();
     private String loglevel_test_logic = getDescriptor().getDefaultLogLevel();
     private String loglevel_lib_ctrl = getDescriptor().getDefaultLogLevel();
 
     private boolean clearWorkspace;
+
+    public boolean getLogging() {
+        return logging;
+    }
+
+    @DataBoundSetter
+    public void setLogging(boolean logging) {
+        this.logging = logging;
+    }
+
+    public List<TestrunFilter> getTestrunFilter() {
+        return testrunFilter;
+    }
+
+    @DataBoundSetter
+    public void setTestrunFilter(List<TestrunFilter> testrunFilter) {
+        this.testrunFilter = testrunFilter;
+    }
 
     public String getLoglevel_test_ctrl() {
         return loglevel_test_ctrl;
@@ -294,6 +317,7 @@ public class Exam extends Builder implements SimpleBuildStep{
                 ret = ClientRequest.connectClient(30 * 1000);
                 if(ret){
                     TestConfiguration tc = createTestConfiguration();
+                    FilterConfiguration fc = new FilterConfiguration(testrunFilter);
                     if(isClearWorkspace()){
                         ClientRequest.clearWorkspace(tc.getModelProject().getModelName());
                         ClientRequest.clearWorkspace(tc.getReportProject().getProjectName());

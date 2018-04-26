@@ -73,51 +73,60 @@ f.entry(title: _("PythonPath"), field: "pythonPath"){
     f.textbox()
 }
 
+f.entry(title: _("clear Workspace"), field: "clearWorkspace") {
+    f.checkbox()
+}
+
+f.optionalBlock(title: _("show Testrun Filters"), inline: "true") {
+    f.entry(title: _("Testrun Filters")) {
+        f.repeatableProperty(
+                field: "testrunFilter",
+                header: "Testrun Filter",
+                add: "Add filter")
+    }
+}
+
+f.optionalBlock(title: _("show logging"), inline: "true") {
+    f.entry(title: _("TEST_CTRL")) {
+        select(class: "setting-input", name: "loglevel_test_ctrl") {
+            descriptor.getLogLevels().each {
+                if(instance?.loglevel_test_ctrl == null){
+                    f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
+                } else {
+                    f.option(selected: it.name() == instance?.loglevel_test_ctrl, value: it.name(), it.name())
+                }
+            }
+        }
+    }
+
+    f.entry(title: _("TEST_LOGIC")) {
+        select(class: "setting-input", name: "loglevel_test_logic") {
+            descriptor.getLogLevels().each {
+                if(instance?.loglevel_test_logic == null){
+                    f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
+                } else{
+                    f.option(selected: it.name() == instance?.loglevel_test_logic, value: it.name(), it.name())
+                }
+            }
+        }
+    }
+
+    f.entry(title: _("LIB_CTRL")) {
+        select(class: "setting-input", name: "loglevel_lib_ctrl") {
+            descriptor.getLogLevels().each {
+                if(instance?.loglevel_lib_ctrl == null){
+                    f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
+                } else {
+                    f.option(selected: it.name() == instance?.loglevel_lib_ctrl, value: it.name(), it.name())
+                }
+            }
+        }
+    }
+}
+
 f.advanced(help: _("/plugin/exam/help-logging.html")) {
 
     f.entry(title: _("Java Opts"), field: "javaOpts") {
         f.textbox()
-    }
-
-    f.entry(title: _("clear Workspace"), field: "clearWorkspace") {
-        f.checkbox()
-    }
-
-    f.section(title: _("logging")) {
-        f.entry(title: _("TEST_CTRL")) {
-            select(class: "setting-input", name: "loglevel_test_ctrl") {
-                descriptor.getLogLevels().each {
-                    if(instance?.loglevel_test_ctrl == null){
-                        f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
-                    } else {
-                        f.option(selected: it.name() == instance?.loglevel_test_ctrl, value: it.name(), it.name())
-                    }
-                }
-            }
-        }
-
-        f.entry(title: _("TEST_LOGIC")) {
-            select(class: "setting-input", name: "loglevel_test_logic") {
-                descriptor.getLogLevels().each {
-                    if(instance?.loglevel_test_logic == null){
-                        f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
-                    } else{
-                        f.option(selected: it.name() == instance?.loglevel_test_logic, value: it.name(), it.name())
-                    }
-                }
-            }
-        }
-
-        f.entry(title: _("LIB_CTRL")) {
-            select(class: "setting-input", name: "loglevel_lib_ctrl") {
-                descriptor.getLogLevels().each {
-                    if(instance?.loglevel_lib_ctrl == null){
-                        f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
-                    } else {
-                        f.option(selected: it.name() == instance?.loglevel_lib_ctrl, value: it.name(), it.name())
-                    }
-                }
-            }
-        }
     }
 }

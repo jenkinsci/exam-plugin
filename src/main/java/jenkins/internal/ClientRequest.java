@@ -37,7 +37,9 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import hudson.model.BuildListener;
 import hudson.model.Executor;
+import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.ExamStatus;
+import jenkins.internal.data.FilterConfiguration;
 import jenkins.internal.data.TestConfiguration;
 
 import javax.ws.rs.core.MediaType;
@@ -89,6 +91,22 @@ public class ClientRequest {
         return response.getEntity(ExamStatus.class);
     }
 
+    public static ApiVersion getApiVersion() {
+        if(client == null){
+            logger.println("WARNING: no EXAM connected");
+            return null;
+        }
+        WebResource service = client.resource(baseUrl + "/workspace/apiVersion");
+        ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
+                .get(ClientResponse.class);
+
+        if (response.getStatus() != OK) {
+            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+        }
+
+        return response.getEntity(ApiVersion.class);
+    }
+
     public static boolean isApiAvailable(){
         boolean clientCreated = false;
         boolean isAvailable = true;
@@ -106,6 +124,22 @@ public class ClientRequest {
             destroyClient();
         }
         return isAvailable;
+    }
+
+    public static void setTestrunFilter(FilterConfiguration filterConfig) {
+        if(client == null){
+            logger.println("WARNING: no EXAM connected");
+            return;
+        }
+        logger.println("setting testrun filter");
+        WebResource service = client.resource(baseUrl + "/testrun/setFilter");
+
+        ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
+                .post(ClientResponse.class, filterConfig);
+
+        if (response.getStatus() != OK) {
+            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+        }
     }
 
     public static void startTestrun(TestConfiguration testConfig) {
