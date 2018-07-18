@@ -6,10 +6,13 @@ public class ApiVersion {
     private int fix;
 
     public ApiVersion() {
+        this.major = 1;
+        this.minor = 0;
+        this.fix = 0;
     }
 
     public int getMajor() {
-        return major;
+        return this.major;
     }
 
     public void setMajor(int major) {
@@ -17,7 +20,7 @@ public class ApiVersion {
     }
 
     public int getMinor() {
-        return minor;
+        return this.minor;
     }
 
     public void setMinor(int minor) {
@@ -25,7 +28,7 @@ public class ApiVersion {
     }
 
     public int getFix() {
-        return fix;
+        return this.fix;
     }
 
     public void setFix(int fix) {

@@ -317,7 +317,8 @@ public class Exam extends Builder implements SimpleBuildStep{
                 ret = ClientRequest.connectClient(30 * 1000);
                 if(ret){
                     TestConfiguration tc = createTestConfiguration();
-                    FilterConfiguration fc = new FilterConfiguration(testrunFilter);
+                    FilterConfiguration fc = new FilterConfiguration();
+                    fc.setTestrunFilter(testrunFilter);
                     if(isClearWorkspace()){
                         ClientRequest.clearWorkspace(tc.getModelProject().getModelName());
                         ClientRequest.clearWorkspace(tc.getReportProject().getProjectName());
@@ -374,6 +375,7 @@ public class Exam extends Builder implements SimpleBuildStep{
         mod.setProjectName(m.getName());
         mod.setModelName(m.getModelName());
         mod.setTargetEndpoint(m.getTargetEndpoint());
+        mod.setModelConfigUUID("");
 
         ReportConfiguration rep = new ReportConfiguration();
         ExamReportConfig r = getReport(examReport);

@@ -84,9 +84,7 @@ public class ClientRequest {
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
                 .get(ClientResponse.class);
 
-        if (response.getStatus() != OK) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-        }
+        handleResponseError(response);
 
         return response.getEntity(ExamStatus.class);
     }
@@ -100,9 +98,7 @@ public class ClientRequest {
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
                 .get(ClientResponse.class);
 
-        if (response.getStatus() != OK) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-        }
+        handleResponseError(response);
 
         return response.getEntity(ApiVersion.class);
     }
@@ -137,9 +133,7 @@ public class ClientRequest {
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
                 .post(ClientResponse.class, filterConfig);
 
-        if (response.getStatus() != OK) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-        }
+        handleResponseError(response);
     }
 
     public static void startTestrun(TestConfiguration testConfig) {
@@ -153,8 +147,22 @@ public class ClientRequest {
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
                 .post(ClientResponse.class, testConfig);
 
+        handleResponseError(response);
+    }
+
+    private static void handleResponseError(ClientResponse response) {
         if (response.getStatus() != OK) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+            String errorMessage = "Failed : HTTP error code : " + response.getStatus();
+            try{
+                String entity = response.getEntity(String.class);
+                if(entity instanceof String){
+                    errorMessage += "\n" + entity;
+                }
+            }catch (Exception e){
+                System.out.println(e.getMessage());
+            }
+            throw new RuntimeException(errorMessage);
+
         }
     }
 
@@ -169,9 +177,7 @@ public class ClientRequest {
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
                                          .post(ClientResponse.class);
 
-        if (response.getStatus() != OK) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-        }
+        handleResponseError(response);
     }
 
     public static void clearWorkspace(String projectName) {
@@ -190,9 +196,7 @@ public class ClientRequest {
 
         ClientResponse response = service.get(ClientResponse.class);
 
-        if (response.getStatus() != OK) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-        }
+        handleResponseError(response);
     }
 
     public static void shutdown() {

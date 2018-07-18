@@ -18,14 +18,14 @@ public class FilterConfiguration {
     }
 
     public List<TestrunFilter> getTestrunFilter() {
-        return testrunFilter;
+        return this.testrunFilter;
     }
 
     public void setTestrunFilter(List<TestrunFilter> testrunFilter) {
         this.testrunFilter = testrunFilter;
     }
 
-    public void addTestrunFilter(TestrunFilter testrunFilter){
+    public void addTestrunFilter(TestrunFilter testrunFilter) {
         this.testrunFilter.add(testrunFilter);
     }
 }
