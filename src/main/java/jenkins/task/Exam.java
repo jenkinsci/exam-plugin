@@ -308,7 +308,7 @@ public class Exam extends Builder implements SimpleBuildStep{
                 ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
                 if(ClientRequest.isApiAvailable()){
                     listener.getLogger().println("ERROR: EXAM is allready running");
-                    return;
+                    throw new AbortException("ERROR: EXAM is allready running");
                 }
                 process.stderr(examErr);
                 process.stdout(eca);
@@ -318,12 +318,18 @@ public class Exam extends Builder implements SimpleBuildStep{
                 if(ret){
                     TestConfiguration tc = createTestConfiguration();
                     FilterConfiguration fc = new FilterConfiguration();
-                    fc.setTestrunFilter(testrunFilter);
+                      for (TestrunFilter filter : testrunFilter) {
+                        fc.addTestrunFilter(new jenkins.internal.data.TestrunFilter(filter.name, filter.value, Boolean.valueOf(filter.adminCases),
+                                Boolean.valueOf(filter.activateTestcases)));
+                    }
+
                     if(isClearWorkspace()){
                         ClientRequest.clearWorkspace(tc.getModelProject().getModelName());
                         ClientRequest.clearWorkspace(tc.getReportProject().getProjectName());
                     }
-                    ClientRequest.setTestrunFilter(fc);
+                    if(!testrunFilter.isEmpty()) {
+                        ClientRequest.setTestrunFilter(fc);
+                    }
                     ClientRequest.startTestrun(tc);
                 }
 

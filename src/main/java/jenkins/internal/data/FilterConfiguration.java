@@ -1,8 +1,7 @@
 package jenkins.internal.data;
 
-import jenkins.task.TestrunFilter;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class FilterConfiguration {
@@ -10,7 +9,7 @@ public class FilterConfiguration {
     private List<TestrunFilter> testrunFilter;
 
     public FilterConfiguration() {
-        this.testrunFilter = new ArrayList<>();
+        this.testrunFilter = new ArrayList<TestrunFilter>();
     }
 
     public FilterConfiguration(List<TestrunFilter> testrunFilter) {
@@ -19,6 +18,10 @@ public class FilterConfiguration {
 
     public List<TestrunFilter> getTestrunFilter() {
         return this.testrunFilter;
+    }
+
+    public void setTestrunFilter(TestrunFilter testrunFilter) {
+        this.testrunFilter = Collections.singletonList(testrunFilter);
     }
 
     public void setTestrunFilter(List<TestrunFilter> testrunFilter) {

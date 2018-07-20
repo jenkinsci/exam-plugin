@@ -58,7 +58,7 @@ import java.io.IOException;
     @CheckForNull protected String name;
     @CheckForNull protected String value;
     protected boolean adminCases;
-    protected boolean deactivateTestcases = true;
+    protected boolean activateTestcases = false;
 
     public String getName() {
         return name;
@@ -73,18 +73,18 @@ import java.io.IOException;
     }
 
     public boolean getActivateTestcases() {
-        return deactivateTestcases;
+        return activateTestcases;
     }
 
     @Override public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
     }
 
-    @DataBoundConstructor public TestrunFilter(String name, String value, boolean adminCases, boolean deactivateTestcases) {
+    @DataBoundConstructor public TestrunFilter(String name, String value, boolean adminCases, boolean activateTestcases) {
         this.name = name;
         this.value = value;
         this.adminCases = adminCases;
-        this.deactivateTestcases = deactivateTestcases;
+        this.activateTestcases = activateTestcases;
     }
 
     @Extension public static class DescriptorImpl extends Descriptor<TestrunFilter> {

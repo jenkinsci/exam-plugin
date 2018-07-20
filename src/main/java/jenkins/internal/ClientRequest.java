@@ -37,14 +37,12 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import hudson.model.BuildListener;
 import hudson.model.Executor;
-import jenkins.internal.data.ApiVersion;
-import jenkins.internal.data.ExamStatus;
-import jenkins.internal.data.FilterConfiguration;
-import jenkins.internal.data.TestConfiguration;
+import jenkins.internal.data.*;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.PrintStream;
+import java.util.List;
 
 public class ClientRequest {
 
@@ -128,6 +126,15 @@ public class ClientRequest {
             return;
         }
         logger.println("setting testrun filter");
+        int i = 0;
+        for(TestrunFilter filter : filterConfig.getTestrunFilter()){
+            i++;
+            logger.println(i + ") name: " + filter.getName());
+            logger.println(i + ") regEx: " + filter.getValue());
+            logger.println(i + ") admin: " + filter.isAdminCases());
+            logger.println(i + ") activ: " + filter.isActivateTestcases());
+            logger.println();
+        }
         WebResource service = client.resource(baseUrl + "/testrun/setFilter");
 
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)

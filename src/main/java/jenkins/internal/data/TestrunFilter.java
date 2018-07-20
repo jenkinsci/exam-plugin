@@ -27,30 +27,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package jenkins.task
+package jenkins.internal.data;
 
-import jenkins.internal.enumeration.RestAPILogLevelEnum
+public class TestrunFilter {
 
-f = namespace(lib.FormTagLib)
+    protected String name;
+    protected String value;
+    protected Boolean adminCases = Boolean.FALSE;
+    protected Boolean activateTestcases = Boolean.FALSE;
 
+    public TestrunFilter(){
 
-f.entry(title: _("Attribute Name"), field: "name") {
-    f.textbox()
+    }
+
+    public TestrunFilter(String name, String value, Boolean adminCases, Boolean activateTestcases) {
+        this.name = name;
+        this.value = value;
+        this.adminCases = adminCases;
+        this.activateTestcases = activateTestcases;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getValue() {
+        return this.value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public Boolean isAdminCases() {
+        return this.adminCases;
+    }
+
+    public void setAdminCases(Boolean adminCases) {
+        this.adminCases = adminCases;
+    }
+
+    public Boolean isActivateTestcases() {
+        return this.activateTestcases;
+    }
+
+    public void setActivateTestcases(Boolean activateTestcases) {
+        this.activateTestcases = activateTestcases;
+    }
 }
-
-f.entry(title: _("Regular Expression"), field: "value") {
-    f.textbox()
-}
-
-f.entry(title: _("TestCases"), field: "activateTestcases") {
-    f.booleanRadio(true:"Activate", false:"Deactivate")
-}
-
-f.entry(title: _("Check AdministrativeCase"), field: "adminCases") {
-    f.checkbox()
-}
-
-div(align: "right") {
-    input(type: "button", value: _("Delete Filter"), class: "repeatable-delete")
-}
-
