@@ -87,6 +87,11 @@ public class Exam extends Builder implements SimpleBuildStep{
     private final String examReport;
 
     /**
+     * Definiert den Report Prefix
+     */
+    private String reportPrefix;
+
+    /**
      * JAVA_OPTS if not null.
      */
     private final String javaOpts;
@@ -114,6 +119,15 @@ public class Exam extends Builder implements SimpleBuildStep{
     private String loglevel_lib_ctrl = getDescriptor().getDefaultLogLevel();
 
     private boolean clearWorkspace;
+
+    public String getReportPrefix() {
+        return reportPrefix;
+    }
+
+    @DataBoundSetter
+    public void setReportPrefix(String reportPrefix) {
+        this.reportPrefix = reportPrefix;
+    }
 
     public boolean getLogging() {
         return logging;
@@ -304,7 +318,7 @@ public class Exam extends Builder implements SimpleBuildStep{
             try {
                 ClientRequest.setBaseUrl("http://localhost:"+port+"/examRest");
                 ClientRequest.setLogger(listener.getLogger());
-
+/*
                 ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
                 if(ClientRequest.isApiAvailable()){
                     listener.getLogger().println("ERROR: EXAM is allready running");
@@ -313,7 +327,7 @@ public class Exam extends Builder implements SimpleBuildStep{
                 process.stderr(examErr);
                 process.stdout(eca);
                 process.start();
-
+*/
                 ret = ClientRequest.connectClient(30 * 1000);
                 if(ret){
                     TestConfiguration tc = createTestConfiguration();
@@ -400,6 +414,7 @@ public class Exam extends Builder implements SimpleBuildStep{
         tc.setModelConfig("");
         tc.setSystemConfig(systemConfiguration);
         tc.setTestObject(executionFile);
+        tc.setReportPrefix(reportPrefix);
         tc.setPythonPath(pythonPath);
 
         tc.setLogLevel_TC(RestAPILogLevelEnum.valueOf(loglevel_test_ctrl));

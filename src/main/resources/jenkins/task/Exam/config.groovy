@@ -60,6 +60,10 @@ f.entry(title: _("Reports")) {
     }
 }
 
+f.entry(title: _("ReportPrefix"), field: "reportPrefix") {
+    f.textbox()
+}
+
 f.entry(title: _("ExecutionFile"), field: "executionFile") {
     f.textbox()
 }
