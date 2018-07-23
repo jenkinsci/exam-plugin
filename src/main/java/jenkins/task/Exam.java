@@ -86,6 +86,11 @@ public class Exam extends Builder implements SimpleBuildStep{
      */
     private final String examReport;
 
+    private boolean pdfReport;
+    private String pdfReportTemplate;
+    private String pdfSelectFilter;
+    private boolean pdfMeasureImages;
+
     /**
      * Definiert den Report Prefix
      */
@@ -122,6 +127,42 @@ public class Exam extends Builder implements SimpleBuildStep{
 
     public String getReportPrefix() {
         return reportPrefix;
+    }
+
+    public boolean getPdfReport() {
+        return pdfReport;
+    }
+
+    @DataBoundSetter
+    public void setPdfReport(boolean pdfReport) {
+        this.pdfReport = pdfReport;
+    }
+
+    public String getPdfReportTemplate() {
+        return pdfReportTemplate;
+    }
+
+    @DataBoundSetter
+    public void setPdfReportTemplate(String pdfReportTemplate) {
+        this.pdfReportTemplate = pdfReportTemplate;
+    }
+
+    public String getPdfSelectFilter() {
+        return pdfSelectFilter;
+    }
+
+    @DataBoundSetter
+    public void setPdfSelectFilter(String pdfSelectFilter) {
+        this.pdfSelectFilter = pdfSelectFilter;
+    }
+
+    public boolean getPdfMeasureImages() {
+        return pdfMeasureImages;
+    }
+
+    @DataBoundSetter
+    public void setPdfMeasureImages(boolean pdfMeasureImages) {
+        this.pdfMeasureImages = pdfMeasureImages;
     }
 
     @DataBoundSetter
@@ -339,8 +380,8 @@ public class Exam extends Builder implements SimpleBuildStep{
 
                     if(isClearWorkspace()){
                         ClientRequest.clearWorkspace(tc.getModelProject().getModelName());
-                        ClientRequest.clearWorkspace(tc.getReportProject().getProjectName());
                     }
+                    ClientRequest.clearWorkspace(tc.getReportProject().getProjectName());
                     if(!testrunFilter.isEmpty()) {
                         ClientRequest.setTestrunFilter(fc);
                     }
@@ -416,6 +457,12 @@ public class Exam extends Builder implements SimpleBuildStep{
         tc.setTestObject(executionFile);
         tc.setReportPrefix(reportPrefix);
         tc.setPythonPath(pythonPath);
+
+        if(pdfReport && !pdfReportTemplate.isEmpty()){
+            tc.setPdfReportTemplate(pdfReportTemplate);
+            tc.setPdfSelectFilter(pdfSelectFilter);
+            tc.setPdfMeasureImages(pdfMeasureImages);
+        }
 
         tc.setLogLevel_TC(RestAPILogLevelEnum.valueOf(loglevel_test_ctrl));
         tc.setLogLevel_TL(RestAPILogLevelEnum.valueOf(loglevel_test_logic));
