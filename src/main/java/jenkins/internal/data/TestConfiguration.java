@@ -18,8 +18,11 @@ public class TestConfiguration {
     private RestAPILogLevelEnum logLevel_TL;
     private RestAPILogLevelEnum logLevel_LC;
 
-    private String reportPrefix;
+    private String reportPrefix = "";
     private String pythonPath;
+    private String pdfReportTemplate = "";
+    private String pdfSelectFilter;
+    private Boolean pdfMeasureImages;
 
     /**
      * Konstruktor.
@@ -186,5 +189,29 @@ public class TestConfiguration {
      */
     public void setPythonPath(String pythonPath) {
         this.pythonPath = pythonPath;
+    }
+
+    public String getPdfReportTemplate() {
+        return this.pdfReportTemplate;
+    }
+
+    public void setPdfReportTemplate(String pdfReportTemplate) {
+        this.pdfReportTemplate = pdfReportTemplate;
+    }
+
+    public String getPdfSelectFilter() {
+        return this.pdfSelectFilter;
+    }
+
+    public void setPdfSelectFilter(String pdfSelectFilter) {
+        this.pdfSelectFilter = pdfSelectFilter;
+    }
+
+    public Boolean getPdfMeasureImages() {
+        return this.pdfMeasureImages;
+    }
+
+    public void setPdfMeasureImages(Boolean pdfMeasureImages) {
+        this.pdfMeasureImages = pdfMeasureImages;
     }
 }

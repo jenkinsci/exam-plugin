@@ -33,104 +33,121 @@ import jenkins.internal.enumeration.RestAPILogLevelEnum
 
 f = namespace(lib.FormTagLib)
 
-if (descriptor.installations.length != 0) {
-    f.entry(title: _("EXAM Version")) {
-        select(class: "setting-input", name: "exam.examName") {
-            option(value: "(Default)", _("Default"))
-            descriptor.getInstallations().each {
-                f.option(selected: it.name == instance?.examName, value: it.name, it.name)
-            }
-        }
-    }
-}
 
-f.entry(title: _("Modell")) {
-    select(class: "setting-input", name: "exam.examModel") {
-        descriptor.getModelConfigs().each {
-            f.option(selected: it.name == instance?.examModel, value: it.name, it.displayName)
-        }
-    }
-}
-
-f.entry(title: _("Reports")) {
-    select(class: "setting-input", name: "exam.examReport") {
-        descriptor.getReportConfigs().each {
-            f.option(selected: it.name == instance?.examReport, value: it.name, it.displayName)
-        }
-    }
-}
-
-f.entry(title: _("ReportPrefix"), field: "reportPrefix") {
-    f.textbox()
-}
-
-f.entry(title: _("ExecutionFile"), field: "executionFile") {
-    f.textbox()
-}
-
-f.entry(title: _("SystemConfiguration"), field: "systemConfiguration") {
-    f.textbox()
-}
-
-
-f.entry(title: _("PythonPath"), field: "pythonPath"){
-    f.textbox()
-}
-
-f.entry(title: _("clear Workspace"), field: "clearWorkspace") {
-    f.checkbox()
-}
-
-f.optionalBlock(title: _("show Testrun Filters"), inline: "true") {
-    f.entry(title: _("Testrun Filters")) {
-        f.repeatableProperty(
-                field: "testrunFilter",
-                header: "Testrun Filter",
-                add: "Add filter")
-    }
-}
-
-f.optionalBlock(title: _("show logging"), inline: "true") {
-    f.entry(title: _("TEST_CTRL")) {
-        select(class: "setting-input", name: "loglevel_test_ctrl") {
-            descriptor.getLogLevels().each {
-                if(instance?.loglevel_test_ctrl == null){
-                    f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
-                } else {
-                    f.option(selected: it.name() == instance?.loglevel_test_ctrl, value: it.name(), it.name())
+f.section(title: _("Modeler")) {
+    if (descriptor.installations.length != 0) {
+        f.entry(title: _("EXAM Version")) {
+            select(class: "setting-input", name: "exam.examName") {
+                option(value: "(Default)", _("Default"))
+                descriptor.getInstallations().each {
+                    f.option(selected: it.name == instance?.examName, value: it.name, it.name)
                 }
             }
         }
     }
 
-    f.entry(title: _("TEST_LOGIC")) {
-        select(class: "setting-input", name: "loglevel_test_logic") {
-            descriptor.getLogLevels().each {
-                if(instance?.loglevel_test_logic == null){
-                    f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
-                } else{
-                    f.option(selected: it.name() == instance?.loglevel_test_logic, value: it.name(), it.name())
-                }
+    f.entry(title: _("Modell")) {
+        select(class: "setting-input", name: "exam.examModel") {
+            descriptor.getModelConfigs().each {
+                f.option(selected: it.name == instance?.examModel, value: it.name, it.displayName)
             }
         }
     }
 
-    f.entry(title: _("LIB_CTRL")) {
-        select(class: "setting-input", name: "loglevel_lib_ctrl") {
-            descriptor.getLogLevels().each {
-                if(instance?.loglevel_lib_ctrl == null){
-                    f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
-                } else {
-                    f.option(selected: it.name() == instance?.loglevel_lib_ctrl, value: it.name(), it.name())
-                }
-            }
-        }
-    }
-}
-
-f.advanced(help: _("/plugin/exam/help-logging.html")) {
-
-    f.entry(title: _("Java Opts"), field: "javaOpts") {
+    f.entry(title: _("PythonPath"), field: "pythonPath"){
         f.textbox()
+    }
+
+    f.entry(title: _("clear Workspace"), field: "clearWorkspace") {
+        f.checkbox()
+    }
+    f.advanced() {
+
+        f.entry(title: _("Java Opts"), field: "javaOpts") {
+            f.textbox()
+        }
+    }
+}
+
+f.section(title: _("Testrun")) {
+    f.entry(title: _("testobject"), field: "executionFile") {
+        f.textbox()
+    }
+
+    f.entry(title: _("SystemConfiguration"), field: "systemConfiguration") {
+        f.textbox()
+    }
+
+    f.optionalBlock(title: _("show Testrun Filters"), inline: "true") {
+        f.entry(title: _("Testrun Filters")) {
+            f.repeatableProperty(
+                    field: "testrunFilter",
+                    header: "Testrun Filter",
+                    add: "Add filter")
+        }
+    }
+
+    f.optionalBlock(title: _("show logging"), inline: "true") {
+        f.entry(title: _("TEST_CTRL")) {
+            select(class: "setting-input", name: "loglevel_test_ctrl") {
+                descriptor.getLogLevels().each {
+                    if(instance?.loglevel_test_ctrl == null){
+                        f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
+                    } else {
+                        f.option(selected: it.name() == instance?.loglevel_test_ctrl, value: it.name(), it.name())
+                    }
+                }
+            }
+        }
+
+        f.entry(title: _("TEST_LOGIC")) {
+            select(class: "setting-input", name: "loglevel_test_logic") {
+                descriptor.getLogLevels().each {
+                    if(instance?.loglevel_test_logic == null){
+                        f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
+                    } else{
+                        f.option(selected: it.name() == instance?.loglevel_test_logic, value: it.name(), it.name())
+                    }
+                }
+            }
+        }
+
+        f.entry(title: _("LIB_CTRL")) {
+            select(class: "setting-input", name: "loglevel_lib_ctrl") {
+                descriptor.getLogLevels().each {
+                    if(instance?.loglevel_lib_ctrl == null){
+                        f.option(selected: it.name() == descriptor.getDefaultLogLevel(), value: it.name(), it.name())
+                    } else {
+                        f.option(selected: it.name() == instance?.loglevel_lib_ctrl, value: it.name(), it.name())
+                    }
+                }
+            }
+        }
+    }
+}
+
+f.section(title: _("Report")) {
+    f.entry(title: _("Reports")) {
+        select(class: "setting-input", name: "exam.examReport") {
+            descriptor.getReportConfigs().each {
+                f.option(selected: it.name == instance?.examReport, value: it.name, it.displayName)
+            }
+        }
+    }
+
+    f.entry(title: _("report prefix"), field: "reportPrefix") {
+        f.textbox()
+    }
+
+    f.optionalBlock(title: _("create pdf report"), inline: "true", field: "pdfReport") {
+        f.entry(title: _("report template"), field: "pdfReportTemplate") {
+            f.textbox()
+        }
+        f.entry(title: _("select filter"), field: "pdfSelectFilter") {
+            f.textbox()
+        }
+        f.entry(title: _("include measure images"), field: "pdfMeasureImages") {
+            f.checkbox()
+        }
     }
 }
