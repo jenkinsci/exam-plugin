@@ -47,7 +47,7 @@ f.entry(title: _("Target Ednpoint"), field: "targetEndpoint") {
 
 f.entry {
     div(align: "right") {
-        input(type: "button", value: _("Delete EXAM Model"), class: "repeatable-delete")
+        input(type: "button", value: _("remove EXAM model connection"), class: "repeatable-delete")
     }
 
 }

@@ -143,6 +143,20 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
+    public static void convert(String reportProject) {
+        if(client == null){
+            logger.println("WARNING: no EXAM connected");
+            return;
+        }
+        logger.println("convert to junit");
+        WebResource service = client.resource(baseUrl + "/testrun/convertToJunit/"+reportProject);
+
+        ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
+                .get(ClientResponse.class);
+
+        handleResponseError(response);
+    }
+
     public static void startTestrun(TestConfiguration testConfig) {
         if(client == null){
             logger.println("WARNING: no EXAM connected");

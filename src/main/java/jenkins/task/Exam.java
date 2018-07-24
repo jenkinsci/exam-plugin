@@ -359,7 +359,7 @@ public class Exam extends Builder implements SimpleBuildStep{
             try {
                 ClientRequest.setBaseUrl("http://localhost:"+port+"/examRest");
                 ClientRequest.setLogger(listener.getLogger());
-/*
+
                 ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
                 if(ClientRequest.isApiAvailable()){
                     listener.getLogger().println("ERROR: EXAM is allready running");
@@ -368,7 +368,7 @@ public class Exam extends Builder implements SimpleBuildStep{
                 process.stderr(examErr);
                 process.stdout(eca);
                 process.start();
-*/
+
                 ret = ClientRequest.connectClient(30 * 1000);
                 if(ret){
                     TestConfiguration tc = createTestConfiguration();
@@ -386,9 +386,10 @@ public class Exam extends Builder implements SimpleBuildStep{
                         ClientRequest.setTestrunFilter(fc);
                     }
                     ClientRequest.startTestrun(tc);
-                }
 
-                ClientRequest.waitForTestrunEnds(run.getExecutor());
+                    ClientRequest.waitForTestrunEnds(run.getExecutor());
+                    ClientRequest.convert(tc.getReportProject().getProjectName());
+                }
                 ClientRequest.disconnectClient(30 * 1000);
             } finally {
                 eca.forceEol();

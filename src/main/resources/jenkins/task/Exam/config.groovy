@@ -36,7 +36,7 @@ f = namespace(lib.FormTagLib)
 
 f.section(title: _("Modeler")) {
     if (descriptor.installations.length != 0) {
-        f.entry(title: _("EXAM Version")) {
+        f.entry(title: _("EXAM Version"), help: "/descriptor/jenkins.task.Exam/help/examName") {
             select(class: "setting-input", name: "exam.examName") {
                 option(value: "(Default)", _("Default"))
                 descriptor.getInstallations().each {
@@ -46,7 +46,7 @@ f.section(title: _("Modeler")) {
         }
     }
 
-    f.entry(title: _("Modell")) {
+    f.entry(title: _("Modell"), help: "/descriptor/jenkins.task.Exam/help/examModel") {
         select(class: "setting-input", name: "exam.examModel") {
             descriptor.getModelConfigs().each {
                 f.option(selected: it.name == instance?.examModel, value: it.name, it.displayName)
@@ -58,7 +58,7 @@ f.section(title: _("Modeler")) {
         f.textbox()
     }
 
-    f.entry(title: _("clear Workspace"), field: "clearWorkspace") {
+    f.entry(title: _("delete project"), field: "clearWorkspace") {
         f.checkbox()
     }
     f.advanced() {
@@ -70,7 +70,7 @@ f.section(title: _("Modeler")) {
 }
 
 f.section(title: _("Testrun")) {
-    f.entry(title: _("testobject"), field: "executionFile") {
+    f.entry(title: _("test object"), field: "executionFile") {
         f.textbox()
     }
 
@@ -78,8 +78,8 @@ f.section(title: _("Testrun")) {
         f.textbox()
     }
 
-    f.optionalBlock(title: _("show Testrun Filters"), inline: "true") {
-        f.entry(title: _("Testrun Filters")) {
+    f.optionalBlock(title: _("configure Testrun Filters"), inline: "true", help: "/descriptor/jenkins.task.Exam/help/testrunFilter") {
+        f.entry(title: "") {
             f.repeatableProperty(
                     field: "testrunFilter",
                     header: "Testrun Filter",
@@ -87,7 +87,7 @@ f.section(title: _("Testrun")) {
         }
     }
 
-    f.optionalBlock(title: _("show logging"), inline: "true") {
+    f.optionalBlock(title: _("configure logging"), inline: "true", help: "/descriptor/jenkins.task.Exam/help/logging") {
         f.entry(title: _("TEST_CTRL")) {
             select(class: "setting-input", name: "loglevel_test_ctrl") {
                 descriptor.getLogLevels().each {
@@ -127,7 +127,7 @@ f.section(title: _("Testrun")) {
 }
 
 f.section(title: _("Report")) {
-    f.entry(title: _("Reports")) {
+    f.entry(title: _("Reports"), help: "/descriptor/jenkins.task.Exam/help/examReport") {
         select(class: "setting-input", name: "exam.examReport") {
             descriptor.getReportConfigs().each {
                 f.option(selected: it.name == instance?.examReport, value: it.name, it.displayName)
