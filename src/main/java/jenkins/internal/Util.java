@@ -30,8 +30,8 @@
 package jenkins.internal;
 
 import hudson.util.FormValidation;
+import jenkins.internal.enumeration.PYTHON_WORDS;
 import jenkins.task._exam.Messages;
-import org.kohsuke.stapler.QueryParameter;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,6 +53,62 @@ public class Util {
         return false;
     }
 
+    public static boolean isIdValid(String object) {
+        Pattern regexSystemConfig = Pattern.compile("I[0-9]+");
+        Matcher matcher = regexSystemConfig.matcher(object);
+        if (matcher.find()) {
+            if (matcher.groupCount() == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public static boolean isPythonConformName(String name) {
+        if (name == null) {
+            return false;
+        }
+
+        String[] splitted = name.split("\\.");
+
+        if(splitted.length == 1 && name.startsWith("I")){
+            return false;
+        }
+
+        Pattern regexPattern = Pattern.compile("[_a-zA-Z@]+[_a-zA-Z0-9#@]*");
+
+        for(String part : splitted) {
+            if (!regexPattern.matcher(part).matches()) {
+                return false;
+            }
+            PYTHON_WORDS id = PYTHON_WORDS.get(part);
+            if (PYTHON_WORDS.RESERVED_WORDS.contains(id)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    public static FormValidation validateId(String value) {
+
+        if(isIdValid(value)){
+            return FormValidation.ok();
+        }
+
+        return FormValidation.error(Messages.EXAM_RegExId());
+    }
+
+
+    public static FormValidation validatePythonConformName(String value) {
+
+        if(isIdValid(value)){
+            return FormValidation.ok();
+        }
+
+        return FormValidation.error(Messages.EXAM_RegExFsn());
+    }
 
     public static FormValidation validateUuid(String value) {
 
@@ -61,5 +117,31 @@ public class Util {
         }
 
         return FormValidation.error(Messages.EXAM_RegExUuid());
+    }
+
+    public static FormValidation validateElementForSearch(String value) {
+        StringBuilder errorMsg = new StringBuilder("");
+
+        boolean uuidValid = isUuidValid(value);
+        boolean idValid = isIdValid(value);
+        boolean fsnValid = isPythonConformName(value);
+
+        if(!uuidValid){
+            errorMsg.append(Messages.EXAM_RegExUuid());
+            errorMsg.append("\r\n");
+        }
+        if(!idValid){
+            errorMsg.append(Messages.EXAM_RegExId());
+            errorMsg.append("\r\n");
+        }
+        if(!fsnValid){
+            errorMsg.append(Messages.EXAM_RegExFsn());
+            errorMsg.append("\r\n");
+        }
+
+        if(uuidValid || idValid || fsnValid){
+            return FormValidation.ok();
+        }
+        return FormValidation.error(errorMsg.toString());
     }
 }
