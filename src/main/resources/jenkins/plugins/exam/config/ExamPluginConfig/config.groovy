@@ -41,13 +41,13 @@ f.section(title: descriptor.displayName) {
         f.repeatableProperty(
                 field: "modelConfigs",
                 header: "EXAM Model",
-                add: "Add EXAM Model")
+                add: _("add EXAM model connection"))
     }
 
     f.block() {
         f.validateButton(
-                title: _("Test model connections"),
-                progress: _("Testing..."),
+                title: _("test model connections"),
+                progress: _("testing..."),
                 method: "verifyModelConnections"
         )
     }
@@ -56,6 +56,6 @@ f.section(title: descriptor.displayName) {
         f.repeatableProperty(
                 field: "reportConfigs",
                 header: "EXAM Report",
-                add: "Add EXAM Report")
+                add: _("add EXAM report connection"))
     }
 }

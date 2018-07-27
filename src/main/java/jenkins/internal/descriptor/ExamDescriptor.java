@@ -33,11 +33,14 @@ import hudson.util.FormValidation;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamReportConfig;
+import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 import org.kohsuke.stapler.QueryParameter;
 
 public interface ExamDescriptor {
 
     ExamTool[] getInstallations();
+
+    PythonInstallation[] getPythonInstallations();
 
     ExamModelConfig[] getModelConfigs();
 

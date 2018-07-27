@@ -30,5 +30,5 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
 >
-    <st:include page="config.jelly" class="jenkins.task.ExamReport"/>
+    <st:include page="config.jelly" class="jenkins.reporter.ExamReport"/>
 </j:jelly>

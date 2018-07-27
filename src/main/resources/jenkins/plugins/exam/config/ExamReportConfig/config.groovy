@@ -70,7 +70,7 @@ f.entry(title: _("DB User Password"), field: "dbPass") {
 
 f.entry {
     div(align: "right") {
-        input(type: "button", value: _("Delete EXAM Report"), class: "repeatable-delete")
+        input(type: "button", value: _("remove EXAM report connection"), class: "repeatable-delete")
     }
 
 }

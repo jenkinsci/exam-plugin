@@ -29,8 +29,3 @@
  */
 package jenkins.task
 
-f = namespace(lib.FormTagLib)
-
-f.entry(title: _("TEST"), field: "test") {
-    f.textbox()
-}
