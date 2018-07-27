@@ -29,14 +29,33 @@
  */
 package jenkins.internal;
 
+import hudson.FilePath;
+import hudson.model.Computer;
+import hudson.model.Node;
 import hudson.util.FormValidation;
 import jenkins.internal.enumeration.PYTHON_WORDS;
+import jenkins.model.Jenkins;
 import jenkins.task._exam.Messages;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
+
+    public static Node workspaceToNode(FilePath workspace) {
+        Jenkins j = Jenkins.getInstance();
+        if (workspace != null && workspace.isRemote()) {
+            for (Computer c : j.getComputers()) {
+                if (c.getChannel() == workspace.getChannel()) {
+                    Node n = c.getNode();
+                    if (n != null) {
+                        return n;
+                    }
+                }
+            }
+        }
+        return j;
+    }
 
     public static boolean isUuidValid(String uuid){
         String myUuid = uuid.replaceAll("-","");

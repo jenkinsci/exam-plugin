@@ -54,10 +54,6 @@ f.section(title: _("Modeler")) {
         }
     }
 
-    f.entry(title: _("PythonPath"), field: "pythonPath"){
-        f.textbox()
-    }
-
     f.entry(title: _("delete project"), field: "clearWorkspace") {
         f.checkbox()
     }
@@ -70,6 +66,18 @@ f.section(title: _("Modeler")) {
 }
 
 f.section(title: _("Testrun")) {
+
+    if (descriptor.pythonInstallations.length != 0) {
+        f.entry(title: _("Python Version"), help: "/descriptor/jenkins.task.Exam/help/pythonName") {
+            select(class: "setting-input", name: "exam.pythonName") {
+                option(value: "(Default)", _("Default"))
+                descriptor.getPythonInstallations().each {
+                    f.option(selected: it.name == instance?.pythonName, value: it.name, it.name)
+                }
+            }
+        }
+    }
+
     f.entry(title: _("test object"), field: "executionFile") {
         f.textbox()
     }
