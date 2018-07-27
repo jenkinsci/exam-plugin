@@ -54,6 +54,10 @@ f.section(title: _("Modeler")) {
         }
     }
 
+    f.entry(title: _("ModelConfiguration"), field: "modelConfiguration") {
+        f.textbox()
+    }
+
     f.entry(title: _("delete project"), field: "clearWorkspace") {
         f.checkbox()
     }

@@ -118,6 +118,11 @@ public class Exam extends Builder implements SimpleBuildStep {
     private final String executionFile;
 
     /**
+     * Definiert die ModelConfiguration
+     */
+    private String modelConfiguration;
+
+    /**
      * Definiert die default SystemConfiguration
      */
     private final String systemConfiguration;
@@ -226,6 +231,11 @@ public class Exam extends Builder implements SimpleBuildStep {
         this.clearWorkspace = clearWorkspace;
     }
 
+    @DataBoundSetter
+    public void setModelConfiguration(String modelConfiguration) {
+        this.modelConfiguration = modelConfiguration;
+    }
+
     @DataBoundConstructor
     public Exam(String examName, String pythonName, String examModel, String examReport, String executionFile,
             String systemConfiguration) {
@@ -259,6 +269,10 @@ public class Exam extends Builder implements SimpleBuildStep {
 
     public String getSystemConfiguration() {
         return systemConfiguration;
+    }
+
+    public String getModelConfiguration() {
+        return modelConfiguration;
     }
 
     public boolean isClearWorkspace() {
@@ -481,7 +495,7 @@ public class Exam extends Builder implements SimpleBuildStep {
         mod.setProjectName(m.getName());
         mod.setModelName(m.getModelName());
         mod.setTargetEndpoint(m.getTargetEndpoint());
-        mod.setModelConfigUUID("");
+        mod.setModelConfigUUID(modelConfiguration);
 
         ReportConfiguration rep = new ReportConfiguration();
         ExamReportConfig r = getReport(examReport);
