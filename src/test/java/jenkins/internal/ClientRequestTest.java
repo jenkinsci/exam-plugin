@@ -29,6 +29,7 @@
  */
 package jenkins.internal;
 
+import hudson.AbortException;
 import hudson.model.Executor;
 import jenkins.internal.data.ExamStatus;
 import okhttp3.mockwebserver.MockResponse;
@@ -72,7 +73,7 @@ public class ClientRequestTest {
         server.setDispatcher(dispatcher);
         server.start(8085);
         printMock = Mockito.mock(PrintStream.class, "PrintMock");
-        testObject = new ClientRequest(printMock, baseUrl);
+        testObject = new ClientRequest(null, printMock, baseUrl);
         Whitebox.invokeMethod(ClientRequest.class,"createClient");
     }
 
@@ -107,115 +108,115 @@ public class ClientRequestTest {
     }
 
     @Test
-    public void getStatus() {
-        ExamStatus examStatus = ClientRequest.getStatus();
+    public void getStatus() throws AbortException {
+        ExamStatus examStatus = testObject.getStatus();
         assertEquals("myTestJob",examStatus.getJobName());
     }
 
     @Test
     public void isApiAvailable() throws Exception {
-        assertTrue(ClientRequest.isApiAvailable());
+        assertTrue(testObject.isApiAvailable());
 
         dispatcher.clearAllResponse();
-        assertFalse(ClientRequest.isApiAvailable());
+        assertFalse(testObject.isApiAvailable());
         dispatcher.setDefaults();
 
         Whitebox.invokeMethod(ClientRequest.class,"destroyClient");
-        assertTrue(ClientRequest.isApiAvailable());
+        assertTrue(testObject.isApiAvailable());
     }
 
     @Test
-    public void startTestrun() {
-        ClientRequest.startTestrun(null);
+    public void startTestrun() throws AbortException {
+        testObject.startTestrun(null);
         Mockito.verify(printMock).println("starting testrun");
 
         Mockito.clearInvocations(printMock);
         dispatcher.removeResponse("/testrun/start");
         exception.expect(RuntimeException.class);
-        ClientRequest.startTestrun(null);
+        testObject.startTestrun(null);
         Mockito.verify(printMock).println("starting testrun");
     }
 
     @Test
-    public void stopTestrun() {
-        ClientRequest.stopTestrun();
+    public void stopTestrun() throws AbortException {
+        testObject.stopTestrun();
         Mockito.verify(printMock).println("stopping testrun");
 
         Mockito.clearInvocations(printMock);
         dispatcher.removeResponse("/testrun/stop");
         exception.expect(RuntimeException.class);
-        ClientRequest.stopTestrun();
+        testObject.stopTestrun();
         Mockito.verify(printMock).println("stopping testrun");
     }
 
     @Test
-    public void clearWorkspace() {
+    public void clearWorkspace() throws AbortException {
         String strAll = "deleting all projects and pcode from EXAM workspace";
-        ClientRequest.clearWorkspace(null);
+        testObject.clearWorkspace(null);
         Mockito.verify(printMock).println(strAll);
         Mockito.clearInvocations(printMock);
-        ClientRequest.clearWorkspace("");
+        testObject.clearWorkspace("");
         Mockito.verify(printMock).println(strAll);
-        ClientRequest.clearWorkspace("myProject");
+        testObject.clearWorkspace("myProject");
         Mockito.verify(printMock).println("deleting project and pcode for project \"myProject\" from EXAM workspace");
 
         dispatcher.clearAllResponse();
         exception.expect(RuntimeException.class);
-        ClientRequest.clearWorkspace("");
+        testObject.clearWorkspace("");
     }
 
     @Test
     public void shutdown() {
-        ClientRequest.shutdown();
+        testObject.shutdown();
         Mockito.verify(printMock).println("closing EXAM");
     }
 
     @Test
     public void connectClient() throws IOException {
-        assertTrue(ClientRequest.connectClient(1000));
+        assertTrue(testObject.connectClient(1000));
         Mockito.verify(printMock, Mockito.never()).println("ERROR: EXAM does not answer in 1000ms");
 
             server.shutdown();
             Mockito.clearInvocations(printMock);
-            assertFalse(ClientRequest.connectClient(1000));
+            assertFalse(testObject.connectClient(1000));
             Mockito.verify(printMock).println("ERROR: EXAM does not answer in 1000ms");
 
     }
 
     @Test
     public void disconnectClient() throws Exception {
-        ClientRequest.disconnectClient(1000);
+        testObject.disconnectClient(1000);
         Mockito.verify(printMock).println("disconnect from EXAM");
         Mockito.verify(printMock).println("ERROR: EXAM does not shutdown in 1000ms");
 
         Whitebox.invokeMethod(ClientRequest.class,"createClient");
         Mockito.clearInvocations(printMock);
         dispatcher.removeResponse("/testrun/status");
-        ClientRequest.disconnectClient(1000);
+        testObject.disconnectClient(1000);
         Mockito.verify(printMock).println("disconnect from EXAM");
         Mockito.verify(printMock, Mockito.never()).println("ERROR: EXAM does not shutdown in 1000ms");
 
-        ClientRequest.disconnectClient(1000);
+        testObject.disconnectClient(1000);
         Mockito.verify(printMock).println("Client is not connected");
 
         Whitebox.invokeMethod(ClientRequest.class,"createClient");
         Mockito.clearInvocations(printMock);
         server.shutdown();
-        ClientRequest.disconnectClient(1000);
+        testObject.disconnectClient(1000);
 
         Mockito.verify(printMock).println("disconnect from EXAM");
         Mockito.inOrder(printMock).verify(printMock, Mockito.calls(2)).println(Mockito.anyString());
     }
 
     @Test
-    public void waitForTestrunEnds() {
+    public void waitForTestrunEnds()  throws AbortException {
         Executor executor = Mockito.mock(Executor.class);
         Mockito.when(executor.isInterrupted()).thenReturn(false);
         dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
                 .addHeader("Content-Type", "application/json; charset=utf-8")
                 .addHeader("Cache-Control", "no-cache")
                 .setBody("{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":1}"));
-        ClientRequest.waitForTestrunEnds(executor);
+        testObject.waitForTestrunEnds(executor);
 
         Mockito.inOrder(executor).verify(executor, Mockito.calls(2)).isInterrupted();
         int reqCount = server.getRequestCount();
@@ -223,7 +224,7 @@ public class ClientRequestTest {
 
         Mockito.clearInvocations(executor);
         Mockito.when(executor.isInterrupted()).thenReturn(true);
-        ClientRequest.waitForTestrunEnds(executor);
+        testObject.waitForTestrunEnds(executor);
         Mockito.inOrder(executor).verify(executor, Mockito.calls(1)).isInterrupted();
     }
 
@@ -231,7 +232,7 @@ public class ClientRequestTest {
     public void getLogger() {
         PrintStream printMock = Mockito.mock(PrintStream.class, "PrintMock for Test");
         Whitebox.setInternalState(ClientRequest.class, "logger", printMock);
-        PrintStream testResult = ClientRequest.getLogger();
+        PrintStream testResult = testObject.getLogger();
         MockingDetails mockDetails = Mockito.mockingDetails(testResult);
         if(!mockDetails.isMock()){
             fail("no Mock returned");
@@ -243,7 +244,7 @@ public class ClientRequestTest {
     @Test
     public void setLogger() {
         PrintStream printMock = Mockito.mock(PrintStream.class, "PrintMock for Test");
-        ClientRequest.setLogger(printMock);
+        testObject.setLogger(printMock);
         PrintStream testResult = Whitebox.getInternalState(ClientRequest.class, "logger");
         MockingDetails mockDetails = Mockito.mockingDetails(testResult);
         if(!mockDetails.isMock()){
@@ -264,23 +265,23 @@ public class ClientRequestTest {
         Whitebox.invokeMethod(ClientRequest.class,"destroyClient");
 
         Mockito.clearInvocations(printMock);
-        ClientRequest.shutdown();
+        testObject.shutdown();
         Mockito.verify(printMock).println("WARNING: no EXAM connected");
 
         Mockito.clearInvocations(printMock);
-        ClientRequest.clearWorkspace("");
+        testObject.clearWorkspace("");
         Mockito.verify(printMock).println("WARNING: no EXAM connected");
 
         Mockito.clearInvocations(printMock);
-        ClientRequest.stopTestrun();
+        testObject.stopTestrun();
         Mockito.verify(printMock).println("WARNING: no EXAM connected");
 
         Mockito.clearInvocations(printMock);
-        ClientRequest.getStatus();
+        testObject.getStatus();
         Mockito.verify(printMock).println("WARNING: no EXAM connected");
 
         Mockito.clearInvocations(printMock);
-        ClientRequest.startTestrun(null);
+        testObject.startTestrun(null);
         Mockito.verify(printMock).println("WARNING: no EXAM connected");
     }
 }

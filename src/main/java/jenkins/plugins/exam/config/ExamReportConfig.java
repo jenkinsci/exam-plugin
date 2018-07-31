@@ -55,14 +55,14 @@ import java.util.Random;
     /**
      * The optional display name of this server.
      */
-    @CheckForNull private String name;
-    private String dbType;
-    private String host;
-    private String port;
-    private String serviceOrSid;
-    private String schema;
-    private String dbUser;
-    private String dbPass;
+    @CheckForNull private String name = "";
+    private String dbType = "";
+    private String host = "";
+    private String port = "0";
+    private String serviceOrSid = "";
+    private String schema = "";
+    private String dbUser = "";
+    private String dbPass = "";
 
     @DataBoundConstructor public ExamReportConfig() {
     }
@@ -85,7 +85,7 @@ import java.util.Random;
      * @param name the optional display name.
      */
     @DataBoundSetter public void setName(@CheckForNull String name) {
-        this.name = Util.fixEmptyAndTrim(name);
+        this.name = Util.fixNull(name).trim();
     }
 
     public String getDbType() {
@@ -93,7 +93,7 @@ import java.util.Random;
     }
 
     @DataBoundSetter public void setDbType(@CheckForNull String dbType) {
-        this.dbType = dbType;
+        this.dbType = Util.fixNull(dbType).trim();
     }
 
     public String getHost() {
@@ -101,7 +101,7 @@ import java.util.Random;
     }
 
     @DataBoundSetter public void setHost(@CheckForNull String host) {
-        this.host = Util.fixEmptyAndTrim(host);
+        this.host = Util.fixNull(host).trim();
     }
 
     public String getPort() {
@@ -109,7 +109,7 @@ import java.util.Random;
     }
 
     @DataBoundSetter public void setPort(@CheckForNull String port) {
-        this.port = Util.fixEmptyAndTrim(port);
+        this.port = Util.fixNull(port).trim();
     }
 
     public String getServiceOrSid() {
@@ -117,7 +117,7 @@ import java.util.Random;
     }
 
     @DataBoundSetter public void setServiceOrSid(@CheckForNull String serviceOrSid) {
-        this.serviceOrSid = Util.fixEmptyAndTrim(serviceOrSid);
+        this.serviceOrSid = Util.fixNull(serviceOrSid).trim();
     }
 
     public String getSchema() {
@@ -125,7 +125,7 @@ import java.util.Random;
     }
 
     @DataBoundSetter public void setSchema(@CheckForNull String schema) {
-        this.schema = Util.fixEmptyAndTrim(schema);
+        this.schema = Util.fixNull(schema).trim();
     }
 
     public String getDbUser() {
@@ -133,7 +133,7 @@ import java.util.Random;
     }
 
     @DataBoundSetter public void setDbUser(@CheckForNull String dbUser) {
-        this.dbUser = Util.fixEmptyAndTrim(dbUser);
+        this.dbUser = Util.fixNull(dbUser).trim();
     }
 
     public String getDbPass() {
@@ -141,7 +141,7 @@ import java.util.Random;
     }
 
     @DataBoundSetter public void setDbPass(@CheckForNull String dbPass) {
-        this.dbPass = Util.fixEmptyAndTrim(dbPass);
+        this.dbPass = Util.fixNull(dbPass).trim();
     }
 
     public String getDisplayName() {
@@ -176,8 +176,18 @@ import java.util.Random;
             return Arrays.copyOf(dbTypes, dbTypes.length);
         }
 
+
+
         @Override public String getDisplayName() {
             return "EXAM Report";
+        }
+
+
+        public FormValidation doCheckName(@QueryParameter String value) {
+            if(value.contains(" ")){
+                return FormValidation.error(Messages.ExamPluginConfig_spacesNotAllowed());
+            }
+            return FormValidation.ok();
         }
 
         public FormValidation doVerifyConnection(@QueryParameter String name, @QueryParameter String dbType,

@@ -38,7 +38,7 @@ import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
 import jenkins.internal.ClientRequest;
-import jenkins.internal.FileCopyOperation;
+import jenkins.internal.Remote;
 import jenkins.internal.data.FilterConfiguration;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.data.ReportConfiguration;
@@ -331,10 +331,10 @@ public class Exam extends Builder implements SimpleBuildStep {
         PythonInstallation python = getPython();
         String exe = "EXAM.exe";
         String pythonexe = "";
+        Node node = jenkins.internal.Util.workspaceToNode(workspace);
         if (examTool == null) {
             args.add("EXAM.exe");
         } else {
-            Node node = jenkins.internal.Util.workspaceToNode(workspace);
             if (node == null) {
                 throw new AbortException(Messages.EXAM_NodeOffline());
             }
@@ -358,7 +358,6 @@ public class Exam extends Builder implements SimpleBuildStep {
         File buildFile = new File(exe);
         FilePath buildFilePath = new FilePath(buildFile);
 
-        String configuration = null;
         String dataPath = examTool.getHome();
         String configurationPath = null;
         String examWorkspace = null;
@@ -368,11 +367,13 @@ public class Exam extends Builder implements SimpleBuildStep {
         }
         configurationPath = dataPath + File.separator + "configuration";
         examWorkspace = workspace + File.separator + "workspace_exam_restApi";
+        FilePath source = workspace.child("workspace_exam_restApi");
+        FilePath target = workspace.child("target");
         examWorkspace = examWorkspace.replaceAll("[\\/]]", File.separator);
         File configurationFile = new File(
                 dataPath + File.separator + "configuration" + File.separator + "config.ini");
-        if (!configurationFile.exists() || configurationFile.isDirectory()) {
-            throw new AbortException(Messages.EXAM_NotExamConfigDirectory(configuration));
+        if(!Remote.fileExists(launcher, configurationFile)) {
+            throw new AbortException(Messages.EXAM_NotExamConfigDirectory(configurationFile.getPath()));
         }
 
         if (workspace != null) {
@@ -403,12 +404,13 @@ public class Exam extends Builder implements SimpleBuildStep {
             ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
             ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger(), run.getCharset());
             boolean ret = true;
+            String slaveIp = Remote.getIP(launcher);
+            ClientRequest clientRequest = new ClientRequest(launcher, listener.getLogger(),
+                    "http://" + slaveIp + ":" + port + "/examRest");
             try {
-                ClientRequest.setBaseUrl("http://localhost:" + port + "/examRest");
-                ClientRequest.setLogger(listener.getLogger());
 
                 ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
-                if (ClientRequest.isApiAvailable()) {
+                if (clientRequest.isApiAvailable()) {
                     listener.getLogger().println("ERROR: EXAM is allready running");
                     throw new AbortException("ERROR: EXAM is allready running");
                 }
@@ -416,7 +418,7 @@ public class Exam extends Builder implements SimpleBuildStep {
                 process.stdout(eca);
                 process.start();
 
-                ret = ClientRequest.connectClient(5 * 60 * 1000);
+                ret = clientRequest.connectClient(5 * 60 * 1000);
                 if (ret) {
                     TestConfiguration tc = createTestConfiguration();
                     tc.setPythonPath(pythonexe);
@@ -428,26 +430,27 @@ public class Exam extends Builder implements SimpleBuildStep {
                     }
 
                     if (isClearWorkspace()) {
-                        ClientRequest.clearWorkspace(tc.getModelProject().getModelName());
+                        clientRequest.clearWorkspace(tc.getModelProject().getModelName());
                     }
-                    ClientRequest.clearWorkspace(tc.getReportProject().getProjectName());
+                    clientRequest.clearWorkspace(tc.getReportProject().getProjectName());
                     if (!testrunFilter.isEmpty()) {
-                        ClientRequest.setTestrunFilter(fc);
+                        clientRequest.setTestrunFilter(fc);
                     }
-                    ClientRequest.startTestrun(tc);
+                    clientRequest.startTestrun(tc);
 
-                    ClientRequest.waitForTestrunEnds(run.getExecutor());
-                    ClientRequest.convert(tc.getReportProject().getProjectName());
+                    clientRequest.waitForTestrunEnds(run.getExecutor());
+                    clientRequest.convert(tc.getReportProject().getProjectName());
 
                     hash = "__" + RandomStringUtils.random(5, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray());
-                    Path source = Paths
-                            .get(examWorkspace + "/reports/" + tc.getReportProject().getProjectName() + "/junit");
-                    Path target = Paths.get(workspace + "/target/test-reports/" + tc.getModelProject().getProjectName() + hash);
-                    FileCopyOperation.copyFolder(source, target);
+                    source = source.child("reports").child( tc.getReportProject().getProjectName()).child("junit");
+                    target = target.child("test-reports").child(tc.getModelProject().getProjectName() + hash);
+                    source.copyRecursiveTo(target);
                 }
-                ClientRequest.disconnectClient(60 * 1000);
-            } finally {
+            } catch (InterruptedException| IOException e){
+                throw new AbortException("ERROR: " + e.getMessage());
+            }finally {
                 eca.forceEol();
+                clientRequest.disconnectClient(60 * 1000);
             }
             return;
         } catch (IOException e) {
@@ -489,9 +492,12 @@ public class Exam extends Builder implements SimpleBuildStep {
         return null;
     }
 
-    private TestConfiguration createTestConfiguration() {
+    private TestConfiguration createTestConfiguration() throws AbortException {
         ModelConfiguration mod = new ModelConfiguration();
         ExamModelConfig m = getModel(examModel);
+        if(m == null){
+            throw new AbortException("ERROR: no model configured with name: " + examModel);
+        }
         mod.setProjectName(m.getName());
         mod.setModelName(m.getModelName());
         mod.setTargetEndpoint(m.getTargetEndpoint());
@@ -499,6 +505,7 @@ public class Exam extends Builder implements SimpleBuildStep {
 
         ReportConfiguration rep = new ReportConfiguration();
         ExamReportConfig r = getReport(examReport);
+        rep.setProjectName(r.getName());
         rep.setDbHost(r.getHost());
         rep.setDbPassword(r.getDbPass());
         rep.setDbPort(Integer.valueOf(r.getPort()));
@@ -506,7 +513,6 @@ public class Exam extends Builder implements SimpleBuildStep {
         rep.setDbService(r.getServiceOrSid());
         rep.setDbType(r.getDbType());
         rep.setDbUser(r.getDbUser());
-        rep.setProjectName(r.getName());
 
         TestConfiguration tc = new TestConfiguration();
         tc.setModelProject(mod);
@@ -615,8 +621,20 @@ public class Exam extends Builder implements SimpleBuildStep {
         }
 
         public ExamReportConfig[] getReportConfigs() {
-            ExamReportConfig[] ret = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
-                    .getReportConfigs().toArray(new ExamReportConfig[0]);
+            List<ExamReportConfig> lReportConfigs = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
+                    .getReportConfigs();
+            ExamReportConfig[] ret = new ExamReportConfig[lReportConfigs.size() + 1];
+            ExamReportConfig noReport = new ExamReportConfig();
+            noReport.setName(ReportConfiguration.NO_REPORT);
+            noReport.setSchema("");
+            noReport.setHost("");
+            noReport.setPort("0");
+            ret[0] = noReport;
+            int i = 0;
+            for(ExamReportConfig rConfig : lReportConfigs){
+                i++;
+                ret[i] = rConfig;
+            }
             return ret;
         }
     }

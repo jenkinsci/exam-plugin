@@ -47,6 +47,7 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -74,6 +75,11 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
             List<? extends ToolProperty<?>> properties) {
         super(name, home, properties);
         this.relativeDataPath = Util.fixEmptyAndTrim(relativeConfigPath);
+    }
+
+    public ExamTool(String name, String home, List<? extends ToolProperty<?>> properties) {
+        super(name, home, properties);
+        this.relativeDataPath = null;
     }
 
     @DataBoundSetter
@@ -143,6 +149,22 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
 
         @Override public void setInstallations(ExamTool... installations) {
             this.installations = installations;
+        }
+
+        /**
+         * Return list of applicable GitTool descriptors.
+         * @return list of applicable GitTool descriptors
+         */
+        @SuppressWarnings("unchecked")
+        public List<ToolDescriptor<? extends ExamTool>> getApplicableDescriptors() {
+            List<ToolDescriptor<? extends ExamTool>> r = new ArrayList<>();
+            Jenkins jenkinsInstance = Jenkins.getInstance();
+            for (ToolDescriptor<?> td : jenkinsInstance.<ToolInstallation,ToolDescriptor<?>>getDescriptorList(ToolInstallation.class)) {
+                if (ExamTool.class.isAssignableFrom(td.clazz)) { // This checks cast is allowed
+                    r.add((ToolDescriptor<? extends ExamTool>)td); // This is the unchecked cast
+                }
+            }
+            return r;
         }
     }
 

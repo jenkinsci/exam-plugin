@@ -35,6 +35,8 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
+import hudson.AbortException;
+import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.model.Executor;
 import jenkins.internal.data.*;
@@ -46,38 +48,45 @@ import java.util.List;
 
 public class ClientRequest {
 
-    private static String baseUrl = "";
-    private static PrintStream logger;
-    private static Client client = null;
+    private String baseUrl = "";
+    private PrintStream logger;
+    private Client client = null;
+    private Launcher launcher = null;
 
     private final static int OK = Response.ok().build().getStatus();
 
-    public static String getBaseUrl() {
+    public ClientRequest(Launcher launcher, PrintStream logger, String baseUrl) {
+        this.launcher = launcher;
+        this.baseUrl = baseUrl;
+        this.logger = logger;
+    }
+
+    public String getBaseUrl() {
         return baseUrl;
     }
 
-    public static void setBaseUrl(String baseUrl) {
-        ClientRequest.baseUrl = baseUrl;
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
-    public static PrintStream getLogger() {
+    public PrintStream getLogger() {
         return logger;
     }
 
-    public static void setLogger(PrintStream logger) {
-        ClientRequest.logger = logger;
+    public void setLogger(PrintStream logger) {
+        this.logger = logger;
     }
 
-    public ClientRequest(PrintStream logger, String baseUrl) {
-        ClientRequest.baseUrl = baseUrl;
-        ClientRequest.logger = logger;
+    public void setLauncher(Launcher launcher) {
+        this.launcher = launcher;
     }
 
-    public static ExamStatus getStatus() {
+    public ExamStatus getStatus() {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return null;
         }
+
         WebResource service = client.resource(baseUrl + "/testrun/status");
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
                 .get(ClientResponse.class);
@@ -87,7 +96,7 @@ public class ClientRequest {
         return response.getEntity(ExamStatus.class);
     }
 
-    public static ApiVersion getApiVersion() {
+    public ApiVersion getApiVersion() {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return null;
@@ -101,7 +110,7 @@ public class ClientRequest {
         return response.getEntity(ApiVersion.class);
     }
 
-    public static boolean isApiAvailable(){
+    public boolean isApiAvailable(){
         boolean clientCreated = false;
         boolean isAvailable = true;
         if(client == null){
@@ -120,7 +129,7 @@ public class ClientRequest {
         return isAvailable;
     }
 
-    public static void setTestrunFilter(FilterConfiguration filterConfig) {
+    public void setTestrunFilter(FilterConfiguration filterConfig) {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return;
@@ -143,7 +152,7 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
-    public static void convert(String reportProject) {
+    public void convert(String reportProject)  {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return;
@@ -157,7 +166,7 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
-    public static void startTestrun(TestConfiguration testConfig) {
+    public void startTestrun(TestConfiguration testConfig) {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return;
@@ -171,7 +180,7 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
-    private static void handleResponseError(ClientResponse response) {
+    private void handleResponseError(ClientResponse response) {
         if (response.getStatus() != OK) {
             String errorMessage = "Failed : HTTP error code : " + response.getStatus();
             try{
@@ -187,7 +196,7 @@ public class ClientRequest {
         }
     }
 
-    public static void stopTestrun(){
+    public void stopTestrun(){
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return;
@@ -201,7 +210,7 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
-    public static void clearWorkspace(String projectName) {
+    public void clearWorkspace(String projectName) {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return;
@@ -220,7 +229,7 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
-    public static void shutdown() {
+    public void shutdown() {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return;
@@ -230,7 +239,7 @@ public class ClientRequest {
 
     }
 
-    public static boolean connectClient(int timeout) {
+    public boolean connectClient(int timeout) {
         logger.println("connecting to EXAM");
         createClient();
 
@@ -240,11 +249,11 @@ public class ClientRequest {
                 return true;
             }
         }
-        logger.println("ERROR: EXAM does not answer in " + timeout + "ms");
+        logger.println("ERROR: EXAM does not answer in " + timeout / 1000 + "s");
         return false;
     }
 
-    private static void createClient(){
+    private void createClient(){
         if (client == null) {
             ClientConfig clientConfig = new DefaultClientConfig();
             clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
@@ -254,16 +263,17 @@ public class ClientRequest {
         }
     }
 
-    private static void destroyClient(){
+    private void destroyClient(){
         if(client != null) {
             client.destroy();
         }
         client = null;
     }
 
-    public static void disconnectClient(int timeout) {
+    public void disconnectClient(int timeout) {
         if (client == null) {
             logger.println("Client is not connected");
+            return;
         } else {
             logger.println("disconnect from EXAM");
 
@@ -292,16 +302,21 @@ public class ClientRequest {
 
 
 
-    public static void waitForTestrunEnds(Executor executor){
+    public void waitForTestrunEnds(Executor executor){
         boolean testDetected = false;
+        int breakAfter = 10;
         while(true){
             if(executor.isInterrupted()){
-                ClientRequest.stopTestrun();
+                this.stopTestrun();
                 return;
             }
-            ExamStatus status = ClientRequest.getStatus();
+            ExamStatus status = this.getStatus();
             if(!testDetected) {
+                breakAfter--;
                 testDetected = "TestRun".equalsIgnoreCase(status.getJobName());
+                if(!testDetected && breakAfter <= 0){
+                    logger.println("No Testrun detected");
+                }
             }else{
                 if(!status.getJobRunning()){
                     break;

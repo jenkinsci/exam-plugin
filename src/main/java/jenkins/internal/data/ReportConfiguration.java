@@ -13,14 +13,16 @@ package jenkins.internal.data;
  */
 public class ReportConfiguration {
 
-    private String projectName;
-    private String dbType;
-    private String dbHost;
-    private String dbService;
-    private Integer dbPort;
-    private String dbUser;
-    private String dbSchema;
-    private String dbPassword;
+    private String projectName = "";
+    private String dbType = "";
+    private String dbHost = "";
+    private String dbService = "";
+    private Integer dbPort = 0;
+    private String dbUser = "";
+    private String dbSchema = "";
+    private String dbPassword = "";
+
+    public static final String NO_REPORT = "NO_REPORT";
 
     /**
      * Konstruktor.
