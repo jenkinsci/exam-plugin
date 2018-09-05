@@ -23,13 +23,13 @@ public class TestrunFilterTest {
         adminCases = true;
         activeTestcases = true;
 
-        TestrunFilter trf = new TestrunFilter(name, value, adminCases, activeTestcases);
+        this.trf = new TestrunFilter(name, value, adminCases, activeTestcases);
     }
 
     // cleanup
     @After
     public void tearDown() {
-
+        this.trf = null;
     }
 
     @Test
@@ -43,10 +43,10 @@ public class TestrunFilterTest {
 
     @Test
     public void constructorTest() {
-        assertEquals(this.trf.name, name);
-        assertEquals(this.trf.value, value);
-        assertEquals(this.trf.activateTestcases, activeTestcases);
-        assertEquals(this.trf.adminCases, adminCases);
+        assertEquals(this.trf.name, this.name);
+        assertEquals(this.trf.value, this.value);
+        assertEquals(this.trf.activateTestcases, this.activeTestcases);
+        assertEquals(this.trf.adminCases, this.adminCases);
     }
 
     @Test
