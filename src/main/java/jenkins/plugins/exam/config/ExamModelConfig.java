@@ -57,6 +57,7 @@ import java.util.Random;
      */
     @CheckForNull protected String name;
     private String modelName;
+    private int examVersion;
     private String targetEndpoint = TARGET_ENDPOINT;
 
     @DataBoundConstructor public ExamModelConfig(String modelName) {
@@ -82,6 +83,15 @@ import java.util.Random;
     }
 
     /**
+     * Sets the exam version.
+     *
+     * @param examVersion exam version without delimiters.
+     */
+    @DataBoundSetter public void setExamVersion(int examVersion) {
+        this.examVersion = examVersion;
+    }
+
+    /**
      * Set the target endpoint.
      *
      * @param targetEndpoint custom url if TE. Default value will be used in case of custom
@@ -101,6 +111,10 @@ import java.util.Random;
      */
     public String getName() {
         return name;
+    }
+
+    public int getExamVersion() {
+        return examVersion;
     }
 
     public String getModelName() {

@@ -74,19 +74,19 @@ public class ClientRequestTest {
         server.start(8085);
         printMock = Mockito.mock(PrintStream.class, "PrintMock");
         testObject = new ClientRequest(null, printMock, baseUrl);
-        Whitebox.invokeMethod(ClientRequest.class,"createClient");
+        Whitebox.invokeMethod(testObject,"createClient");
     }
 
     @After
     public void tearDown() throws Exception {
-        Whitebox.invokeMethod(ClientRequest.class,"destroyClient");
+        Whitebox.invokeMethod(testObject,"destroyClient");
         server.shutdown();
     }
 
     @Test
     public void getBaseUrl() {
         String teststring = "myTestString";
-        Whitebox.setInternalState(ClientRequest.class, "baseUrl", teststring);
+        Whitebox.setInternalState(testObject, "baseUrl", teststring);
         String testIt = testObject.getBaseUrl();
         assertEquals(teststring, testIt);
     }
@@ -95,7 +95,7 @@ public class ClientRequestTest {
     public void setBaseUrl() {
         String teststring = "myTestString";
         testObject.setBaseUrl(teststring);
-        String testIt = Whitebox.getInternalState(ClientRequest.class,"baseUrl");
+        String testIt = Whitebox.getInternalState(testObject,"baseUrl");
         assertEquals(teststring, testIt);
     }
 
@@ -121,7 +121,7 @@ public class ClientRequestTest {
         assertFalse(testObject.isApiAvailable());
         dispatcher.setDefaults();
 
-        Whitebox.invokeMethod(ClientRequest.class,"destroyClient");
+        Whitebox.invokeMethod(testObject,"destroyClient");
         assertTrue(testObject.isApiAvailable());
     }
 
@@ -174,12 +174,12 @@ public class ClientRequestTest {
     @Test
     public void connectClient() throws IOException {
         assertTrue(testObject.connectClient(1000));
-        Mockito.verify(printMock, Mockito.never()).println("ERROR: EXAM does not answer in 1000ms");
+        Mockito.verify(printMock, Mockito.never()).println("ERROR: EXAM does not answer in 1s");
 
             server.shutdown();
             Mockito.clearInvocations(printMock);
             assertFalse(testObject.connectClient(1000));
-            Mockito.verify(printMock).println("ERROR: EXAM does not answer in 1000ms");
+            Mockito.verify(printMock).println("ERROR: EXAM does not answer in 1s");
 
     }
 
@@ -187,19 +187,19 @@ public class ClientRequestTest {
     public void disconnectClient() throws Exception {
         testObject.disconnectClient(1000);
         Mockito.verify(printMock).println("disconnect from EXAM");
-        Mockito.verify(printMock).println("ERROR: EXAM does not shutdown in 1000ms");
+        Mockito.verify(printMock).println("ERROR: EXAM does not shutdown in 1s");
 
-        Whitebox.invokeMethod(ClientRequest.class,"createClient");
+        Whitebox.invokeMethod(testObject,"createClient");
         Mockito.clearInvocations(printMock);
         dispatcher.removeResponse("/testrun/status");
         testObject.disconnectClient(1000);
         Mockito.verify(printMock).println("disconnect from EXAM");
-        Mockito.verify(printMock, Mockito.never()).println("ERROR: EXAM does not shutdown in 1000ms");
+        Mockito.verify(printMock, Mockito.never()).println("ERROR: EXAM does not shutdown in 1s");
 
         testObject.disconnectClient(1000);
         Mockito.verify(printMock).println("Client is not connected");
 
-        Whitebox.invokeMethod(ClientRequest.class,"createClient");
+        Whitebox.invokeMethod(testObject,"createClient");
         Mockito.clearInvocations(printMock);
         server.shutdown();
         testObject.disconnectClient(1000);
@@ -231,7 +231,7 @@ public class ClientRequestTest {
     @Test
     public void getLogger() {
         PrintStream printMock = Mockito.mock(PrintStream.class, "PrintMock for Test");
-        Whitebox.setInternalState(ClientRequest.class, "logger", printMock);
+        Whitebox.setInternalState(testObject, "logger", printMock);
         PrintStream testResult = testObject.getLogger();
         MockingDetails mockDetails = Mockito.mockingDetails(testResult);
         if(!mockDetails.isMock()){
@@ -245,7 +245,7 @@ public class ClientRequestTest {
     public void setLogger() {
         PrintStream printMock = Mockito.mock(PrintStream.class, "PrintMock for Test");
         testObject.setLogger(printMock);
-        PrintStream testResult = Whitebox.getInternalState(ClientRequest.class, "logger");
+        PrintStream testResult = Whitebox.getInternalState(testObject, "logger");
         MockingDetails mockDetails = Mockito.mockingDetails(testResult);
         if(!mockDetails.isMock()){
             fail("no Mock returned");
@@ -256,13 +256,13 @@ public class ClientRequestTest {
 
     @Test
     public void createClient() throws Exception {
-        Whitebox.invokeMethod(ClientRequest.class,"createClient");
+        Whitebox.invokeMethod(testObject,"createClient");
         Mockito.verify(printMock).println("Client already connected");
     }
 
     @Test
     public void noClient() throws Exception {
-        Whitebox.invokeMethod(ClientRequest.class,"destroyClient");
+        Whitebox.invokeMethod(testObject,"destroyClient");
 
         Mockito.clearInvocations(printMock);
         testObject.shutdown();

@@ -62,12 +62,12 @@ public class DbFactory {
         return message;
     }
 
-    public static String testModelConnection(String modelName, String targetEndpoint) throws SOAPException{
+    public static String testModelConnection(String modelName, String targetEndpoint, int examVersion) throws SOAPException{
         ClientConfig clientConfig = new DefaultClientConfig();
         clientConfig.getClasses().add(SoapProvider.class);
         Client client = Client.create(clientConfig);
 
-        SOAPMessage message = getSoapMessage(modelName, 44);
+        SOAPMessage message = getSoapMessage(modelName, examVersion);
 
         WebResource service = client.resource(targetEndpoint);
         ClientResponse response = service.header("SOAPAction","sessionLogin").post(ClientResponse.class, message);

@@ -41,6 +41,10 @@ f.entry(title: _("Model Name"), field: "modelName") {
     f.textbox()
 }
 
+f.entry(title: _("EXAM version"), field: "examVersion") {
+    f.number()
+}
+
 f.entry(title: _("Target Ednpoint"), field: "targetEndpoint") {
     f.textbox(default: ExamModelConfig.TARGET_ENDPOINT)
 }

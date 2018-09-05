@@ -130,7 +130,8 @@ import java.util.*;
         Map<String, List<String>> status = new HashMap<>();
 
         for(ExamModelConfig mConfig: modelConfigs) {
-            String message = DbFactory.testModelConnection(mConfig.getModelName(), mConfig.getTargetEndpoint());
+            String message = DbFactory.testModelConnection(mConfig.getModelName(), mConfig.getTargetEndpoint(),
+                    mConfig.getExamVersion());
             if(!status.containsKey(message)){
                 status.put(message, new ArrayList<String>());
             }
