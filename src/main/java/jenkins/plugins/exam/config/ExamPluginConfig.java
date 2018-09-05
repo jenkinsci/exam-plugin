@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -48,16 +48,19 @@ import java.util.*;
  *
  * @author Thomas Reinicke
  */
-@Extension public class ExamPluginConfig extends GlobalConfiguration {
+@Extension
+public class ExamPluginConfig extends GlobalConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExamPluginConfig.class);
     public static final String EXAM_PLUGIN_CONFIGURATION_ID = "exam-plugin-configuration";
 
     public static final ExamPluginConfig EMPTY_CONFIG = new ExamPluginConfig(Collections.<ExamModelConfig>emptyList(),
-            Collections.<ExamReportConfig>emptyList(), 8085);
+            Collections.<ExamReportConfig>emptyList(), 8085, 5053, "localhost");
 
     private List<ExamModelConfig> modelConfigs = new ArrayList<ExamModelConfig>();
     private List<ExamReportConfig> reportConfigs = new ArrayList<ExamReportConfig>();
     private int port;
+    private int licensePort;
+    private String licenseHost;
 
     public int getPort() {
         return port;
@@ -71,15 +74,18 @@ import java.util.*;
         load();
     }
 
-    @Override public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+    @Override
+    public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
         boolean bsuper = super.configure(req, json);
         save();
         return bsuper && true;
     }
 
-    public ExamPluginConfig(List<ExamModelConfig> modelConfigs, List<ExamReportConfig> reportConfigs, int port) {
+    public ExamPluginConfig(List<ExamModelConfig> modelConfigs, List<ExamReportConfig> reportConfigs, int port, int licensePort, String licenseHost) {
         this.modelConfigs = modelConfigs;
         this.reportConfigs = reportConfigs;
+        this.licenseHost = licenseHost;
+        this.licensePort = licensePort;
         this.port = port;
     }
 
@@ -102,11 +108,13 @@ import java.util.*;
     /**
      * To avoid long class name as id in xml tag name and config file
      */
-    @Override public String getId() {
+    @Override
+    public String getId() {
         return EXAM_PLUGIN_CONFIGURATION_ID;
     }
 
-    @Override public String getDisplayName() {
+    @Override
+    public String getDisplayName() {
         return "EXAM";
     }
 
@@ -115,7 +123,8 @@ import java.util.*;
      *
      * @return configuration of plugin
      */
-    @Nonnull public static ExamPluginConfig configuration() {
+    @Nonnull
+    public static ExamPluginConfig configuration() {
         if (ExamPluginConfig.all().get(ExamPluginConfig.class) == null) {
             return ExamPluginConfig.EMPTY_CONFIG;
         }
@@ -123,16 +132,15 @@ import java.util.*;
     }
 
 
-
     public FormValidation doVerifyModelConnections()
             throws SOAPException {
 
         Map<String, List<String>> status = new HashMap<>();
 
-        for(ExamModelConfig mConfig: modelConfigs) {
+        for (ExamModelConfig mConfig : modelConfigs) {
             String message = DbFactory.testModelConnection(mConfig.getModelName(), mConfig.getTargetEndpoint(),
                     mConfig.getExamVersion());
-            if(!status.containsKey(message)){
+            if (!status.containsKey(message)) {
                 status.put(message, new ArrayList<String>());
             }
             status.get(message).add(mConfig.getName());
@@ -141,17 +149,17 @@ import java.util.*;
         StringBuilder sb = new StringBuilder();
 
         Set<String> keys = status.keySet();
-        if(keys.size() == 1 && keys.contains("OK")){
+        if (keys.size() == 1 && keys.contains("OK")) {
             sb.append("conections OK");
             sb.append("\n");
             return FormValidation.ok(sb.toString());
         }
 
-        for(Map.Entry<String, List<String>> entry : status.entrySet()){
-            if(entry.getKey().equalsIgnoreCase("OK")){
+        for (Map.Entry<String, List<String>> entry : status.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase("OK")) {
                 continue;
             }
-            for (String name : entry.getValue()){
+            for (String name : entry.getValue()) {
                 sb.append(name);
                 sb.append(" (");
                 sb.append(entry.getKey());
@@ -163,7 +171,7 @@ import java.util.*;
         return FormValidation.error(sb.toString());
     }
 
-    public FormValidation doCheckModelConfigs(@QueryParameter ExamModelConfig configs){
+    public FormValidation doCheckModelConfigs(@QueryParameter ExamModelConfig configs) {
         return FormValidation.error("HALLO");
     }
 }

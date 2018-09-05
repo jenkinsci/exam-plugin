@@ -187,14 +187,14 @@ public class ClientRequestTest {
     public void disconnectClient() throws Exception {
         testObject.disconnectClient(1000);
         Mockito.verify(printMock).println("disconnect from EXAM");
-        Mockito.verify(printMock).println("ERROR: EXAM does not shutdown in 1s");
+        Mockito.verify(printMock).println("ERROR: EXAM does not shutdown in 1000ms");
 
         Whitebox.invokeMethod(testObject,"createClient");
         Mockito.clearInvocations(printMock);
         dispatcher.removeResponse("/testrun/status");
         testObject.disconnectClient(1000);
         Mockito.verify(printMock).println("disconnect from EXAM");
-        Mockito.verify(printMock, Mockito.never()).println("ERROR: EXAM does not shutdown in 1s");
+        Mockito.verify(printMock, Mockito.never()).println("ERROR: EXAM does not shutdown in 1000ms");
 
         testObject.disconnectClient(1000);
         Mockito.verify(printMock).println("Client is not connected");

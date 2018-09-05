@@ -37,6 +37,14 @@ f.section(title: descriptor.displayName) {
         f.number()
     }
 
+    f.entry(title: _("License Server host"), field: "licenseHost") {
+        f.textbox()
+    }
+
+    f.entry(title: _("License Server Port"), field: "licensePort") {
+        f.number()
+    }
+
     f.entry(title: _("EXAM Model Connections")) {
         f.repeatableProperty(
                 field: "modelConfigs",
