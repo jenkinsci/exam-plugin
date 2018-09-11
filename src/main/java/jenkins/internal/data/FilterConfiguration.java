@@ -9,7 +9,7 @@ public class FilterConfiguration {
     private List<TestrunFilter> testrunFilter;
 
     public FilterConfiguration() {
-        this.testrunFilter = new ArrayList<TestrunFilter>();
+        this.testrunFilter = new ArrayList<>();
     }
 
     public FilterConfiguration(List<TestrunFilter> testrunFilter) {

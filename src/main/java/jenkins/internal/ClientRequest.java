@@ -63,23 +63,23 @@ public class ClientRequest {
 
     public String getBaseUrl() {
         return baseUrl;
-    }
+    } // tested
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
-    }
+    } // tested
 
     public PrintStream getLogger() {
         return logger;
-    }
+    } // tested
 
     public void setLogger(PrintStream logger) {
         this.logger = logger;
-    }
+    } // tested
 
     public void setLauncher(Launcher launcher) {
         this.launcher = launcher;
-    }
+    } // tested
 
     public ExamStatus getStatus() {
         if(client == null){
@@ -94,7 +94,7 @@ public class ClientRequest {
         handleResponseError(response);
 
         return response.getEntity(ExamStatus.class);
-    }
+    } // tested
 
     public ApiVersion getApiVersion() {
         if(client == null){
@@ -108,7 +108,7 @@ public class ClientRequest {
         handleResponseError(response);
 
         return response.getEntity(ApiVersion.class);
-    }
+    } // tested
 
     public boolean isApiAvailable(){
         boolean clientCreated = false;
@@ -127,7 +127,7 @@ public class ClientRequest {
             destroyClient();
         }
         return isAvailable;
-    }
+    } // tested
 
     public void setTestrunFilter(FilterConfiguration filterConfig) {
         if(client == null){
@@ -178,7 +178,7 @@ public class ClientRequest {
                 .post(ClientResponse.class, testConfig);
 
         handleResponseError(response);
-    }
+    } // tested
 
     private void handleResponseError(ClientResponse response) {
         if (response.getStatus() != OK) {
@@ -208,7 +208,7 @@ public class ClientRequest {
                                          .post(ClientResponse.class);
 
         handleResponseError(response);
-    }
+    } // tested
 
     public void clearWorkspace(String projectName) {
         if(client == null){
@@ -227,7 +227,7 @@ public class ClientRequest {
         ClientResponse response = service.get(ClientResponse.class);
 
         handleResponseError(response);
-    }
+    } // tested
 
     public void shutdown() {
         if(client == null){
@@ -237,7 +237,7 @@ public class ClientRequest {
         logger.println("closing EXAM");
         client.resource(baseUrl + "/workspace/shutdown");
 
-    }
+    } // tested
 
     public boolean connectClient(int timeout) {
         logger.println("connecting to EXAM");
@@ -251,7 +251,7 @@ public class ClientRequest {
         }
         logger.println("ERROR: EXAM does not answer in " + timeout / 1000 + "s");
         return false;
-    }
+    } // tested
 
     private void createClient(){
         if (client == null) {
@@ -261,7 +261,7 @@ public class ClientRequest {
         } else {
             logger.println("Client already connected");
         }
-    }
+    } // tested
 
     private void destroyClient(){
         if(client != null) {
@@ -298,9 +298,7 @@ public class ClientRequest {
 
             destroyClient();
         }
-    }
-
-
+    } // tested
 
     public void waitForTestrunEnds(Executor executor){
         boolean testDetected = false;
@@ -328,5 +326,5 @@ public class ClientRequest {
                 // nothing to do
             }
         }
-    }
+    } // tested
 }

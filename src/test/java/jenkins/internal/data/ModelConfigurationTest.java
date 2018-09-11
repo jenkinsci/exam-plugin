@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -46,7 +46,7 @@ public class ModelConfigurationTest {
     private final static String TESTSTRING = "myTestString";
 
     @Before
-    public void setUp(){
+    public void setUp() {
         testObject = new ModelConfiguration();
     }
 
@@ -60,7 +60,7 @@ public class ModelConfigurationTest {
     @Test
     public void setProjectName() {
         testObject.setProjectName(TESTSTRING);
-        String testIt = Whitebox.getInternalState(testObject,"projectName");
+        String testIt = Whitebox.getInternalState(testObject, "projectName");
         assertEquals(TESTSTRING, testIt);
     }
 
@@ -74,7 +74,7 @@ public class ModelConfigurationTest {
     @Test
     public void setModelName() {
         testObject.setModelName(TESTSTRING);
-        String testIt = Whitebox.getInternalState(testObject,"modelName");
+        String testIt = Whitebox.getInternalState(testObject, "modelName");
         assertEquals(TESTSTRING, testIt);
     }
 
@@ -88,7 +88,21 @@ public class ModelConfigurationTest {
     @Test
     public void setTargetEndpoint() {
         testObject.setTargetEndpoint(TESTSTRING);
-        String testIt = Whitebox.getInternalState(testObject,"targetEndpoint");
+        String testIt = Whitebox.getInternalState(testObject, "targetEndpoint");
+        assertEquals(TESTSTRING, testIt);
+    }
+
+    @Test
+    public void getModelConfigUUID() {
+        Whitebox.setInternalState(testObject, "modelConfigUUID", TESTSTRING);
+        String testIt = testObject.getModelConfigUUID();
+        assertEquals(TESTSTRING, testIt);
+    }
+
+    @Test
+    public void setModelConfigUUID() {
+        testObject.setModelConfigUUID(TESTSTRING);
+        String testIt = Whitebox.getInternalState(testObject, "modelConfigUUID");
         assertEquals(TESTSTRING, testIt);
     }
 }

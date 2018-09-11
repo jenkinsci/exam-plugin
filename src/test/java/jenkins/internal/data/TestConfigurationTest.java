@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -45,13 +45,13 @@ public class TestConfigurationTest {
     private TestConfiguration testObject;
     private final static String TESTSTRING = "myTestString";
     private RestAPILogLevelEnum testLevel;
-    private final static ModelConfiguration MODELCONFIG = new ModelConfiguration(){{
+    private final static ModelConfiguration MODELCONFIG = new ModelConfiguration() {{
         setModelName(TESTSTRING);
         setTargetEndpoint(TESTSTRING);
         setProjectName(TESTSTRING);
     }};
 
-    private final static ReportConfiguration REPORTCONFIG = new ReportConfiguration(){{
+    private final static ReportConfiguration REPORTCONFIG = new ReportConfiguration() {{
         setProjectName(TESTSTRING);
         setDbHost(TESTSTRING);
         setDbSchema(TESTSTRING);
@@ -76,7 +76,7 @@ public class TestConfigurationTest {
     @Test
     public void setReportPrefix() {
         testObject.setReportPrefix(TESTSTRING);
-        String testIt = Whitebox.getInternalState(testObject,"reportPrefix");
+        String testIt = Whitebox.getInternalState(testObject, "reportPrefix");
         assertEquals(TESTSTRING, testIt);
     }
 
@@ -92,7 +92,7 @@ public class TestConfigurationTest {
     @Test
     public void setModelProject() {
         testObject.setModelProject(MODELCONFIG);
-        ModelConfiguration testIt = Whitebox.getInternalState(testObject,"modelProject");
+        ModelConfiguration testIt = Whitebox.getInternalState(testObject, "modelProject");
         assertEquals(MODELCONFIG.getModelName(), testIt.getModelName());
         assertEquals(MODELCONFIG.getTargetEndpoint(), testIt.getTargetEndpoint());
         assertEquals(MODELCONFIG.getProjectName(), testIt.getProjectName());
@@ -110,7 +110,7 @@ public class TestConfigurationTest {
     @Test
     public void setReportProject() {
         testObject.setReportProject(REPORTCONFIG);
-        ReportConfiguration testIt = Whitebox.getInternalState(testObject,"reportProject");
+        ReportConfiguration testIt = Whitebox.getInternalState(testObject, "reportProject");
         assertEquals(REPORTCONFIG.getProjectName(), testIt.getProjectName());
         assertEquals(REPORTCONFIG.getDbHost(), testIt.getDbHost());
         assertEquals(REPORTCONFIG.getDbSchema(), testIt.getDbSchema());
@@ -126,7 +126,7 @@ public class TestConfigurationTest {
     @Test
     public void setSystemConfig() {
         testObject.setSystemConfig(TESTSTRING);
-        String testIt = Whitebox.getInternalState(testObject,"systemConfig");
+        String testIt = Whitebox.getInternalState(testObject, "systemConfig");
         assertEquals(TESTSTRING, testIt);
     }
 
@@ -140,7 +140,7 @@ public class TestConfigurationTest {
     @Test
     public void setModelConfig() {
         testObject.setModelConfig(TESTSTRING);
-        String testIt = Whitebox.getInternalState(testObject,"modelConfig");
+        String testIt = Whitebox.getInternalState(testObject, "modelConfig");
         assertEquals(TESTSTRING, testIt);
     }
 
@@ -154,7 +154,7 @@ public class TestConfigurationTest {
     @Test
     public void setTestObject() {
         testObject.setTestObject(TESTSTRING);
-        String testIt = Whitebox.getInternalState(testObject,"testObject");
+        String testIt = Whitebox.getInternalState(testObject, "testObject");
         assertEquals(TESTSTRING, testIt);
     }
 
@@ -168,7 +168,7 @@ public class TestConfigurationTest {
     @Test
     public void setLogLevel_TC() {
         testObject.setLogLevel_TC(testLevel);
-        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject,"logLevel_TC");
+        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevel_TC");
         assertEquals(testLevel, testIt);
     }
 
@@ -182,7 +182,7 @@ public class TestConfigurationTest {
     @Test
     public void setLogLevel_TL() {
         testObject.setLogLevel_TL(testLevel);
-        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject,"logLevel_TL");
+        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevel_TL");
         assertEquals(testLevel, testIt);
     }
 
@@ -196,7 +196,7 @@ public class TestConfigurationTest {
     @Test
     public void setLogLevel_LC() {
         testObject.setLogLevel_LC(testLevel);
-        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject,"logLevel_LC");
+        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevel_LC");
         assertEquals(testLevel, testIt);
     }
 
@@ -210,7 +210,53 @@ public class TestConfigurationTest {
     @Test
     public void setPythonPath() {
         testObject.setPythonPath(TESTSTRING);
-        String testIt = Whitebox.getInternalState(testObject,"pythonPath");
+        String testIt = Whitebox.getInternalState(testObject, "pythonPath");
         assertEquals(TESTSTRING, testIt);
+    }
+
+    @Test
+    public void getPdfReportTemplate() {
+        Whitebox.setInternalState(testObject, "pdfReportTemplate", TESTSTRING);
+        String testIt = testObject.getPdfReportTemplate();
+        assertEquals(TESTSTRING, testIt);
+    }
+
+    @Test
+    public void setPdfReportTemplate() {
+        testObject.setPdfReportTemplate(TESTSTRING);
+        String testIt = Whitebox.getInternalState(testObject, "pdfReportTemplate");
+        assertEquals(TESTSTRING, testIt);
+    }
+
+    @Test
+    public void getPdfSelectFilter() {
+        Whitebox.setInternalState(testObject, "pdfSelectFilter", TESTSTRING);
+        String testIt = testObject.getPdfSelectFilter();
+        assertEquals(TESTSTRING, testIt);
+    }
+
+    @Test
+    public void setPdfSelectFilter() {
+        testObject.setPdfSelectFilter(TESTSTRING);
+        String testIt = Whitebox.getInternalState(testObject, "pdfSelectFilter");
+        assertEquals(TESTSTRING, testIt);
+    }
+
+    @Test
+    public void getPdfMeasureImages() {
+        Whitebox.setInternalState(testObject, "pdfMeasureImages", true);
+        boolean testIt = testObject.getPdfMeasureImages();
+        assertTrue(testIt);
+        ;
+        Whitebox.setInternalState(testObject, "pdfMeasureImages", false);
+        boolean testIt2 = testObject.getPdfMeasureImages();
+        assertFalse(testIt2);
+    }
+
+    @Test
+    public void setPdfMeasureImages() {
+        testObject.setPdfMeasureImages(true);
+        boolean testIt = Whitebox.getInternalState(testObject, "pdfMeasureImages");
+        assertTrue(testIt);
     }
 }

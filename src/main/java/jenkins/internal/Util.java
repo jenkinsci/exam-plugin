@@ -73,7 +73,7 @@ public class Util {
     }
 
     public static boolean isIdValid(String object) {
-        Pattern regexSystemConfig = Pattern.compile("I[0-9]+");
+        Pattern regexSystemConfig = Pattern.compile("^I[0-9]+");
         Matcher matcher = regexSystemConfig.matcher(object);
         if (matcher.find()) {
             if (matcher.groupCount() == 0) {

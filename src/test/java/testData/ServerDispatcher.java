@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29,9 +29,14 @@
  */
 package testData;
 
+import jenkins.internal.data.ApiVersion;
+import jenkins.internal.data.FilterConfiguration;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
 import org.eclipse.jetty.server.Server;
 
 import java.util.HashMap;
@@ -41,13 +46,14 @@ public class ServerDispatcher extends Dispatcher {
 
     private Map<String, MockResponse> mResponse;
 
-    public ServerDispatcher(){
+    public ServerDispatcher() {
         mResponse = new HashMap<>();
         setDefaults();
     }
 
-    public void setDefaults(){
+    public void setDefaults() {
         clearAllResponse();
+
         setResponse("/testrun/status", new MockResponse().setResponseCode(200)
                 .addHeader("Content-Type", "application/json; charset=utf-8")
                 .addHeader("Cache-Control", "no-cache")
@@ -63,31 +69,60 @@ public class ServerDispatcher extends Dispatcher {
                 .addHeader("Cache-Control", "no-cache")
                 .setBody("{}"));
 
+        setResponse("/workspace/apiVersion", new MockResponse().setResponseCode(200)
+                .addHeader("Content-Type", "application/json; charset=utf-8")
+                .addHeader("Cache-Control", "no-cache")
+                .setBody(this.getApiVersionResponseString()));
+
+        setResponse("/testrun/setFilter", new MockResponse().setResponseCode(200)
+                .addHeader("Content-Type", "application/json; charset=utf-8")
+                .addHeader("Cache-Control", "no-cache")
+                .setBody("{}"));
+
+        setResponse("/testrun/convertToJunit/testProject", new MockResponse().setResponseCode(200)
+                .addHeader("Content-Type", "application/json; charset=utf-8")
+                .addHeader("Cache-Control", "no-cache"));
+
         setResponse("/workspace/delete", new MockResponse().setResponseCode(200));
         setResponse("/workspace/shutdown", new MockResponse().setResponseCode(200));
     }
 
-    public void setResponse(String path, MockResponse response){
+    public void setResponse(String path, MockResponse response) {
         mResponse.put(path, response);
     }
 
-    public void removeResponse(String path){
-        if(mResponse.containsKey(path)){
+    public void removeResponse(String path) {
+        if (mResponse.containsKey(path)) {
             mResponse.remove(path);
         }
     }
 
-    public void clearAllResponse(){
+    public void clearAllResponse() {
         mResponse.clear();
+    }
+
+    // Helper Method for ApiVersion Response
+    private String getApiVersionResponseString() {
+        ApiVersion apiVersion = new ApiVersion();
+        apiVersion.setMajor(2);
+        apiVersion.setMinor(5);
+        apiVersion.setFix(7);
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        try {
+            String json = ow.writeValueAsString(apiVersion);
+            return json;
+        } catch (Exception e) {
+            return "{ major: \"2\", minor: \"5\", fix: \"7\" }";
+        }
     }
 
     @Override
     public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
         String path = request.getPath();
-        if(path.contains("?")) {
+        if (path.contains("?")) {
             path = path.substring(0, path.indexOf("?"));
         }
-        if(mResponse.containsKey(path)){
+        if (mResponse.containsKey(path)) {
             return mResponse.get(path);
         }
         return new MockResponse().setResponseCode(404);
