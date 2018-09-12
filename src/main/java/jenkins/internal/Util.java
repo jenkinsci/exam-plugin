@@ -57,9 +57,9 @@ public class Util {
         return j;
     }
 
-    public static boolean isUuidValid(String uuid){
-        String myUuid = uuid.replaceAll("-","");
-        if (myUuid.length() != 32){
+    public static boolean isUuidValid(String uuid) {
+        String myUuid = uuid.replaceAll("-", "");
+        if (myUuid.length() != 32) {
             return false;
         }
         Pattern regexSystemConfig = Pattern.compile("[0-9a-f]{32}");
@@ -91,13 +91,13 @@ public class Util {
 
         String[] splitted = name.split("\\.");
 
-        if(splitted.length == 1 && name.startsWith("I")){
+        if (splitted.length == 1 && name.startsWith("I")) {
             return false;
         }
 
         Pattern regexPattern = Pattern.compile("[_a-zA-Z@]+[_a-zA-Z0-9#@]*");
 
-        for(String part : splitted) {
+        for (String part : splitted) {
             if (!regexPattern.matcher(part).matches()) {
                 return false;
             }
@@ -112,7 +112,7 @@ public class Util {
 
     public static FormValidation validateId(String value) {
 
-        if(isIdValid(value)){
+        if (isIdValid(value)) {
             return FormValidation.ok();
         }
 
@@ -122,7 +122,7 @@ public class Util {
 
     public static FormValidation validatePythonConformName(String value) {
 
-        if(isIdValid(value)){
+        if (isPythonConformName(value)) {
             return FormValidation.ok();
         }
 
@@ -131,7 +131,7 @@ public class Util {
 
     public static FormValidation validateUuid(String value) {
 
-        if(isUuidValid(value)){
+        if (isUuidValid(value)) {
             return FormValidation.ok();
         }
 
@@ -145,22 +145,17 @@ public class Util {
         boolean idValid = isIdValid(value);
         boolean fsnValid = isPythonConformName(value);
 
-        if(!uuidValid){
-            errorMsg.append(Messages.EXAM_RegExUuid());
-            errorMsg.append("\r\n");
-        }
-        if(!idValid){
-            errorMsg.append(Messages.EXAM_RegExId());
-            errorMsg.append("\r\n");
-        }
-        if(!fsnValid){
-            errorMsg.append(Messages.EXAM_RegExFsn());
-            errorMsg.append("\r\n");
-        }
-
-        if(uuidValid || idValid || fsnValid){
+        if (uuidValid || idValid || fsnValid) {
             return FormValidation.ok();
         }
+
+        errorMsg.append(Messages.EXAM_RegExUuid());
+        errorMsg.append("\r\n");
+        errorMsg.append(Messages.EXAM_RegExId());
+        errorMsg.append("\r\n");
+        errorMsg.append(Messages.EXAM_RegExFsn());
+        errorMsg.append("\r\n");
+
         return FormValidation.error(errorMsg.toString());
     }
 }

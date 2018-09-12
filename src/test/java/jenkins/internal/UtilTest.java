@@ -29,12 +29,17 @@
  */
 package jenkins.internal;
 
+import hudson.FilePath;
+import hudson.model.Node;
 import hudson.util.FormValidation;
 import jenkins.task._exam.Messages;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import static org.junit.Assert.*;
@@ -103,7 +108,7 @@ public class UtilTest {
     }
 
     @Test
-    public void isValid() throws Exception {
+    public void isIdValid() throws Exception {
         String id1 = this.generateValidId();
         String id2 = this.generateValidId();
         String id3 = "blablablallslsjkdf";
@@ -121,25 +126,75 @@ public class UtilTest {
     }
 
     @Test
-    public void isPythonConformName() throws Exception {
-        String pythonConformName1 = "_IAmAPythonConformName";
-        String pythonConformName2 = "_alskfdkjlsajf_I@##___IAmAlsoAPythonConformName@@";
-        String pythonConformName3 = "12IAmNotAPythonConformName";
-        String pythonConformName4 = "#IAmAlsoNoPythonConformName";
+    public void isPythonConformName() {
+        Map<String, Boolean> testsAndExpectedResults = new HashMap<String, Boolean>() {{
+            put("_IAmAPythonConformName", true);
+            put("_alskfdkjlsajf_I@##___IAmAlsoAPythonConformName@@", true);
+            put("12IAmNotAPythonConformName", false);
+            put("#IAmAlsoNoPythonConformName", false);
+            put("IAmAlsoNoPythonConformName", false);
+            put("break", false);
+            put("IAmAlsoNo.P.ythonConformName", true);
+            put("AmAlsoNo.break.hallo", false);
+            put("AmAlsoNo.34huhu", false);
+            put(null, false);
+        }};
 
-        Boolean result1 = Whitebox.invokeMethod(Util.class, "isPythonConformName", pythonConformName1);
-        Boolean result2 = Whitebox.invokeMethod(Util.class, "isPythonConformName", pythonConformName2);
-        Boolean result3 = Whitebox.invokeMethod(Util.class, "isPythonConformName", pythonConformName3);
-        Boolean result4 = Whitebox.invokeMethod(Util.class, "isPythonConformName", pythonConformName4);
-
-        assertTrue(result1);
-        assertTrue(result2);
-        assertFalse(result3);
-        assertFalse(result4);
+        testsAndExpectedResults.forEach((name, expectedValue) -> {
+            try {
+                Boolean result = Whitebox.invokeMethod(Util.class, "isPythonConformName", name);
+                if (expectedValue) {
+                    assertTrue(result);
+                } else {
+                    assertFalse(result);
+                }
+            } catch (Exception e) {
+                fail("isPythonConformName threw an Exception");
+            }
+        });
     }
 
     @Test
-    public void dummy() {
+    public void validateId() throws Exception {
+        String validId = this.generateValidId();
+        String invalidId = "3" + this.generateValidId();
 
+        FormValidation fv_ok = Whitebox.invokeMethod(Util.class, "validateId", validId);
+        FormValidation fv_error = Whitebox.invokeMethod(Util.class, "validateId", invalidId);
+
+        assertEquals(FormValidation.ok(), fv_ok);
+        assertEquals(FormValidation.error(Messages.EXAM_RegExId()).getMessage(), fv_error.getMessage());
+    }
+
+    @Test
+    public void validatePythonConformName() throws Exception {
+        String name1 = "_IAmAPythonConformName";
+        String name2 = "#IAmAlsoNoPythonConformName";
+
+        FormValidation fv_ok = Whitebox.invokeMethod(Util.class, "validatePythonConformName", name1);
+        FormValidation fvD_error = Whitebox.invokeMethod(Util.class, "validatePythonConformName", name2);
+
+        assertEquals(FormValidation.ok(), fv_ok);
+        assertEquals(FormValidation.error(Messages.EXAM_RegExFsn()).getMessage(), fvD_error.getMessage());
+    }
+
+    @Test
+    public void validateElementForSearch() throws Exception {
+        String newLine = "\r\n";
+        String expectedErrorMsg = Messages.EXAM_RegExUuid() + newLine + Messages.EXAM_RegExId() + newLine + Messages.EXAM_RegExFsn() + newLine;
+
+        String invalidString = "#IAmAlsoNoPythonConformName";
+        String validString = this.generateValidId();
+
+        FormValidation fv_invalidResult = Whitebox.invokeMethod(Util.class, "validateElementForSearch", invalidString);
+        FormValidation fv_validResult = Whitebox.invokeMethod(Util.class, "validateElementForSearch", validString);
+
+        assertEquals(FormValidation.error(expectedErrorMsg).getMessage(), fv_invalidResult.getMessage());
+        assertEquals(FormValidation.ok(), fv_validResult);
+    }
+
+    @Test
+    public void workspaceToNode(){
+        //TODO: implementieren
     }
 }
