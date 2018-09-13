@@ -314,6 +314,7 @@ public class ClientRequest {
                 testDetected = "TestRun".equalsIgnoreCase(status.getJobName());
                 if(!testDetected && breakAfter <= 0){
                     logger.println("No Testrun detected");
+                    break;
                 }
             }else{
                 if(!status.getJobRunning()){

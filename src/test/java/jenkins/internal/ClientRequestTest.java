@@ -235,6 +235,26 @@ public class ClientRequestTest {
     }
 
     @Test
+    public void waitForTestrunEnds_noStart() throws AbortException {
+        Executor executor = mock(Executor.class);
+        when(executor.isInterrupted()).thenReturn(false);
+        dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
+                .addHeader("Content-Type", "application/json; charset=utf-8")
+                .addHeader("Cache-Control", "no-cache")
+                .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"false\",\"testRunState\":1}"));
+        testObject.waitForTestrunEnds(executor);
+
+        inOrder(executor).verify(executor, calls(10)).isInterrupted();
+        int reqCount = server.getRequestCount();
+        assertEquals("unexpected count of server calls", 10, reqCount);
+
+        clearInvocations(executor);
+        when(executor.isInterrupted()).thenReturn(true);
+        testObject.waitForTestrunEnds(executor);
+        inOrder(executor).verify(executor, calls(1)).isInterrupted();
+    }
+
+    @Test
     public void getLogger() {
         PrintStream printMock = mock(PrintStream.class, "PrintMock for Test");
         Whitebox.setInternalState(testObject, "logger", printMock);
@@ -269,6 +289,18 @@ public class ClientRequestTest {
     @Test
     public void noClient() throws Exception {
         Whitebox.invokeMethod(testObject, "destroyClient");
+
+        clearInvocations(printMock);
+        testObject.getApiVersion();
+        verify(printMock).println("WARNING: no EXAM connected");
+
+        clearInvocations(printMock);
+        testObject.setTestrunFilter(null);
+        verify(printMock).println("WARNING: no EXAM connected");
+
+        clearInvocations(printMock);
+        testObject.convert(null);
+        verify(printMock).println("WARNING: no EXAM connected");
 
         clearInvocations(printMock);
         testObject.shutdown();

@@ -135,12 +135,14 @@ import java.util.Random;
             return "EXAM Model";
         }
 
+        // TODO Prüfungen für Modellnamen und TargetEndpoint ergänzen
 
         public FormValidation doCheckName(@QueryParameter String value) {
 
             ExamModelConfig[] modelConfigs = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
                     .getModelConfigs().toArray(new ExamModelConfig[0]);
 
+            // TODO prüfung einbauen
             return FormValidation.ok();
         }
     }

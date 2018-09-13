@@ -170,8 +170,4 @@ public class ExamPluginConfig extends GlobalConfiguration {
 
         return FormValidation.error(sb.toString());
     }
-
-    public FormValidation doCheckModelConfigs(@QueryParameter ExamModelConfig configs) {
-        return FormValidation.error("HALLO");
-    }
 }
