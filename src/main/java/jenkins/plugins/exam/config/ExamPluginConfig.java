@@ -150,7 +150,7 @@ public class ExamPluginConfig extends GlobalConfiguration {
 
         Set<String> keys = status.keySet();
         if (keys.size() == 1 && keys.contains("OK")) {
-            sb.append("conections OK");
+            sb.append("connections OK");
             sb.append("\n");
             return FormValidation.ok(sb.toString());
         }

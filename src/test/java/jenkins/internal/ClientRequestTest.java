@@ -30,6 +30,7 @@
 package jenkins.internal;
 
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
 import hudson.AbortException;
 import hudson.Launcher;
 import hudson.model.Api;
@@ -51,8 +52,7 @@ import org.mockito.internal.configuration.injection.MockInjection;
 import org.powermock.reflect.Whitebox;
 import testData.ServerDispatcher;
 
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -349,6 +349,21 @@ public class ClientRequestTest {
         assertEquals(toTest.getMajor(), apiVersion.getMajor());
     }
 
+    // Note:
+    // This Test has to run after the "startTestrun" Test because it manipulates the mocked Response
+    @Test(expected = RuntimeException.class)
+    public void handleResponseError() throws Exception {
+        // change Response that handleResponseError gets an Error
+        dispatcher.removeResponse("/testrun/start");
+        dispatcher.setResponse("/testrun/start", new MockResponse().setResponseCode(204)
+                .addHeader("Content-Type", "application/json; charset=utf-8")
+                .addHeader("Cache-Control", "no-cache")
+                .setBody("{}"));
+
+        // start Testrun with error Response => handleResponseError gets called
+        testObject.startTestrun(null);
+    }
+
     @Test
     public void setTestrunFilter() throws Exception {
         TestrunFilter testrunFilter1 = new TestrunFilter("trf1", "val1", true, false);
@@ -391,6 +406,6 @@ public class ClientRequestTest {
         String requestRoute = request.getPath();
 
         assertEquals(path + testReportProject, requestRoute);
-        assertEquals( "",requestBody);
+        assertEquals("", requestBody);
     }
 }
