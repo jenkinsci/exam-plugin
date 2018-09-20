@@ -238,7 +238,7 @@ public class Exam extends Builder implements SimpleBuildStep {
 
     @DataBoundConstructor
     public Exam(String examName, String pythonName, String examModel, String examReport, String executionFile,
-            String systemConfiguration) {
+                String systemConfiguration) {
         this.examName = examName;
         this.pythonName = pythonName;
         this.examModel = examModel;
@@ -321,7 +321,7 @@ public class Exam extends Builder implements SimpleBuildStep {
 
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-            @Nonnull TaskListener listener) throws InterruptedException, IOException {
+                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
 
         ArgumentListBuilder args = new ArgumentListBuilder();
 
@@ -342,8 +342,8 @@ public class Exam extends Builder implements SimpleBuildStep {
             python = python.forNode(node, listener);
             exe = examTool.getExecutable(launcher);
             pythonexe = python.getHome();
-            if(!pythonexe.endsWith("exe")){
-                if(!pythonexe.endsWith("\\") && !pythonexe.endsWith("/")){
+            if (!pythonexe.endsWith("exe")) {
+                if (!pythonexe.endsWith("\\") && !pythonexe.endsWith("/")) {
                     pythonexe += File.separator;
                 }
                 pythonexe += "python.exe";
@@ -372,7 +372,7 @@ public class Exam extends Builder implements SimpleBuildStep {
         examWorkspace = examWorkspace.replaceAll("[\\/]]", File.separator);
         File configurationFile = new File(
                 dataPath + File.separator + "configuration" + File.separator + "config.ini");
-        if(!Remote.fileExists(launcher, configurationFile)) {
+        if (!Remote.fileExists(launcher, configurationFile)) {
             throw new AbortException(Messages.EXAM_NotExamConfigDirectory(configurationFile.getPath()));
         }
 
@@ -442,13 +442,13 @@ public class Exam extends Builder implements SimpleBuildStep {
                     clientRequest.convert(tc.getReportProject().getProjectName());
 
                     hash = "__" + RandomStringUtils.random(5, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray());
-                    source = source.child("reports").child( tc.getReportProject().getProjectName()).child("junit");
+                    source = source.child("reports").child(tc.getReportProject().getProjectName()).child("junit");
                     target = target.child("test-reports").child(tc.getModelProject().getProjectName() + hash);
                     source.copyRecursiveTo(target);
                 }
-            } catch (InterruptedException| IOException e){
+            } catch (InterruptedException | IOException e) {
                 throw new AbortException("ERROR: " + e.getMessage());
-            }finally {
+            } finally {
                 eca.forceEol();
                 clientRequest.disconnectClient(60 * 1000);
             }
@@ -495,7 +495,7 @@ public class Exam extends Builder implements SimpleBuildStep {
     private TestConfiguration createTestConfiguration() throws AbortException {
         ModelConfiguration mod = new ModelConfiguration();
         ExamModelConfig m = getModel(examModel);
-        if(m == null){
+        if (m == null) {
             throw new AbortException("ERROR: no model configured with name: " + examModel);
         }
         mod.setProjectName(m.getName());
@@ -631,7 +631,7 @@ public class Exam extends Builder implements SimpleBuildStep {
             noReport.setPort("0");
             ret[0] = noReport;
             int i = 0;
-            for(ExamReportConfig rConfig : lReportConfigs){
+            for (ExamReportConfig rConfig : lReportConfigs) {
                 i++;
                 ret[i] = rConfig;
             }

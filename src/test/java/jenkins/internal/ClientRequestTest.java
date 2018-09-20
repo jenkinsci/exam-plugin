@@ -30,10 +30,8 @@
 package jenkins.internal;
 
 import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
 import hudson.AbortException;
 import hudson.Launcher;
-import hudson.model.Api;
 import hudson.model.Executor;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.ExamStatus;
@@ -45,14 +43,13 @@ import okhttp3.mockwebserver.RecordedRequest;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockingDetails;
-import org.mockito.internal.configuration.injection.MockInjection;
 import org.powermock.reflect.Whitebox;
 import testData.ServerDispatcher;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.PrintStream;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -100,18 +97,18 @@ public class ClientRequestTest {
 
     @Test
     public void getBaseUrl() {
-        String teststring = "myTestString";
-        Whitebox.setInternalState(testObject, "baseUrl", teststring);
+        String testString = "myTestString";
+        Whitebox.setInternalState(testObject, "baseUrl", testString);
         String testIt = testObject.getBaseUrl();
-        assertEquals(teststring, testIt);
+        assertEquals(testString, testIt);
     }
 
     @Test
     public void setBaseUrl() {
-        String teststring = "myTestString";
-        testObject.setBaseUrl(teststring);
+        String testString = "myTestString";
+        testObject.setBaseUrl(testString);
         String testIt = Whitebox.getInternalState(testObject, "baseUrl");
-        assertEquals(teststring, testIt);
+        assertEquals(testString, testIt);
     }
 
     @Test

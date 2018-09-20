@@ -27,49 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package jenkins.task;
+package jenkins;
 
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.AbstractProject;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
-import jenkins.task._exam.Messages;
-import jenkins.tasks.SimpleBuildStep;
-import org.jenkinsci.Symbol;
+import hudson.tasks.BatchFile;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
+import org.junit.Assert;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.apache.commons.io.FileUtils;
+import hudson.model.*;
+import hudson.tasks.Shell;
+import org.junit.*;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
+import java.util.regex.Matcher;
 
-public class ExamReport extends Recorder implements SimpleBuildStep {
+import static org.junit.Assert.*;
 
-    @Override public BuildStepMonitor getRequiredMonitorService() {
-        return null;
-    }
+public class AppTestExample {
+    @Rule
+    public JenkinsRule j = new JenkinsRule();
 
-    @Override public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-            @Nonnull TaskListener listener) throws InterruptedException, IOException {
-
-    }
-
-    @Extension @Symbol("examReport") public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-
-        public DescriptorImpl() {
-            load();
-        }
-
-        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
-            return true;
-        }
-
-        public String getDisplayName() {
-            return Messages.EXAM_publish();
-        }
-
+    @Test
+    public void first() throws Exception {
+        FreeStyleProject project = j.createFreeStyleProject();
+        project.getBuildersList().add(new BatchFile("echo hello"));
+        FreeStyleBuild build = project.scheduleBuild2(0).get();
+        System.out.println(build.getDisplayName() + " completed");
+        // TODO: change this to use HtmlUnit
+        String s = FileUtils.readFileToString(build.getLogFile());
+        assertThat(s, CoreMatchers.containsString("echo hello"));
     }
 }

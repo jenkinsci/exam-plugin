@@ -44,6 +44,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Ant launcher.
@@ -58,14 +60,19 @@ public class CleanExam extends Builder implements SimpleBuildStep {
 
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-            @Nonnull TaskListener listener) throws InterruptedException, IOException {
+                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
 
         listener.getLogger().println("delete junit from workspace");
-        FilePath target = workspace.child("target");
-        if (target.exists()) {
-            target.deleteRecursive();
+        List<Integer> dirIndexes = new ArrayList<>();
+        List<FilePath> directorys = workspace.listDirectories();
+        for (int i = 0; i < directorys.size(); i++) {
+            if (directorys.get(i).getName().contains("target")) {
+                dirIndexes.add(i);
+            }
         }
-
+        for (int index : dirIndexes) {
+            directorys.get(index).deleteRecursive();
+        }
     }
 
     @Override
