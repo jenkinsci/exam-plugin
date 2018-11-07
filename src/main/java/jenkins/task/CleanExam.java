@@ -48,12 +48,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ant launcher.
- *
- * @author Kohsuke Kawaguchi
+ * Build Step for CleanExam
  */
 public class CleanExam extends Builder implements SimpleBuildStep {
 
+    /**
+     * Build Step for CleanExam
+     */
     @DataBoundConstructor
     public CleanExam() {
     }
@@ -80,10 +81,16 @@ public class CleanExam extends Builder implements SimpleBuildStep {
         return (DescriptorImpl) super.getDescriptor();
     }
 
+    /**
+     * Descriptor of the Build Step for CleanExam
+     */
     @Extension
     @Symbol("examCleanTarget")
     public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
+        /**
+         * Descriptor of the Build Step for CleanExam
+         */
         public DescriptorImpl() {
             load();
         }

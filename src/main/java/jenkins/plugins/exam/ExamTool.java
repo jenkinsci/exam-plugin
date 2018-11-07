@@ -29,7 +29,11 @@
  */
 package jenkins.plugins.exam;
 
-import hudson.*;
+import hudson.CopyOnWrite;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.Launcher;
+import hudson.Util;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Node;
 import hudson.model.TaskListener;
@@ -77,6 +81,13 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
         this.relativeDataPath = Util.fixEmptyAndTrim(relativeConfigPath);
     }
 
+    /**
+     * Constructor for ExamTool.
+     *
+     * @param name
+     * @param home
+     * @param properties
+     */
     public ExamTool(String name, String home, List<? extends ToolProperty<?>> properties) {
         super(name, home, properties);
         this.relativeDataPath = null;
@@ -98,6 +109,17 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
 
     private static final long serialVersionUID = 1;
 
+    /**
+     * Get the EXAM Tool for a specific node
+     *
+     * @param node
+     * @param log
+     *
+     * @return
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public ExamTool forNode(Node node, TaskListener log) throws IOException, InterruptedException {
         return new ExamTool(getName(), translateFor(node, log), getRelativeConfigPath(),
                 Collections.<ToolProperty<?>>emptyList());
@@ -120,11 +142,17 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
         return (DescriptorImpl) jenkinsInstance.getDescriptorOrDie(getClass());
     }
 
+    /**
+     * Descriptor for ExamTool
+     */
     @Extension
     @Symbol("ExamTool")
     public static class DescriptorImpl extends ToolDescriptor<ExamTool> {
         @CopyOnWrite private volatile ExamTool[] installations = new ExamTool[0];
 
+        /**
+         * Descriptor for ExamTool
+         */
         public DescriptorImpl() {
             super();
             load();
@@ -175,10 +203,14 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
         return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
             private static final long serialVersionUID = 906341330603832653L;
 
+            /**
+             * Gets the executable path of this EXAM on the given target system.
+             */
             public String call() throws IOException {
                 File exe = getExeFile();
-                if (exe.exists())
+                if (exe.exists()) {
                     return exe.getPath();
+                }
                 return null;
             }
         });

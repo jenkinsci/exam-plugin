@@ -34,30 +34,26 @@ import hudson.console.LineTransformationOutputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 
 /**
  * Filter {@link OutputStream} that places an annotation that marks Exam target
  * execution.
  *
- * @since 1.349
  */
 public class ExamConsoleErrorOut extends LineTransformationOutputStream {
     private final OutputStream out;
-    private final Charset charset;
 
-    public ExamConsoleErrorOut(OutputStream out, Charset charset) {
+    /**
+     * Filter {@link OutputStream} that places an annotation that marks Exam target
+     * execution.
+     *
+     */
+    public ExamConsoleErrorOut(OutputStream out) {
         this.out = out;
-        this.charset = charset;
     }
 
     @Override protected void eol(byte[] b, int len) throws IOException {
         return;
-    }
-
-    private boolean endsWith(String line, char c) {
-        int len = line.length();
-        return len > 0 && line.charAt(len - 1) == c;
     }
 
     @Override public void close() throws IOException {

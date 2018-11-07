@@ -51,14 +51,14 @@ public class ExamConsoleErrorOutTest {
 
     @Before
     public void setUp(){
-        testObject = new ExamConsoleErrorOut(null, Charset.defaultCharset());
+        testObject = new ExamConsoleErrorOut(null);
 
     }
 
     @Test
     public void eol() throws IOException {
         OutputStream writeMock = Mockito.mock(OutputStream.class);
-        ExamConsoleErrorOut obj = new ExamConsoleErrorOut(writeMock,Charset.defaultCharset());
+        ExamConsoleErrorOut obj = new ExamConsoleErrorOut(writeMock);
         String testString = "dfhkjd f akdf la k dhf sd";
         obj.eol(testString.getBytes(),testString.length());
         Mockito.verify(writeMock,Mockito.never());

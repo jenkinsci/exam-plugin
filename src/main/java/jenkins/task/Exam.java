@@ -385,9 +385,15 @@ public class Exam extends Builder implements SimpleBuildStep {
             examTool.buildEnvVars(env);
         }
 
-        int port = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class).getPort();
+        ExamPluginConfig examPluginConfig = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class);
+        int port = examPluginConfig.getPort();
         args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
                 "-DRESTAPI_PORT=" + port);
+
+        if(!examPluginConfig.getLicenseHost().isEmpty() && examPluginConfig.getLicensePort() != 0){
+            args.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(), "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
+        }
+
         if (javaOpts != null) {
             env.put("JAVA_OPTS", env.expand(javaOpts));
             args.add(javaOpts.split(" "));
@@ -400,7 +406,7 @@ public class Exam extends Builder implements SimpleBuildStep {
         long startTime = System.currentTimeMillis();
         try {
             ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
-            ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger(), run.getCharset());
+            ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger());
             boolean ret = true;
             String slaveIp = Remote.getIP(launcher);
             ClientRequest clientRequest = new ClientRequest(listener.getLogger(),

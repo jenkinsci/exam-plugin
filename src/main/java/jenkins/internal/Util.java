@@ -53,11 +53,8 @@ public class Util {
         Jenkins j = Jenkins.getInstance();
         if (workspace != null && workspace.isRemote()) {
             for (Computer c : j.getComputers()) {
-                if (c.getChannel() == workspace.getChannel()) {
-                    Node n = c.getNode();
-                    if (n != null) {
-                        return n;
-                    }
+                if (c.getChannel() == workspace.getChannel() && c.getNode() != null) {
+                    return c.getNode();
                 }
             }
         }

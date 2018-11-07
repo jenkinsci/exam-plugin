@@ -56,6 +56,8 @@ import java.lang.reflect.Type;
 @Produces(MediaType.TEXT_XML)
 public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBodyReader<SOAPMessage> {
     /**
+     * check writable
+     *
      * @param aClass
      * @param type
      * @param annotations
@@ -68,6 +70,8 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
     }
 
     /**
+     * reading form a soap message
+     *
      * @param soapEnvelopeClass
      * @param type
      * @param annotations
@@ -111,6 +115,8 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
     }
 
     /**
+     * get size of soap message
+     *
      * @param soapMessage
      * @param aClass
      * @param type
@@ -124,6 +130,8 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
     }
 
     /**
+     * sending a soap message
+     *
      * @param soapMessage
      * @param aClass
      * @param type

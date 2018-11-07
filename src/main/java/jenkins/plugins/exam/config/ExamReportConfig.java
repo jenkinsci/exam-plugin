@@ -50,7 +50,6 @@ import java.util.Arrays;
 import java.util.Random;
 
 @XStreamAlias("exam-report-config") public class ExamReportConfig extends AbstractDescribableImpl<ExamReportConfig> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExamReportConfig.class);
 
     /**
      * The optional display name of this server.

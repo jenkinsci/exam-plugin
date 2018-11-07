@@ -46,6 +46,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.PrintStream;
 
+/**
+ * REST Api calls to EXAM
+ */
 public class ClientRequest {
 
     private String baseUrl = "";
@@ -54,6 +57,9 @@ public class ClientRequest {
 
     private final static int OK = Response.ok().build().getStatus();
 
+    /**
+     * Constructor for REST Api calls to EXAM
+     */
     public ClientRequest(PrintStream logger, String baseUrl) {
         this.baseUrl = baseUrl;
         this.logger = logger;

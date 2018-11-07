@@ -36,21 +36,21 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Filter {@link OutputStream} that places an annotation that marks Exam target
  * execution.
  *
- * @since 1.349
  */
 public class ExamConsoleAnnotator extends LineTransformationOutputStream {
     private final OutputStream out;
     private final Charset charset;
 
-    private boolean seenEmptyLine;
-
+    /**
+     * Filter {@link OutputStream} that places an annotation that marks Exam target
+     * execution.
+     *
+     */
     public ExamConsoleAnnotator(OutputStream out, Charset charset) {
         this.out = out;
         this.charset = charset;
@@ -62,14 +62,8 @@ public class ExamConsoleAnnotator extends LineTransformationOutputStream {
         // trim off CR/LF from the end
         line = trimEOL(line);
 
-        seenEmptyLine = line.length() == 0;
         out.write("EXAM: ".getBytes());
         out.write(b, 0, len);
-    }
-
-    private boolean endsWith(String line, char c) {
-        int len = line.length();
-        return len > 0 && line.charAt(len - 1) == c;
     }
 
     @Override public void close() throws IOException {

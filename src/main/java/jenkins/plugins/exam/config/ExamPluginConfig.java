@@ -34,14 +34,16 @@ import hudson.util.FormValidation;
 import jenkins.internal.DbFactory;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
-import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.xml.soap.SOAPException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Global configuration to store all EXAM Models
@@ -50,7 +52,6 @@ import java.util.*;
  */
 @Extension
 public class ExamPluginConfig extends GlobalConfiguration {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExamPluginConfig.class);
     public static final String EXAM_PLUGIN_CONFIGURATION_ID = "exam-plugin-configuration";
 
     public static final ExamPluginConfig EMPTY_CONFIG = new ExamPluginConfig(Collections.<ExamModelConfig>emptyList(),
@@ -69,6 +70,23 @@ public class ExamPluginConfig extends GlobalConfiguration {
     public void setPort(int port) {
         this.port = port;
     }
+
+    public int getLicensePort() {
+        return licensePort;
+    }
+
+    public void setLicensePort(int licensePort) {
+        this.licensePort = licensePort;
+    }
+
+    public String getLicenseHost() {
+        return licenseHost;
+    }
+
+    public void setLicenseHost(String licenseHost) {
+        this.licenseHost = licenseHost;
+    }
+
 
     public ExamPluginConfig() {
         load();

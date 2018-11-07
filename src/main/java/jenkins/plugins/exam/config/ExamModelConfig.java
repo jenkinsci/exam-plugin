@@ -39,16 +39,10 @@ import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckForNull;
-import javax.ws.rs.core.Form;
-import java.io.IOException;
-import java.util.Random;
 
 @XStreamAlias("exam-model-config") public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExamModelConfig.class);
 
     public static final String TARGET_ENDPOINT = "http://examServer:8080/exam/ExamModelerService";
 

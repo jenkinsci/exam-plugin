@@ -31,27 +31,11 @@ package jenkins.task;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
-import hudson.model.*;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
-import hudson.util.FormValidation;
-import jenkins.model.Jenkins;
-import jenkins.plugins.exam.config.ExamModelConfig;
-import jenkins.plugins.exam.config.ExamPluginConfig;
-import jenkins.task._exam.Messages;
-import jenkins.tasks.SimpleBuildStep;
-import org.jenkinsci.Symbol;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import java.io.IOException;
 
 @XStreamAlias("testrun-filter") public class TestrunFilter extends AbstractDescribableImpl<TestrunFilter>{
 
@@ -80,6 +64,14 @@ import java.io.IOException;
         return (DescriptorImpl) super.getDescriptor();
     }
 
+    /**
+     * Constructor of the TestrunFilter Part
+     *
+     * @param name
+     * @param value
+     * @param adminCases
+     * @param activateTestcases
+     */
     @DataBoundConstructor public TestrunFilter(String name, String value, boolean adminCases, boolean activateTestcases) {
         this.name = name;
         this.value = value;
@@ -87,8 +79,14 @@ import java.io.IOException;
         this.activateTestcases = activateTestcases;
     }
 
+    /**
+     * Descriptor of the TestrunFilter Part
+     */
     @Extension public static class DescriptorImpl extends Descriptor<TestrunFilter> {
 
+        /**
+         * Descriptor of the TestrunFilter Part
+         */
         public DescriptorImpl() {
             load();
         }
