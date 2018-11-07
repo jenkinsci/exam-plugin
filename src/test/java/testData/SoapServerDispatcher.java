@@ -1,19 +1,13 @@
 package testData;
-
-import com.sun.xml.internal.messaging.saaj.soap.name.NameImpl;
-import jenkins.internal.SoapProvider;
-import okhttp3.Response;
+import javax.xml.soap.Name;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
 
-import javax.xml.namespace.QName;
 import javax.xml.soap.*;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -95,7 +89,7 @@ public class SoapServerDispatcher extends Dispatcher {
         SOAPEnvelope envelope = part.getEnvelope();
         SOAPBody body = envelope.getBody();
 
-        Name responseName = NameImpl.create("SOAPMessage", null, null);
+        Name responseName = SOAPFactory.newInstance().createName("SOAPMessage", null, null);
         body.addFault(responseName, faultString);
 
         if (!sendBody) {

@@ -446,7 +446,7 @@ public class Exam extends Builder implements SimpleBuildStep {
                     target = target.child("test-reports").child(tc.getModelProject().getProjectName() + hash);
                     source.copyRecursiveTo(target);
                 }
-            } catch (InterruptedException | IOException e) {
+            } catch (Exception e) {
                 throw new AbortException("ERROR: " + e.getMessage());
             } finally {
                 eca.forceEol();
