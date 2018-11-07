@@ -29,6 +29,9 @@
  */
 package jenkins.internal.data;
 
+/**
+ * EXAM Testrunfilter
+ */
 public class TestrunFilter {
 
     protected String name;
@@ -36,10 +39,15 @@ public class TestrunFilter {
     protected Boolean adminCases = Boolean.FALSE;
     protected Boolean activateTestcases = Boolean.FALSE;
 
+    /**
+     * Constructor of an EXAM Testrunfilter
+     */
     public TestrunFilter(){
-
     }
 
+    /**
+     * Constructor of an EXAM Testrunfilter
+     */
     public TestrunFilter(String name, String value, Boolean adminCases, Boolean activateTestcases) {
         this.name = name;
         this.value = value;

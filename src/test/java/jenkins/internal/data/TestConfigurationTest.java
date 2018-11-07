@@ -161,13 +161,13 @@ public class TestConfigurationTest {
     @Test
     public void getLogLevel_TC() {
         Whitebox.setInternalState(testObject, "logLevel_TC", testLevel);
-        RestAPILogLevelEnum testIt = testObject.getLogLevel_TC();
+        RestAPILogLevelEnum testIt = testObject.getLogLevelTC();
         assertEquals(testLevel, testIt);
     }
 
     @Test
     public void setLogLevel_TC() {
-        testObject.setLogLevel_TC(testLevel);
+        testObject.setLogLevelTC(testLevel);
         RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevel_TC");
         assertEquals(testLevel, testIt);
     }
@@ -175,13 +175,13 @@ public class TestConfigurationTest {
     @Test
     public void getLogLevel_TL() {
         Whitebox.setInternalState(testObject, "logLevel_TL", testLevel);
-        RestAPILogLevelEnum testIt = testObject.getLogLevel_TL();
+        RestAPILogLevelEnum testIt = testObject.getLogLevelTL();
         assertEquals(testLevel, testIt);
     }
 
     @Test
     public void setLogLevel_TL() {
-        testObject.setLogLevel_TL(testLevel);
+        testObject.setLogLevelTL(testLevel);
         RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevel_TL");
         assertEquals(testLevel, testIt);
     }
@@ -189,13 +189,13 @@ public class TestConfigurationTest {
     @Test
     public void getLogLevel_LC() {
         Whitebox.setInternalState(testObject, "logLevel_LC", testLevel);
-        RestAPILogLevelEnum testIt = testObject.getLogLevel_LC();
+        RestAPILogLevelEnum testIt = testObject.getLogLevelLC();
         assertEquals(testLevel, testIt);
     }
 
     @Test
     public void setLogLevel_LC() {
-        testObject.setLogLevel_LC(testLevel);
+        testObject.setLogLevelLC(testLevel);
         RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevel_LC");
         assertEquals(testLevel, testIt);
     }

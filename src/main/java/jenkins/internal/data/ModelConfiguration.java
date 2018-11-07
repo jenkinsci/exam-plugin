@@ -8,6 +8,7 @@
 package jenkins.internal.data;
 
 /**
+ * Information of the EXAM model configuration
  *
  * @author liu
  */

@@ -42,7 +42,12 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 import javax.xml.transform.stream.StreamSource;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.StringReader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
@@ -50,11 +55,34 @@ import java.lang.reflect.Type;
 @Consumes({MediaType.TEXT_XML,"multipart/related"})
 @Produces(MediaType.TEXT_XML)
 public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBodyReader<SOAPMessage> {
+    /**
+     * @param aClass
+     * @param type
+     * @param annotations
+     * @param mediaType
+     *
+     * @return
+     */
     public boolean isWriteable(Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType) {
         return SOAPMessage.class.isAssignableFrom(aClass);
     }
 
-    public SOAPMessage readFrom(Class<SOAPMessage> soapEnvelopeClass, Type type, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> stringStringMultivaluedMap, InputStream inputStream) throws IOException, WebApplicationException {
+    /**
+     * @param soapEnvelopeClass
+     * @param type
+     * @param annotations
+     * @param mediaType
+     * @param stringStringMultivaluedMap
+     * @param inputStream
+     *
+     * @return
+     *
+     * @throws IOException
+     * @throws WebApplicationException
+     */
+    public SOAPMessage readFrom(Class<SOAPMessage> soapEnvelopeClass, Type type, Annotation[] annotations,
+            MediaType mediaType, MultivaluedMap<String, String> stringStringMultivaluedMap, InputStream inputStream)
+            throws IOException, WebApplicationException {
         try {
             String data = "";
             try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
@@ -82,11 +110,34 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
         return null;
     }
 
+    /**
+     * @param soapMessage
+     * @param aClass
+     * @param type
+     * @param annotations
+     * @param mediaType
+     *
+     * @return
+     */
     public long getSize(SOAPMessage soapMessage, Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType) {
         return -1;
     }
 
-    public void writeTo(SOAPMessage soapMessage, Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> stringObjectMultivaluedMap, OutputStream outputStream) throws IOException, WebApplicationException {
+    /**
+     * @param soapMessage
+     * @param aClass
+     * @param type
+     * @param annotations
+     * @param mediaType
+     * @param stringObjectMultivaluedMap
+     * @param outputStream
+     *
+     * @throws IOException
+     * @throws WebApplicationException
+     */
+    public void writeTo(SOAPMessage soapMessage, Class<?> aClass, Type type, Annotation[] annotations,
+            MediaType mediaType, MultivaluedMap<String, Object> stringObjectMultivaluedMap, OutputStream outputStream)
+            throws IOException, WebApplicationException {
         try {
             soapMessage.writeTo(outputStream);
         } catch (SOAPException e) {

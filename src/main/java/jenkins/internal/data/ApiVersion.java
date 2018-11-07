@@ -1,10 +1,16 @@
 package jenkins.internal.data;
 
+/**
+ * Version information of this API
+ */
 public class ApiVersion {
     private int major;
     private int minor;
     private int fix;
 
+    /**
+     * Constructor of version information of this API
+     */
     public ApiVersion() {
         this.major = 1;
         this.minor = 0;

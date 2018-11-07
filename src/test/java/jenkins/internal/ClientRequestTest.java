@@ -85,7 +85,7 @@ public class ClientRequestTest {
         server.setDispatcher(dispatcher);
         server.start(8085);
         printMock = mock(PrintStream.class, "PrintMock");
-        testObject = new ClientRequest(null, printMock, baseUrl);
+        testObject = new ClientRequest(printMock, baseUrl);
         Whitebox.invokeMethod(testObject, "createClient");
     }
 
@@ -318,19 +318,6 @@ public class ClientRequestTest {
         clearInvocations(printMock);
         testObject.startTestrun(null);
         verify(printMock).println("WARNING: no EXAM connected");
-    }
-
-    @Test
-    public void setLauncher() {
-        Launcher launcherMock = mock(Launcher.class, "Launcher for Test");
-        testObject.setLauncher(launcherMock);
-        Launcher toTest = Whitebox.getInternalState(testObject, "launcher");
-        MockingDetails mockDetails = mockingDetails(toTest);
-        if (!mockDetails.isMock()) {
-            fail("no Mock returned");
-        }
-        String mockName = mockDetails.getMockCreationSettings().getMockName().toString();
-        assertEquals("Launcher for Test", mockName);
     }
 
     @Test

@@ -33,7 +33,7 @@ import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.util.FormValidation;
-import jenkins.internal.enumeration.PYTHON_WORDS;
+import jenkins.internal.enumeration.PythonWords;
 import jenkins.model.Jenkins;
 import jenkins.task._exam.Messages;
 
@@ -42,6 +42,13 @@ import java.util.regex.Pattern;
 
 public class Util {
 
+    /**
+     * Get the Node of a workspace
+     *
+     * @param workspace
+     *
+     * @return Node
+     */
     public static Node workspaceToNode(FilePath workspace) {
         Jenkins j = Jenkins.getInstance();
         if (workspace != null && workspace.isRemote()) {
@@ -57,6 +64,13 @@ public class Util {
         return j;
     }
 
+    /**
+     * Check uuid pattern
+     *
+     * @param uuid
+     *
+     * @return true, if valid
+     */
     public static boolean isUuidValid(String uuid) {
         String myUuid = uuid.replaceAll("-", "");
         if (myUuid.length() != 32) {
@@ -72,9 +86,16 @@ public class Util {
         return false;
     }
 
-    public static boolean isIdValid(String object) {
+    /**
+     * Check id pattern
+     *
+     * @param id
+     *
+     * @return true, if valid
+     */
+    public static boolean isIdValid(String id) {
         Pattern regexSystemConfig = Pattern.compile("^I[0-9]+");
-        Matcher matcher = regexSystemConfig.matcher(object);
+        Matcher matcher = regexSystemConfig.matcher(id);
         if (matcher.find()) {
             if (matcher.groupCount() == 0) {
                 return true;
@@ -83,7 +104,13 @@ public class Util {
         return false;
     }
 
-
+    /**
+     * Check name pattern
+     *
+     * @param name
+     *
+     * @return true, if valid
+     */
     public static boolean isPythonConformName(String name) {
         if (name == null) {
             return false;
@@ -101,15 +128,21 @@ public class Util {
             if (!regexPattern.matcher(part).matches()) {
                 return false;
             }
-            PYTHON_WORDS id = PYTHON_WORDS.get(part);
-            if (PYTHON_WORDS.RESERVED_WORDS.contains(id)) {
+            PythonWords id = PythonWords.get(part);
+            if (PythonWords.RESERVED_WORDS.contains(id)) {
                 return false;
             }
         }
         return true;
     }
 
-
+    /**
+     * Check id pattern
+     *
+     * @param value
+     *
+     * @return FormValidation
+     */
     public static FormValidation validateId(String value) {
 
         if (isIdValid(value)) {
@@ -119,7 +152,13 @@ public class Util {
         return FormValidation.error(Messages.EXAM_RegExId());
     }
 
-
+    /**
+     * Check name pattern
+     *
+     * @param value
+     *
+     * @return FormValidation
+     */
     public static FormValidation validatePythonConformName(String value) {
 
         if (isPythonConformName(value)) {
@@ -129,6 +168,13 @@ public class Util {
         return FormValidation.error(Messages.EXAM_RegExFsn());
     }
 
+    /**
+     * Check uuid pattern
+     *
+     * @param value
+     *
+     * @return FormValidation
+     */
     public static FormValidation validateUuid(String value) {
 
         if (isUuidValid(value)) {
@@ -138,6 +184,13 @@ public class Util {
         return FormValidation.error(Messages.EXAM_RegExUuid());
     }
 
+    /**
+     * Check value on id, uuid and python name
+     *
+     * @param value
+     *
+     * @return FormValidation
+     */
     public static FormValidation validateElementForSearch(String value) {
         StringBuilder errorMsg = new StringBuilder("");
 

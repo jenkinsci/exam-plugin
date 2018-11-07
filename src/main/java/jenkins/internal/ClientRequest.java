@@ -35,28 +35,26 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
-import hudson.AbortException;
-import hudson.Launcher;
-import hudson.model.BuildListener;
 import hudson.model.Executor;
-import jenkins.internal.data.*;
+import jenkins.internal.data.ExamStatus;
+import jenkins.internal.data.TestrunFilter;
+import jenkins.internal.data.FilterConfiguration;
+import jenkins.internal.data.ApiVersion;
+import jenkins.internal.data.TestConfiguration;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.PrintStream;
-import java.util.List;
 
 public class ClientRequest {
 
     private String baseUrl = "";
     private PrintStream logger;
     private Client client = null;
-    private Launcher launcher = null;
 
     private final static int OK = Response.ok().build().getStatus();
 
-    public ClientRequest(Launcher launcher, PrintStream logger, String baseUrl) {
-        this.launcher = launcher;
+    public ClientRequest(PrintStream logger, String baseUrl) {
         this.baseUrl = baseUrl;
         this.logger = logger;
     }
@@ -77,10 +75,11 @@ public class ClientRequest {
         this.logger = logger;
     }
 
-    public void setLauncher(Launcher launcher) {
-        this.launcher = launcher;
-    }
-
+    /**
+     * Request the job xxecution status from EXAM Client
+     *
+     * @return ExamStatus
+     */
     public ExamStatus getStatus() {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
@@ -96,6 +95,11 @@ public class ClientRequest {
         return response.getEntity(ExamStatus.class);
     }
 
+    /**
+     * Request the Api Version from EXAM Client
+     *
+     * @return ApiVersion
+     */
     public ApiVersion getApiVersion() {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
@@ -110,6 +114,11 @@ public class ClientRequest {
         return response.getEntity(ApiVersion.class);
     }
 
+    /**
+     * Checks, if the EXAM Client ist responding
+     *
+     * @return true, is available
+     */
     public boolean isApiAvailable(){
         boolean clientCreated = false;
         boolean isAvailable = true;
@@ -129,6 +138,11 @@ public class ClientRequest {
         return isAvailable;
     }
 
+    /**
+     * Setting the  EXAM Client
+     *
+     * @param filterConfig FilterConfiguration
+     */
     public void setTestrunFilter(FilterConfiguration filterConfig) {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
@@ -152,6 +166,11 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
+    /**
+     * Request the Api Version from EXAM Client
+     *
+     * @param reportProject
+     */
     public void convert(String reportProject)  {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
@@ -166,6 +185,11 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
+    /**
+     * Configure and start testrun at EXAM Client
+     *
+     * @param testConfig
+     */
     public void startTestrun(TestConfiguration testConfig) {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
@@ -196,6 +220,9 @@ public class ClientRequest {
         }
     }
 
+    /**
+     * stops a testrun
+     */
     public void stopTestrun(){
         if(client == null){
             logger.println("WARNING: no EXAM connected");
@@ -210,6 +237,11 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
+    /**
+     * Deletes the project configuration at EXAM and deletes the corresponding report and pcode folders
+     *
+     * @param projectName
+     */
     public void clearWorkspace(String projectName) {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
@@ -229,6 +261,9 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
+    /**
+     * make EXAM shutting down
+     */
     public void shutdown() {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
@@ -239,6 +274,13 @@ public class ClientRequest {
 
     }
 
+    /**
+     * try to connect to EXAM REST Server within a timeout
+     *
+     * @param timeout
+     *
+     * @return true, if connected
+     */
     public boolean connectClient(int timeout) {
         logger.println("connecting to EXAM");
         createClient();
@@ -270,6 +312,11 @@ public class ClientRequest {
         client = null;
     }
 
+    /**
+     * Try to disconnect from EXAM Client
+     *
+     * @param timeout
+     */
     public void disconnectClient(int timeout) {
         if (client == null) {
             logger.println("Client is not connected");
@@ -300,6 +347,11 @@ public class ClientRequest {
         }
     }
 
+    /**
+     * Waits for the EXAM Testrun ends
+     *
+     * @param executor Executor
+     */
     public void waitForTestrunEnds(Executor executor){
         boolean testDetected = false;
         int breakAfter = 10;

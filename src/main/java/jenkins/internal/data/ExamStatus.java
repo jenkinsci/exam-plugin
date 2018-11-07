@@ -8,7 +8,8 @@
 package jenkins.internal.data;
 
 /**
- * 
+ * Status of running Jobs at EXAM
+ *
  * @author liu
  */
 public class ExamStatus {

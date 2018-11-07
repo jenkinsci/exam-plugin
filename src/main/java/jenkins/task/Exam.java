@@ -64,8 +64,6 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -405,7 +403,7 @@ public class Exam extends Builder implements SimpleBuildStep {
             ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger(), run.getCharset());
             boolean ret = true;
             String slaveIp = Remote.getIP(launcher);
-            ClientRequest clientRequest = new ClientRequest(launcher, listener.getLogger(),
+            ClientRequest clientRequest = new ClientRequest(listener.getLogger(),
                     "http://" + slaveIp + ":" + port + "/examRest");
             try {
 
@@ -528,9 +526,9 @@ public class Exam extends Builder implements SimpleBuildStep {
             tc.setPdfMeasureImages(pdfMeasureImages);
         }
 
-        tc.setLogLevel_TC(RestAPILogLevelEnum.valueOf(loglevel_test_ctrl));
-        tc.setLogLevel_TL(RestAPILogLevelEnum.valueOf(loglevel_test_logic));
-        tc.setLogLevel_LC(RestAPILogLevelEnum.valueOf(loglevel_lib_ctrl));
+        tc.setLogLevelTC(RestAPILogLevelEnum.valueOf(loglevel_test_ctrl));
+        tc.setLogLevelTL(RestAPILogLevelEnum.valueOf(loglevel_test_logic));
+        tc.setLogLevelLC(RestAPILogLevelEnum.valueOf(loglevel_lib_ctrl));
 
         return tc;
     }

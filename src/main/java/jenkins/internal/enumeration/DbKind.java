@@ -29,7 +29,6 @@
  */
 package jenkins.internal.enumeration;
 
-import java.util.EnumSet;
 
 /**
  * Enum for the data base systems supported by EXAM.
@@ -152,28 +151,8 @@ public enum DbKind {
         case ORACLE_SERVICE:
             b = new StringBuilder();
             b.append(this.urlPrefix);
+            addHostPort(host, port, b);
 
-            // must take care of any possible combination here
-            boolean hasHost = host != null && !host.isEmpty();
-            boolean hasPort = port != null && !port.isEmpty();
-
-            if (hasHost) {
-                b.append("//");//$NON-NLS-1$
-                b.append(host);
-
-                if (!hasPort) {
-                    b.append(this.schemaDelimiter);
-                }
-            }
-
-            if (hasPort) {
-                if (!hasHost) {
-                    b.append("//");//$NON-NLS-1$
-                }
-                b.append(':');
-                b.append(port);
-                b.append(this.schemaDelimiter);
-            }
             b.append(serviceOrSid);
             break;
 
@@ -184,10 +163,37 @@ public enum DbKind {
         case POSTGRESQL:
             b.append(schema);
             break;
+
+        default:
+            break;
         }
 
         b.append(this.urlPostfix);
         return b.toString();
+    }
+
+    private void addHostPort(String host, String port, StringBuilder b) {
+        // must take care of any possible combination here
+        boolean hasHost = host != null && !host.isEmpty();
+        boolean hasPort = port != null && !port.isEmpty();
+
+        if (hasHost) {
+            b.append("//");//$NON-NLS-1$
+            b.append(host);
+
+            if (!hasPort) {
+                b.append(this.schemaDelimiter);
+            }
+        }
+
+        if (hasPort) {
+            if (!hasHost) {
+                b.append("//");//$NON-NLS-1$
+            }
+            b.append(':');
+            b.append(port);
+            b.append(this.schemaDelimiter);
+        }
     }
 
     /**

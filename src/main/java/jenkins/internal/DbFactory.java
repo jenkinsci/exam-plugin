@@ -36,7 +36,14 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
 import javax.ws.rs.core.Response;
-import javax.xml.soap.*;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPFault;
+import javax.xml.soap.SOAPMessage;
+import javax.xml.soap.SOAPPart;
 
 public class DbFactory {
 
@@ -62,6 +69,17 @@ public class DbFactory {
         return message;
     }
 
+    /**
+     * Try to connect to the EXAM server and check the connection status.
+     *
+     * @param modelName
+     * @param targetEndpoint
+     * @param examVersion
+     *
+     * @return
+     *
+     * @throws SOAPException
+     */
     public static String testModelConnection(String modelName, String targetEndpoint, int examVersion) throws SOAPException {
         ClientConfig clientConfig = new DefaultClientConfig();
         clientConfig.getClasses().add(SoapProvider.class);
@@ -80,6 +98,17 @@ public class DbFactory {
             throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
         }
         SOAPFault retFault = retBody.getFault();
+        String examServerFault = getExamServerFault(modelName, retFault);
+        if (examServerFault != null)
+            return examServerFault;
+
+        if (response.getStatus() != OK) {
+            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+        }
+        return "OK";
+    }
+
+    private static String getExamServerFault(String modelName, SOAPFault retFault) {
         if (retFault != null) {
             String text = retFault.getFaultString();
             if (text.contains("Wrong WebService!")) {
@@ -98,10 +127,6 @@ public class DbFactory {
                 return "Operation not found";
             }
         }
-
-        if (response.getStatus() != OK) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
-        }
-        return "OK";
+        return null;
     }
 }

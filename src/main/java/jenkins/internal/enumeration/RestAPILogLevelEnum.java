@@ -8,8 +8,7 @@
 package jenkins.internal.enumeration;
 
 /**
- * 
- * @author liu
+ * EXAM Loglevel
  */
 public enum RestAPILogLevelEnum {
 

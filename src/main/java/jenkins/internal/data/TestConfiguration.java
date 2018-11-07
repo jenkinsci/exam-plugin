@@ -3,6 +3,8 @@ package jenkins.internal.data;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 
 /**
+ * TestConfiguration
+ *
  * @author liu
  */
 public class TestConfiguration {
@@ -14,9 +16,9 @@ public class TestConfiguration {
     private String modelConfig;
     private String testObject;
 
-    private RestAPILogLevelEnum logLevel_TC;
-    private RestAPILogLevelEnum logLevel_TL;
-    private RestAPILogLevelEnum logLevel_LC;
+    private RestAPILogLevelEnum logLevelTC;
+    private RestAPILogLevelEnum logLevelTL;
+    private RestAPILogLevelEnum logLevelLC;
 
     private String reportPrefix = "";
     private String pythonPath;
@@ -128,51 +130,51 @@ public class TestConfiguration {
     }
 
     /**
-     * @return Das logLevel_TC.
+     * @return Das logLevelTC.
      */
-    public RestAPILogLevelEnum getLogLevel_TC() {
-        return this.logLevel_TC;
+    public RestAPILogLevelEnum getLogLevelTC() {
+        return this.logLevelTC;
     }
 
     /**
-     * Setzt das logLevel_TC.
+     * Setzt das logLevelTC.
      *
-     * @param logLevel_TC Das zu setzende logLevel_TC.
+     * @param logLevelTC Das zu setzende logLevelTC.
      */
-    public void setLogLevel_TC(RestAPILogLevelEnum logLevel_TC) {
-        this.logLevel_TC = logLevel_TC;
+    public void setLogLevelTC(RestAPILogLevelEnum logLevelTC) {
+        this.logLevelTC = logLevelTC;
     }
 
     /**
-     * @return Das logLevel_TL.
+     * @return Das logLevelTL.
      */
-    public RestAPILogLevelEnum getLogLevel_TL() {
-        return this.logLevel_TL;
+    public RestAPILogLevelEnum getLogLevelTL() {
+        return this.logLevelTL;
     }
 
     /**
-     * Setzt das logLevel_TL.
+     * Setzt das logLevelTL.
      *
-     * @param logLevel_TL Das zu setzende logLevel_TL.
+     * @param logLevelTL Das zu setzende logLevelTL.
      */
-    public void setLogLevel_TL(RestAPILogLevelEnum logLevel_TL) {
-        this.logLevel_TL = logLevel_TL;
+    public void setLogLevelTL(RestAPILogLevelEnum logLevelTL) {
+        this.logLevelTL = logLevelTL;
     }
 
     /**
-     * @return Das logLevel_LC.
+     * @return Das logLevelLC.
      */
-    public RestAPILogLevelEnum getLogLevel_LC() {
-        return this.logLevel_LC;
+    public RestAPILogLevelEnum getLogLevelLC() {
+        return this.logLevelLC;
     }
 
     /**
-     * Setzt das logLevel_LC.
+     * Setzt das logLevelLC.
      *
-     * @param logLevel_LC Das zu setzende logLevel_LC.
+     * @param logLevelLC Das zu setzende logLevelLC.
      */
-    public void setLogLevel_LC(RestAPILogLevelEnum logLevel_LC) {
-        this.logLevel_LC = logLevel_LC;
+    public void setLogLevelLC(RestAPILogLevelEnum logLevelLC) {
+        this.logLevelLC = logLevelLC;
     }
 
     /**
