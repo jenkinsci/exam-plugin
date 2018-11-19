@@ -1,0 +1,23 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <f:section title="${%Report}">
+        <f:entry title="${%Reports}" field="examReport">
+            <f:select/>
+        </f:entry>
+        <f:entry title="${%report prefix}" field="reportPrefix">
+            <f:textbox />
+        </f:entry>
+        <f:optionalBlock title="${%create pdf report}" inline="true" field="pdfReport">
+            <f:entry title="${%report template}" field="pdfReportTemplate">
+                <f:textbox />
+            </f:entry>
+            <f:entry title="${%select filter}" field="pdfSelectFilter">
+                <f:textbox />
+            </f:entry>
+            <f:entry title="${%include measure images}" field="pdfMeasureImages">
+                <f:checkbox />
+            </f:entry>
+        </f:optionalBlock>
+    </f:section>
+</j:jelly>

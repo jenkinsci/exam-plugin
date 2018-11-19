@@ -1,0 +1,27 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <f:section title="${%Modeler}">
+        <j:choose>
+            <j:when test="${size(descriptor.getInstallations()) != 0}">
+                <f:entry title="${%EXAM Version}" field="examName">
+                    <f:select />
+                </f:entry>
+            </j:when>
+            <j:otherwise>
+                <f:entry title="${%EXAM Version}" field="examName">
+                    <f:readOnlyTextbox value="${%please configure Tooling first}"></f:readOnlyTextbox>
+                </f:entry>
+            </j:otherwise>
+        </j:choose>
+        <f:entry title="${%Modell}" field="examModel">
+            <f:select />
+        </f:entry>
+        <f:entry title="${%ModelConfiguration}" field="modelConfiguration">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%delete project}" field="clearWorkspace">
+            <f:checkbox />
+        </f:entry>
+    </f:section>
+</j:jelly>
