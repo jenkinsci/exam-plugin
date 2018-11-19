@@ -86,6 +86,7 @@ public class ClientRequestTest {
         server.start(8085);
         printMock = mock(PrintStream.class, "PrintMock");
         testObject = new ClientRequest(printMock, baseUrl);
+        Whitebox.setInternalState(testObject, "waitTime", 100);
         Whitebox.invokeMethod(testObject, "createClient");
     }
 

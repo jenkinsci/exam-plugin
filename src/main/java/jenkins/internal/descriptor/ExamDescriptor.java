@@ -36,15 +36,17 @@ import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 import org.kohsuke.stapler.QueryParameter;
 
+import java.util.List;
+
 public interface ExamDescriptor {
 
     ExamTool[] getInstallations();
 
     PythonInstallation[] getPythonInstallations();
 
-    ExamModelConfig[] getModelConfigs();
+    List<ExamModelConfig> getModelConfigs();
 
-    ExamReportConfig[] getReportConfigs();
+    List<ExamReportConfig> getReportConfigs();
 
     FormValidation doCheckSystemConfiguration(@QueryParameter String value);
 

@@ -159,44 +159,44 @@ public class TestConfigurationTest {
     }
 
     @Test
-    public void getLogLevel_TC() {
-        Whitebox.setInternalState(testObject, "logLevel_TC", testLevel);
+    public void getlogLevelTC() {
+        Whitebox.setInternalState(testObject, "logLevelTC", testLevel);
         RestAPILogLevelEnum testIt = testObject.getLogLevelTC();
         assertEquals(testLevel, testIt);
     }
 
     @Test
-    public void setLogLevel_TC() {
+    public void setlogLevelTC() {
         testObject.setLogLevelTC(testLevel);
-        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevel_TC");
+        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevelTC");
         assertEquals(testLevel, testIt);
     }
 
     @Test
-    public void getLogLevel_TL() {
-        Whitebox.setInternalState(testObject, "logLevel_TL", testLevel);
+    public void getlogLevelTL() {
+        Whitebox.setInternalState(testObject, "logLevelTL", testLevel);
         RestAPILogLevelEnum testIt = testObject.getLogLevelTL();
         assertEquals(testLevel, testIt);
     }
 
     @Test
-    public void setLogLevel_TL() {
+    public void setlogLevelTL() {
         testObject.setLogLevelTL(testLevel);
-        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevel_TL");
+        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevelTL");
         assertEquals(testLevel, testIt);
     }
 
     @Test
-    public void getLogLevel_LC() {
-        Whitebox.setInternalState(testObject, "logLevel_LC", testLevel);
+    public void getLogLevelLC() {
+        Whitebox.setInternalState(testObject, "logLevelLC", testLevel);
         RestAPILogLevelEnum testIt = testObject.getLogLevelLC();
         assertEquals(testLevel, testIt);
     }
 
     @Test
-    public void setLogLevel_LC() {
+    public void setLogLevelLC() {
         testObject.setLogLevelLC(testLevel);
-        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevel_LC");
+        RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevelLC");
         assertEquals(testLevel, testIt);
     }
 

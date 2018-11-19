@@ -54,6 +54,7 @@ public class ClientRequest {
     private String baseUrl = "";
     private PrintStream logger;
     private Client client = null;
+    private long waitTime = 5000;
 
     private final static int OK = Response.ok().build().getStatus();
 
@@ -380,7 +381,7 @@ public class ClientRequest {
                 }
             }
             try {
-                Thread.sleep(5000);
+                Thread.sleep(waitTime);
             } catch (InterruptedException e) {
                 // nothing to do
             }

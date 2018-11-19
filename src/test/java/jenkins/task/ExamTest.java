@@ -46,7 +46,7 @@ public class ExamTest {
         examExecFile = "EXAM.exe";
         examSysConfig = "testExamSystemConfig";
         examTestProject = jenkinsRule.createFreeStyleProject();
-        testObject = new Exam(examName, pythonName, examModel, examReport, examExecFile, examSysConfig);
+        testObject = new Exam(examName, pythonName, examReport, examExecFile, examSysConfig);
     }
 
     @After
@@ -179,55 +179,55 @@ public class ExamTest {
     }
 
     @Test
-    public void getLoglevel_test_ctrl() {
+    public void getLoglevelTestCtrl() {
         String testLoglevel = "testLoglevel";
-        Whitebox.setInternalState(testObject, "loglevel_test_ctrl", testLoglevel);
-        String setLoglevel = testObject.getLoglevel_test_ctrl();
+        Whitebox.setInternalState(testObject, "loglevelTestCtrl", testLoglevel);
+        String setLoglevel = testObject.getLoglevelTestCtrl();
 
         assertEquals(testLoglevel, setLoglevel);
     }
 
     @Test
-    public void setLoglevel_test_ctrl() {
+    public void setLoglevelTestCtrl() {
         String testLoglevel = "anotherTestLoglevel";
-        testObject.setLoglevel_test_ctrl(testLoglevel);
-        String setLoglevel = Whitebox.getInternalState(testObject, "loglevel_test_ctrl");
+        testObject.setLoglevelTestCtrl(testLoglevel);
+        String setLoglevel = Whitebox.getInternalState(testObject, "loglevelTestCtrl");
 
         assertEquals(testLoglevel, setLoglevel);
     }
 
     @Test
-    public void getLoglevel_lib_ctrl() {
+    public void getLoglevelLibCtrl() {
         String testLoglevel = "testLoglevel";
-        Whitebox.setInternalState(testObject, "loglevel_lib_ctrl", testLoglevel);
-        String setLoglevel = testObject.getLoglevel_lib_ctrl();
+        Whitebox.setInternalState(testObject, "loglevelLibCtrl", testLoglevel);
+        String setLoglevel = testObject.getLoglevelLibCtrl();
 
         assertEquals(testLoglevel, setLoglevel);
     }
 
     @Test
-    public void setLoglevel_lib_ctrl() {
+    public void setLoglevelLibCtrl() {
         String testLoglevel = "anotherTestLoglevel";
-        testObject.setLoglevel_test_logic(testLoglevel);
-        String setLoglevel = Whitebox.getInternalState(testObject, "loglevel_test_logic");
+        testObject.setLoglevelTestLogic(testLoglevel);
+        String setLoglevel = Whitebox.getInternalState(testObject, "loglevelTestLogic");
 
         assertEquals(testLoglevel, setLoglevel);
     }
 
     @Test
-    public void getLoglevel_test_logic() {
+    public void getLoglevelTestLogic() {
         String testLoglevel = "testLoglevel";
-        Whitebox.setInternalState(testObject, "loglevel_test_logic", testLoglevel);
-        String setLoglevel = testObject.getLoglevel_test_logic();
+        Whitebox.setInternalState(testObject, "loglevelTestLogic", testLoglevel);
+        String setLoglevel = testObject.getLoglevelTestLogic();
 
         assertEquals(testLoglevel, setLoglevel);
     }
 
     @Test
-    public void setLoglevel_test_logic() {
+    public void setLoglevelTestLogic() {
         String testLoglevel = "anotherTestLoglevel";
-        testObject.setLoglevel_lib_ctrl(testLoglevel);
-        String setLoglevel = Whitebox.getInternalState(testObject, "loglevel_lib_ctrl");
+        testObject.setLoglevelLibCtrl(testLoglevel);
+        String setLoglevel = Whitebox.getInternalState(testObject, "loglevelLibCtrl");
 
         assertEquals(testLoglevel, setLoglevel);
     }
@@ -280,6 +280,7 @@ public class ExamTest {
 
     @Test
     public void getExamModel() {
+        testObject.setExamModel(examModel);
         String setModelName = testObject.getExamModel();
         assertEquals(examModel, setModelName);
     }

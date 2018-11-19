@@ -81,19 +81,4 @@ public class ExamConsoleAnnotatorTest {
         Whitebox.setInternalState(testObject,"out",stream);
         testObject.close();
     }
-
-    @Test
-    public void endsWith() throws Exception {
-        boolean returned = Whitebox.invokeMethod(testObject, "endsWith",
-                new Object[]{"", 'k'});
-        assertFalse(returned);
-
-        returned = Whitebox.invokeMethod(testObject, "endsWith",
-                new Object[]{"sdgsfjhgkd", 'k'});
-        assertFalse(returned);
-
-        returned = Whitebox.invokeMethod(testObject, "endsWith",
-                new Object[]{"sdgsfjhgk", 'k'});
-        assertTrue(returned);
-    }
 }

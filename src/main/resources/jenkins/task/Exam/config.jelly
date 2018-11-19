@@ -1,0 +1,75 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <f:section title="${%Modeler}">
+        <j:choose>
+            <j:when test="${size(descriptor.getInstallations()) != 0}">
+                <f:entry title="${%EXAM Version}" field="examName">
+                    <f:select />
+                </f:entry>
+            </j:when>
+            <j:otherwise>
+                <f:entry title="${%EXAM Version}" field="examName">
+                    <f:readOnlyTextbox value="${%please configure Tooling first}"></f:readOnlyTextbox>
+                </f:entry>
+            </j:otherwise>
+        </j:choose>
+        <f:entry title="${%Modell}" field="examModel">
+            <f:select />
+        </f:entry>
+        <f:entry title="${%ModelConfiguration}" field="modelConfiguration">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%delete project}" field="clearWorkspace">
+            <f:checkbox />
+        </f:entry>
+    </f:section>
+
+    <f:section title="${%Testrun}">
+        <f:entry title="Python Version" field="pythonName">
+            <f:select />
+        </f:entry>
+        <f:entry title="${%test object}" field="executionFile">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%SystemConfiguration}" field="systemConfiguration">
+            <f:textbox />
+        </f:entry>
+        <f:optionalBlock title="${%configure Testrun Filters}" inline="true">
+            <f:entry>
+                <f:repeatableProperty field="testrunFilter" header="Testrun Filter" add="Add filter" />
+            </f:entry>
+        </f:optionalBlock>
+        <f:optionalBlock title="${%configure logging}" inline="true">
+            <f:entry title="${%TEST_CTRL}" field="loglevelTestCtrl">
+                <f:select default="${descriptor.getDefaultLogLevel()}"/>
+            </f:entry>
+            <f:entry title="${%TEST_LOGIC}" field="loglevelTestLogic">
+                <f:select default="${descriptor.getDefaultLogLevel()}"/>
+            </f:entry>
+            <f:entry title="${%LIB_CTRL}" field="loglevelLibCtrl">
+                <f:select default="${descriptor.getDefaultLogLevel()}"/>
+            </f:entry>
+        </f:optionalBlock>
+    </f:section>
+
+    <f:section title="${%Report}">
+        <f:entry title="${%Reports}" field="examReport">
+            <f:select/>
+        </f:entry>
+        <f:entry title="${%report prefix}" field="reportPrefix">
+            <f:textbox />
+        </f:entry>
+        <f:optionalBlock title="${%create pdf report}" inline="true" field="pdfReport">
+            <f:entry title="${%report template}" field="pdfReportTemplate">
+                <f:textbox />
+            </f:entry>
+            <f:entry title="${%select filter}" field="pdfSelectFilter">
+                <f:textbox />
+            </f:entry>
+            <f:entry title="${%include measure images}" field="pdfMeasureImages">
+                <f:checkbox />
+            </f:entry>
+        </f:optionalBlock>
+    </f:section>
+</j:jelly>
