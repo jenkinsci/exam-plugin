@@ -31,29 +31,21 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-    <j:set var="helpPath" value="/plugin/exam/help/task/ExamSubModules/Modeler"/>
+    <j:set var="helpPath" value="/plugin/exam/help/task/ExamSubModules/Testrunner"/>
 
-    <f:section title="${%Modeler}">
-        <j:choose>
-            <j:when test="${size(descriptor.getInstallations()) != 0}">
-                <f:entry title="${%EXAM Version}" field="examName" help="${helpPath}/help-examName.html">
-                    <f:select />
-                </f:entry>
-            </j:when>
-            <j:otherwise>
-                <f:entry title="${%EXAM Version}" field="examName" help="${helpPath}/help-examName.html">
-                    <f:readOnlyTextbox value="${%please configure Tooling first}"></f:readOnlyTextbox>
-                </f:entry>
-            </j:otherwise>
-        </j:choose>
-        <f:entry title="${%Modell}" field="examModel" help="${helpPath}/help-examModel.html">
+    <f:section title="${%Testrun}">
+        <f:entry title="Python Version" field="pythonName" help="${helpPath}/help-pythonName.html">
             <f:select />
         </f:entry>
-        <f:entry title="${%ModelConfiguration}" field="modelConfiguration" help="${helpPath}/help-modelConfiguration.html">
+        <f:entry title="${%Python Path}" field="pathExecutionFile" help="${helpPath}/help-pathPCode.html">
             <f:textbox />
         </f:entry>
-        <f:entry title="${%delete project}" field="clearWorkspace" help="${helpPath}/help-clearWorkspace.html">
-            <f:checkbox />
+        <f:entry title="${%Execution File}" field="pathPCode" help="${helpPath}/help-pathExecutionFile.html">
+            <f:textbox />
         </f:entry>
+        <f:entry title="${%SystemConfiguration}" field="systemConfiguration" help="${helpPath}/help-systemConfiguration_ExecutionFile.html">
+            <f:textbox />
+        </f:entry>
+        <st:include page="/jenkins/task/ExamSubmodules/Testrunner/configLoggingFilter.jelly" />
     </f:section>
 </j:jelly>

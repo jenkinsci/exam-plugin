@@ -63,10 +63,7 @@ import java.util.List;
  *
  * @author Kohsuke Kawaguchi
  */
-public class Exam extends ExamTask {
-
-
-    private String useExecutionFile;
+public class ExamTaskModel extends ExamTask {
 
     /**
      * Identifies {@link jenkins.plugins.exam.config.ExamModelConfig} to be used.
@@ -83,32 +80,6 @@ public class Exam extends ExamTask {
      */
     private String modelConfiguration;
 
-    private String pathExecutionFile;
-    private String pathPCode;
-
-
-    public String getPathExecutionFile() {
-        return pathExecutionFile;
-    }
-
-    @DataBoundSetter
-    public void setPathExecutionFile(String pathExecutionFile) {
-        this.pathExecutionFile = pathExecutionFile;
-    }
-
-    public String getPathPCode() {
-        return pathPCode;
-    }
-
-    @DataBoundSetter
-    public void setPathPCode(String pathPCode) {
-        this.pathPCode = pathPCode;
-    }
-
-    public String getUseExecutionFile() {
-        return useExecutionFile;
-    }
-
     @DataBoundSetter
     public void setExamModel(String examModel) {
         this.examModel = examModel;
@@ -120,23 +91,16 @@ public class Exam extends ExamTask {
     }
 
     @DataBoundSetter
-    public void setUseExecutionFile(String useExecutionFile) {
-        this.useExecutionFile = useExecutionFile;
-    }
-
-    @DataBoundSetter
     public void setModelConfiguration(String modelConfiguration) {
         this.modelConfiguration = modelConfiguration;
     }
 
     @DataBoundConstructor
-    public Exam(String examName, String pythonName, String examReport, String executionFile,
+    public ExamTaskModel(String examName, String pythonName, String examReport, String executionFile,
                 String systemConfiguration) {
-        this.examName = examName;
-        this.pythonName = pythonName;
-        this.examReport = examReport;
+        super(examName, pythonName, examReport, systemConfiguration);
         this.executionFile = Util.fixEmptyAndTrim(executionFile);
-        this.systemConfiguration = Util.fixEmptyAndTrim(systemConfiguration);
+        setUseExecutionFile(false);
     }
 
     public String getExamModel() {
@@ -149,10 +113,6 @@ public class Exam extends ExamTask {
 
     public String getModelConfiguration() {
         return modelConfiguration;
-    }
-
-    public ExamTool.DescriptorImpl getToolDescriptor() {
-        return ToolInstallation.all().get(ExamTool.DescriptorImpl.class);
     }
 
     private ExamModelConfig getModel(String name) {
@@ -180,103 +140,30 @@ public class Exam extends ExamTask {
         return tc;
     }
 
+    @Override
+    public ExamTaskModel.DescriptorExamTaskModel getDescriptor() {
+        return (ExamTaskModel.DescriptorExamTaskModel) super.getDescriptor();
+    }
+
     @Extension
-    @Symbol("examTest")
-    public static class DescriptorImpl extends BuildStepDescriptor<Builder> implements ExamDescriptor {
-
-        public DescriptorImpl() {
-            load();
-        }
-
-        protected DescriptorImpl(Class<? extends Exam> clazz) {
-            super(clazz);
-            load();
-        }
+    @Symbol("examTest_Model")
+    public static class DescriptorExamTaskModel extends DescriptorExamTask {
 
         public String getDisplayName() {
-            return Messages.EXAM_DisplayName();
+            return Messages.EXAM_DisplayNameModel();
         }
 
         public String getDefaultLogLevel() {
-            return RestAPILogLevelEnum.INFO.name();
-        }
-
-        public RestAPILogLevelEnum[] getLogLevels() {
-            return RestAPILogLevelEnum.values();
+            return super.getDefaultLogLevel();
         }
 
         public FormValidation doCheckExecutionFile(@QueryParameter String value) {
             return jenkins.internal.Util.validateElementForSearch(value);
         }
 
-        public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
-            return jenkins.internal.Util.validateElementForSearch(value);
-        }
-
-        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
-            return true;
-        }
-
-        public ExamTool[] getInstallations() {
-            return Jenkins.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations();
-        }
-
-
-        public PythonInstallation[] getPythonInstallations() {
-            return Jenkins.getInstance().getDescriptorByType(PythonInstallation.DescriptorImpl.class).getInstallations();
-        }
-
         public List<ExamModelConfig> getModelConfigs() {
             return Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
                     .getModelConfigs();
-        }
-
-        private List<ExamReportConfig> addNoReport(List<ExamReportConfig> reports){
-            List<ExamReportConfig> lReportConfigs = reports;
-            boolean found = false;
-            for(ExamReportConfig config : reports){
-                if(config.getName().compareTo(ReportConfiguration.NO_REPORT) == 0){
-                    found = true;
-                    break;
-                }
-            }
-            if(!found){
-                ExamReportConfig noReport = new ExamReportConfig();
-                noReport.setName(ReportConfiguration.NO_REPORT);
-                noReport.setSchema("");
-                noReport.setHost("");
-                noReport.setPort("0");
-                lReportConfigs.add(0, noReport);
-            }
-            return lReportConfigs;
-        }
-        public List<ExamReportConfig> getReportConfigs() {
-            List<ExamReportConfig> lReportConfigs = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
-                    .getReportConfigs();
-            lReportConfigs = addNoReport(lReportConfigs);
-            return lReportConfigs;
-        }
-
-        public ListBoxModel doFillExamNameItems(){
-            ListBoxModel items = new ListBoxModel();
-            ExamTool[] examTools = getInstallations();
-
-            Arrays.sort(examTools, (ExamTool o1, ExamTool o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
-            for (ExamTool tool : examTools) {
-                items.add(tool.getName(), tool.getName());
-            }
-            return items;
-        }
-
-        public ListBoxModel doFillPythonNameItems(){
-            ListBoxModel items = new ListBoxModel();
-            PythonInstallation[] pythonTools = getPythonInstallations();
-
-            Arrays.sort(pythonTools, (PythonInstallation o1, PythonInstallation o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
-            for (PythonInstallation tool : pythonTools) {
-                items.add(tool.getName(), tool.getName());
-            }
-            return items;
         }
 
         public ListBoxModel doFillExamModelItems(){
@@ -288,37 +175,6 @@ public class Exam extends ExamTask {
                 items.add(model.getDisplayName(), model.getName());
             }
             return items;
-        }
-
-        public ListBoxModel doFillExamReportItems(){
-            ListBoxModel items = new ListBoxModel();
-            List<ExamReportConfig> reports = getReportConfigs();
-            reports.sort((ExamReportConfig o1, ExamReportConfig o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
-
-            for (ExamReportConfig report : reports) {
-                items.add(report.getDisplayName(), report.getName());
-            }
-            return items;
-        }
-
-        private ListBoxModel getLoglevelItems(){
-            ListBoxModel items = new ListBoxModel();
-            for (RestAPILogLevelEnum loglevel : getLogLevels()) {
-                items.add(loglevel.name(), loglevel.name());
-            }
-            return items;
-        }
-
-        public ListBoxModel doFillLoglevelTestCtrlItems(){
-            return getLoglevelItems();
-        }
-
-        public ListBoxModel doFillLoglevelTestLogicItems(){
-            return getLoglevelItems();
-        }
-
-        public ListBoxModel doFillLoglevelLibCtrlItems(){
-            return getLoglevelItems();
         }
     }
 }

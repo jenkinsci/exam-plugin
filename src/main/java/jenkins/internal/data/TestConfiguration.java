@@ -38,6 +38,8 @@ import jenkins.internal.enumeration.RestAPILogLevelEnum;
  */
 public class TestConfiguration {
 
+    private Boolean useExecutionFile;
+
     private ModelConfiguration modelProject;
     private ReportConfiguration reportProject;
 
@@ -60,6 +62,24 @@ public class TestConfiguration {
      */
     public TestConfiguration() {
 
+    }
+
+
+    /**
+     * @return useExecutionFile.
+     */
+    public Boolean getUseExecutionFile() {
+        return useExecutionFile;
+    }
+
+    /**
+     * Setzt das useExecutionFile.
+     *
+     * @param useExecutionFile
+     *            Das zu setzende useExecutionFile.
+     */
+    public void setUseExecutionFile(Boolean useExecutionFile) {
+        this.useExecutionFile = useExecutionFile;
     }
 
     /**

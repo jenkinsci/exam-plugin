@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Filter {@link OutputStream} that places an annotation that marks Exam target
+ * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
  * execution.
  *
  */
@@ -44,7 +44,7 @@ public class ExamConsoleErrorOut extends LineTransformationOutputStream {
     private final OutputStream out;
 
     /**
-     * Filter {@link OutputStream} that places an annotation that marks Exam target
+     * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
      * execution.
      *
      */

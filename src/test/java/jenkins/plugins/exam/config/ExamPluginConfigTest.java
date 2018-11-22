@@ -2,18 +2,15 @@ package jenkins.plugins.exam.config;
 
 import hudson.util.FormValidation;
 import jenkins.internal.DbFactory;
-import jenkins.task.Exam;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
-import org.powermock.api.mockito.PowerMockito.*;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import javax.validation.constraints.AssertTrue;
 import javax.xml.soap.SOAPException;
 import java.util.ArrayList;
 import java.util.Collections;

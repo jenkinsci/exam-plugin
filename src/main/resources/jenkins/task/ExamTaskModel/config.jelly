@@ -31,29 +31,11 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-    <j:set var="helpPath" value="/plugin/exam/help/task/ExamSubModules/Modeler"/>
+    <st:include page="/jenkins/task/ExamSubmodules/Modeler/config.jelly" />
 
-    <f:section title="${%Modeler}">
-        <j:choose>
-            <j:when test="${size(descriptor.getInstallations()) != 0}">
-                <f:entry title="${%EXAM Version}" field="examName" help="${helpPath}/help-examName.html">
-                    <f:select />
-                </f:entry>
-            </j:when>
-            <j:otherwise>
-                <f:entry title="${%EXAM Version}" field="examName" help="${helpPath}/help-examName.html">
-                    <f:readOnlyTextbox value="${%please configure Tooling first}"></f:readOnlyTextbox>
-                </f:entry>
-            </j:otherwise>
-        </j:choose>
-        <f:entry title="${%Modell}" field="examModel" help="${helpPath}/help-examModel.html">
-            <f:select />
-        </f:entry>
-        <f:entry title="${%ModelConfiguration}" field="modelConfiguration" help="${helpPath}/help-modelConfiguration.html">
-            <f:textbox />
-        </f:entry>
-        <f:entry title="${%delete project}" field="clearWorkspace" help="${helpPath}/help-clearWorkspace.html">
-            <f:checkbox />
-        </f:entry>
-    </f:section>
+    <st:include page="/jenkins/task/ExamSubmodules/Testrunner/configModel.jelly" />
+
+    <st:include page="/jenkins/task/ExamSubmodules/Report/config.jelly" />
+
+    <st:include page="/jenkins/task/ExamSubmodules/configAdvanced.jelly" />
 </j:jelly>

@@ -1,60 +1,56 @@
 package jenkins.task;
 
-import hudson.model.FreeStyleBuild;
-import hudson.model.FreeStyleProject;
-import hudson.model.Result;
-import jenkins.plugins.exam.ExamTool;
-import jenkins.plugins.shiningpanda.tools.PythonInstallation;
+import jenkins.internal.data.TestConfiguration;
 import jenkins.task.TestUtil.Util;
-import org.junit.*;
-import org.jvnet.hudson.test.BuildWatcher;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.powermock.reflect.Whitebox;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class ExamTest {
+public class ExamTaskTest {
+
+
+    private class TestObject extends ExamTask{
+
+        TestObject(String examName, String pythonName, String examReport, String systemConfiguration) {
+            super(examName, pythonName, examReport, systemConfiguration);
+        }
+
+        @Override
+        TestConfiguration addDataToTestConfiguration(TestConfiguration testConfiguration) {
+            return null;
+        }
+    }
 
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
-    @ClassRule
-    public static BuildWatcher buildWatcher = new BuildWatcher();
-    private FreeStyleProject examTestProject;
-    private Exam testObject;
+    private ExamTask testObject;
     private String examName;
     private String pythonName;
-    private String pythonHome;
-    private String examModel;
-    private String examHome;
     private String examReport;
-    private String examRelativePath;
-    private String examExecFile;
     private String examSysConfig;
 
+
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         examName = "EXAM";
         pythonName = "Python-2.7";
-        pythonHome = "pythonHome";
-        examModel = "EXAM44";
         examReport = "examReport";
-        examHome = "examHome";
-        examRelativePath = "examRelativePath";
-        examExecFile = "EXAM.exe";
         examSysConfig = "testExamSystemConfig";
-        examTestProject = jenkinsRule.createFreeStyleProject();
-        testObject = new Exam(examName, pythonName, examReport, examExecFile, examSysConfig);
+        testObject = new TestObject(examName, pythonName, examReport, examSysConfig);
     }
 
     @After
     public void tearDown() {
-        cleanUpExamTools();
-        cleanUpPythonInstallations();
+        Util.cleanUpExamTools(jenkinsRule);
+        Util.cleanUpPythonInstallations(jenkinsRule);
 
-        examTestProject = null;
         testObject = null;
     }
 
@@ -249,49 +245,6 @@ public class ExamTest {
     }
 
     @Test
-    public void getModelConfiguration() {
-        String modelConfig = "testModelConfig";
-        Whitebox.setInternalState(testObject, "modelConfiguration", modelConfig);
-        String setModelConfig = testObject.getModelConfiguration();
-
-        assertEquals(modelConfig, setModelConfig);
-    }
-
-    @Test
-    public void setModelConfiguration() {
-        String modelConfig = "testModelConfig";
-        testObject.setModelConfiguration(modelConfig);
-        String setModelConfig = Whitebox.getInternalState(testObject, "modelConfiguration");
-
-        assertEquals(modelConfig, setModelConfig);
-    }
-
-    @Test
-    public void getExamName() {
-        String setExamName = testObject.getExamName();
-        assertEquals(examName, setExamName);
-    }
-
-    @Test
-    public void getPythonName() {
-        String setPythonName = testObject.getPythonName();
-        assertEquals(pythonName, setPythonName);
-    }
-
-    @Test
-    public void getExamModel() {
-        testObject.setExamModel(examModel);
-        String setModelName = testObject.getExamModel();
-        assertEquals(examModel, setModelName);
-    }
-
-    @Test
-    public void getExecutionFile() {
-        String setExecFile = testObject.getExecutionFile();
-        assertEquals(examExecFile, setExecFile);
-    }
-
-    @Test
     public void getSystemConfiguration() {
         String setSysConfig = testObject.getSystemConfiguration();
         assertEquals(examSysConfig, setSysConfig);
@@ -322,95 +275,14 @@ public class ExamTest {
     }
 
     @Test
-    public void getPython() {
-        assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(PythonInstallation.DescriptorImpl.class).getInstallations().length);
-        PythonInstallation newInstallation = createAndRegisterPythonInstallation(pythonName, "testHome");
-        assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(PythonInstallation.DescriptorImpl.class).getInstallations().length);
-
-        PythonInstallation setInstallation = testObject.getPython();
-        assertEquals(setInstallation, newInstallation);
+    public void getExamName() {
+        String setExamName = testObject.getExamName();
+        assertEquals(examName, setExamName);
     }
 
     @Test
-    public void getPython_noPythonRegisterd() {
-        assertNull(testObject.getPython());
-    }
-
-    @Test
-    public void getExam() {
-        assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations().length);
-        ExamTool newExamTool = createAndRegisterExamTool(examName, examHome, examRelativePath);
-        assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations().length);
-
-        ExamTool setTool = testObject.getExam();
-        assertEquals(newExamTool, setTool);
-    }
-
-    @Test
-    public void getExam_noExamRegisterd() {
-        assertNull(testObject.getExam());
-    }
-
-    @Test
-    public void perform_throwsAbortException() throws Exception {
-        createAndRegisterExamTool(examName, examHome, examRelativePath);
-        createAndRegisterPythonInstallation(pythonName, pythonHome);
-
-        examTestProject.getBuildersList().add(testObject);
-        FreeStyleBuild build = examTestProject.scheduleBuild2(0).get();
-        Result buildResult = build.getResult();
-        assertEquals("FAILURE", buildResult.toString());
-    }
-
-    private PythonInstallation createAndRegisterPythonInstallation(String name, String home) {
-        PythonInstallation[] installations = jenkinsRule.getInstance()
-                .getDescriptorByType(PythonInstallation.DescriptorImpl.class)
-                .getInstallations();
-
-        PythonInstallation[] newInstallations = new PythonInstallation[installations.length + 1];
-        int index = 0;
-        for (PythonInstallation installation : installations) {
-            newInstallations[index] = installation;
-            index++;
-        }
-        PythonInstallation newPythonInstallation = new PythonInstallation(name, home, Collections.emptyList());
-        newInstallations[index] = newPythonInstallation;
-
-        jenkinsRule.getInstance()
-                .getDescriptorByType(PythonInstallation.DescriptorImpl.class)
-                .setInstallations(newInstallations);
-
-        return newPythonInstallation;
-    }
-
-    private void cleanUpPythonInstallations() {
-        PythonInstallation[] noInstallations = new PythonInstallation[0];
-        jenkinsRule.getInstance().getDescriptorByType(PythonInstallation.DescriptorImpl.class).setInstallations(noInstallations);
-    }
-
-    private ExamTool createAndRegisterExamTool(String examName, String examHome, String relativeConfigPath) {
-        ExamTool newExamTool;
-        ExamTool[] installations = jenkinsRule.getInstance()
-                .getDescriptorByType(ExamTool.DescriptorImpl.class)
-                .getInstallations();
-        ExamTool[] newInstallations = new ExamTool[installations.length + 1];
-        int index = 0;
-        for (ExamTool tool : installations) {
-            newInstallations[index] = tool;
-            index++;
-        }
-        newExamTool = new ExamTool(examName, examHome, relativeConfigPath, Collections.emptyList());
-        newInstallations[index] = newExamTool;
-
-        jenkinsRule.getInstance()
-                .getDescriptorByType(ExamTool.DescriptorImpl.class)
-                .setInstallations(newInstallations);
-
-        return newExamTool;
-    }
-
-    private void cleanUpExamTools() {
-        ExamTool[] noInstallations = new ExamTool[0];
-        jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class).setInstallations(noInstallations);
+    public void getPythonName() {
+        String setPythonName = testObject.getPythonName();
+        assertEquals(pythonName, setPythonName);
     }
 }

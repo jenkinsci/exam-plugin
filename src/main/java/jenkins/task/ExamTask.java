@@ -34,19 +34,26 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.model.AbstractProject;
 import hudson.model.Node;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.Remote;
 import jenkins.internal.data.FilterConfiguration;
 import jenkins.internal.data.ReportConfiguration;
 import jenkins.internal.data.TestConfiguration;
+import jenkins.internal.descriptor.ExamDescriptor;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
+import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
@@ -56,14 +63,18 @@ import jenkins.task._exam.Messages;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.RandomStringUtils;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class ExamTask extends Builder implements SimpleBuildStep {
+
+    private boolean useExecutionFile;
 
     private String hash = "";
 
@@ -111,6 +122,21 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
      * Definiert den Report Prefix
      */
     protected String reportPrefix;
+
+    public ExamTask(String examName, String pythonName, String examReport, String systemConfiguration) {
+        this.examName = examName;
+        this.pythonName = pythonName;
+        this.examReport = examReport;
+        this.systemConfiguration = Util.fixEmptyAndTrim(systemConfiguration);
+    }
+
+    public boolean getUseExecutionFile() {
+        return useExecutionFile;
+    }
+
+    public void setUseExecutionFile(boolean useExecutionFile) {
+        this.useExecutionFile = useExecutionFile;
+    }
 
     @DataBoundSetter
     public void setSystemConfiguration(String systemConfiguration) {
@@ -233,11 +259,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         return clearWorkspace;
     }
 
-    @Override
-    public Exam.DescriptorImpl getDescriptor() {
-        return (Exam.DescriptorImpl) super.getDescriptor();
-    }
-
     /**
      * Gets the EXAM to invoke, or null to invoke the default one.
      */
@@ -273,6 +294,11 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     public String getJavaOpts() {
         return javaOpts;
     }
+
+    public ExamTool.DescriptorImpl getToolDescriptor() {
+        return ToolInstallation.all().get(ExamTool.DescriptorImpl.class);
+    }
+
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
             @Nonnull TaskListener listener) throws InterruptedException, IOException {
@@ -473,6 +499,11 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
 
     abstract TestConfiguration addDataToTestConfiguration(TestConfiguration testConfiguration) throws AbortException;
 
+    @Override
+    public ExamTask.DescriptorExamTask getDescriptor() {
+        return (ExamTask.DescriptorExamTask) super.getDescriptor();
+    }
+
     private TestConfiguration createTestConfiguration() throws AbortException {
         ReportConfiguration rep = new ReportConfiguration();
         ExamReportConfig r = getReport(examReport);
@@ -486,6 +517,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         rep.setDbUser(r.getDbUser());
 
         TestConfiguration tc = new TestConfiguration();
+        tc.setUseExecutionFile(Boolean.valueOf(useExecutionFile));
         tc.setReportProject(rep);
         tc.setModelConfig("");
         tc.setSystemConfig(systemConfiguration);
@@ -504,5 +536,126 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
 
         tc = addDataToTestConfiguration(tc);
         return tc;
+    }
+
+    protected static class DescriptorExamTask extends BuildStepDescriptor<Builder> implements ExamDescriptor {
+
+        public DescriptorExamTask() {
+            load();
+        }
+
+        protected DescriptorExamTask(Class<? extends ExamTask> clazz) {
+            super(clazz);
+            load();
+        }
+
+        public String getDefaultLogLevel() {
+            return RestAPILogLevelEnum.INFO.name();
+        }
+
+        public RestAPILogLevelEnum[] getLogLevels() {
+            return RestAPILogLevelEnum.values();
+        }
+
+        public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
+            return jenkins.internal.Util.validateElementForSearch(value);
+        }
+
+        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
+            return true;
+        }
+
+        public ExamTool[] getInstallations() {
+            return Jenkins.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations();
+        }
+
+
+        public PythonInstallation[] getPythonInstallations() {
+            return Jenkins.getInstance().getDescriptorByType(PythonInstallation.DescriptorImpl.class).getInstallations();
+        }
+
+        public List<ExamModelConfig> getModelConfigs() {
+            return Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
+                    .getModelConfigs();
+        }
+
+        protected List<ExamReportConfig> addNoReport(List<ExamReportConfig> reports){
+            List<ExamReportConfig> lReportConfigs = reports;
+            boolean found = false;
+            for(ExamReportConfig config : reports){
+                if(config.getName().compareTo(ReportConfiguration.NO_REPORT) == 0){
+                    found = true;
+                    break;
+                }
+            }
+            if(!found){
+                ExamReportConfig noReport = new ExamReportConfig();
+                noReport.setName(ReportConfiguration.NO_REPORT);
+                noReport.setSchema("");
+                noReport.setHost("");
+                noReport.setPort("0");
+                lReportConfigs.add(0, noReport);
+            }
+            return lReportConfigs;
+        }
+        public List<ExamReportConfig> getReportConfigs() {
+            List<ExamReportConfig> lReportConfigs = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
+                    .getReportConfigs();
+            lReportConfigs = addNoReport(lReportConfigs);
+            return lReportConfigs;
+        }
+
+        public ListBoxModel doFillExamNameItems(){
+            ListBoxModel items = new ListBoxModel();
+            ExamTool[] examTools = getInstallations();
+
+            Arrays.sort(examTools, (ExamTool o1, ExamTool o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
+            for (ExamTool tool : examTools) {
+                items.add(tool.getName(), tool.getName());
+            }
+            return items;
+        }
+
+        public ListBoxModel doFillPythonNameItems(){
+            ListBoxModel items = new ListBoxModel();
+            PythonInstallation[] pythonTools = getPythonInstallations();
+
+            Arrays.sort(pythonTools, (PythonInstallation o1, PythonInstallation o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
+            for (PythonInstallation tool : pythonTools) {
+                items.add(tool.getName(), tool.getName());
+            }
+            return items;
+        }
+
+        public ListBoxModel doFillExamReportItems(){
+            ListBoxModel items = new ListBoxModel();
+            List<ExamReportConfig> reports = getReportConfigs();
+            reports.sort((ExamReportConfig o1, ExamReportConfig o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
+
+            for (ExamReportConfig report : reports) {
+                items.add(report.getDisplayName(), report.getName());
+            }
+            return items;
+        }
+
+        private ListBoxModel getLoglevelItems(){
+            ListBoxModel items = new ListBoxModel();
+            for (RestAPILogLevelEnum loglevel : getLogLevels()) {
+                items.add(loglevel.name(), loglevel.name());
+            }
+            return items;
+        }
+
+        public ListBoxModel doFillLoglevelTestCtrlItems(){
+            return getLoglevelItems();
+        }
+
+        public ListBoxModel doFillLoglevelTestLogicItems(){
+            return getLoglevelItems();
+        }
+
+        public ListBoxModel doFillLoglevelLibCtrlItems(){
+            return getLoglevelItems();
+        }
     }
 }

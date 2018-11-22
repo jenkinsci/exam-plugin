@@ -1,9 +1,12 @@
 package jenkins.task.TestUtil;
 
+import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.exam.config.ExamReportConfig;
+import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 import jenkins.task.TestrunFilter;
+import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,5 +77,57 @@ public class Util {
         testrunFilters.add(new TestrunFilter("testrunFilter4", "testrunValue4", false, true));
 
         return testrunFilters;
+    }
+
+    public static PythonInstallation createAndRegisterPythonInstallation(JenkinsRule jenkinsRule, String name, String home) {
+        PythonInstallation[] installations = jenkinsRule.getInstance()
+                .getDescriptorByType(PythonInstallation.DescriptorImpl.class)
+                .getInstallations();
+
+        PythonInstallation[] newInstallations = new PythonInstallation[installations.length + 1];
+        int index = 0;
+        for (PythonInstallation installation : installations) {
+            newInstallations[index] = installation;
+            index++;
+        }
+        PythonInstallation newPythonInstallation = new PythonInstallation(name, home, Collections.emptyList());
+        newInstallations[index] = newPythonInstallation;
+
+        jenkinsRule.getInstance()
+                .getDescriptorByType(PythonInstallation.DescriptorImpl.class)
+                .setInstallations(newInstallations);
+
+        return newPythonInstallation;
+    }
+
+    public static void cleanUpPythonInstallations(JenkinsRule jenkinsRule) {
+        PythonInstallation[] noInstallations = new PythonInstallation[0];
+        jenkinsRule.getInstance().getDescriptorByType(PythonInstallation.DescriptorImpl.class).setInstallations(noInstallations);
+    }
+
+    public static ExamTool createAndRegisterExamTool(JenkinsRule jenkinsRule, String examName, String examHome, String relativeConfigPath) {
+        ExamTool newExamTool;
+        ExamTool[] installations = jenkinsRule.getInstance()
+                .getDescriptorByType(ExamTool.DescriptorImpl.class)
+                .getInstallations();
+        ExamTool[] newInstallations = new ExamTool[installations.length + 1];
+        int index = 0;
+        for (ExamTool tool : installations) {
+            newInstallations[index] = tool;
+            index++;
+        }
+        newExamTool = new ExamTool(examName, examHome, relativeConfigPath, Collections.emptyList());
+        newInstallations[index] = newExamTool;
+
+        jenkinsRule.getInstance()
+                .getDescriptorByType(ExamTool.DescriptorImpl.class)
+                .setInstallations(newInstallations);
+
+        return newExamTool;
+    }
+
+    public static void cleanUpExamTools(JenkinsRule jenkinsRule) {
+        ExamTool[] noInstallations = new ExamTool[0];
+        jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class).setInstallations(noInstallations);
     }
 }

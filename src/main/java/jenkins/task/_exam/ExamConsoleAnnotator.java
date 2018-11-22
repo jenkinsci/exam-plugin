@@ -38,7 +38,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 /**
- * Filter {@link OutputStream} that places an annotation that marks Exam target
+ * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
  * execution.
  *
  */
@@ -47,7 +47,7 @@ public class ExamConsoleAnnotator extends LineTransformationOutputStream {
     private final Charset charset;
 
     /**
-     * Filter {@link OutputStream} that places an annotation that marks Exam target
+     * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
      * execution.
      *
      */

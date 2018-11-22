@@ -170,7 +170,7 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
         }
 
         // for compatibility reasons, the persistence is done by
-        // Exam.DescriptorImpl
+        // ExamTaskModel.DescriptorImpl
         @Override public ExamTool[] getInstallations() {
             return installations;
         }
