@@ -31,7 +31,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-    <st:include page="/jenkins/task/ExamSubmodules/Modeler/config.jelly" />
+    <st:include page="/jenkins/task/ExamSubmodules/Modeler/configModel.jelly" />
 
     <st:include page="/jenkins/task/ExamSubmodules/Testrunner/configModel.jelly" />
 

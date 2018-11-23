@@ -35,6 +35,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
+import hudson.AbortException;
 import hudson.model.Executor;
 import jenkins.internal.data.ExamStatus;
 import jenkins.internal.data.TestrunFilter;
@@ -87,7 +88,7 @@ public class ClientRequest {
      *
      * @return ExamStatus
      */
-    public ExamStatus getStatus() {
+    public ExamStatus getStatus() throws AbortException {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return null;
@@ -107,7 +108,7 @@ public class ClientRequest {
      *
      * @return ApiVersion
      */
-    public ApiVersion getApiVersion() {
+    public ApiVersion getApiVersion() throws AbortException {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return null;
@@ -150,7 +151,7 @@ public class ClientRequest {
      *
      * @param filterConfig FilterConfiguration
      */
-    public void setTestrunFilter(FilterConfiguration filterConfig) {
+    public void setTestrunFilter(FilterConfiguration filterConfig) throws AbortException {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return;
@@ -178,7 +179,7 @@ public class ClientRequest {
      *
      * @param reportProject
      */
-    public void convert(String reportProject)  {
+    public void convert(String reportProject) throws AbortException  {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return;
@@ -197,7 +198,7 @@ public class ClientRequest {
      *
      * @param testConfig
      */
-    public void startTestrun(TestConfiguration testConfig) {
+    public void startTestrun(TestConfiguration testConfig) throws AbortException {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return;
@@ -211,7 +212,7 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
-    private void handleResponseError(ClientResponse response) {
+    private void handleResponseError(ClientResponse response) throws AbortException {
         if (response.getStatus() != OK) {
             String errorMessage = "Failed : HTTP error code : " + response.getStatus();
             try{
@@ -222,15 +223,15 @@ public class ClientRequest {
             }catch (Exception e){
                 System.out.println(e.getMessage());
             }
-            throw new RuntimeException(errorMessage);
-
+            logger.println("ERROR: " + errorMessage);
+            throw new AbortException(errorMessage);
         }
     }
 
     /**
      * stops a testrun
      */
-    public void stopTestrun(){
+    public void stopTestrun() throws AbortException{
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return;
@@ -249,7 +250,7 @@ public class ClientRequest {
      *
      * @param projectName
      */
-    public void clearWorkspace(String projectName) {
+    public void clearWorkspace(String projectName) throws AbortException {
         if(client == null){
             logger.println("WARNING: no EXAM connected");
             return;
@@ -359,7 +360,7 @@ public class ClientRequest {
      *
      * @param executor Executor
      */
-    public void waitForTestrunEnds(Executor executor){
+    public void waitForTestrunEnds(Executor executor) throws AbortException{
         boolean testDetected = false;
         int breakAfter = 10;
         while(true){

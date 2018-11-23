@@ -136,6 +136,7 @@ public class ExamTaskModel extends ExamTask {
         mod.setModelConfigUUID(modelConfiguration);
 
         tc.setModelProject(mod);
+        tc.setTestObject(executionFile);
 
         return tc;
     }
@@ -155,6 +156,10 @@ public class ExamTaskModel extends ExamTask {
 
         public String getDefaultLogLevel() {
             return super.getDefaultLogLevel();
+        }
+
+        public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
+            return jenkins.internal.Util.validateElementForSearch(value);
         }
 
         public FormValidation doCheckExecutionFile(@QueryParameter String value) {

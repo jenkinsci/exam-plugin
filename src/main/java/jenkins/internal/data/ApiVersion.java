@@ -69,4 +69,8 @@ public class ApiVersion {
     public void setFix(int fix) {
         this.fix = fix;
     }
+
+    public String toString(){
+        return String.format("%s.%s.%s", major, minor, fix);
+    }
 }

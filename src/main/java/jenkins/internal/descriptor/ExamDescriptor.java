@@ -48,6 +48,4 @@ public interface ExamDescriptor {
 
     List<ExamReportConfig> getReportConfigs();
 
-    FormValidation doCheckSystemConfiguration(@QueryParameter String value);
-
 }

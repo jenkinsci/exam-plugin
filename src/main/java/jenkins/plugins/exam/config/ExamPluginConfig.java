@@ -59,9 +59,9 @@ public class ExamPluginConfig extends GlobalConfiguration {
 
     private List<ExamModelConfig> modelConfigs = new ArrayList<ExamModelConfig>();
     private List<ExamReportConfig> reportConfigs = new ArrayList<ExamReportConfig>();
-    private int port;
-    private int licensePort;
-    private String licenseHost;
+    private int port = 8085;
+    private int licensePort = 0;
+    private String licenseHost = "";
 
     public int getPort() {
         return port;

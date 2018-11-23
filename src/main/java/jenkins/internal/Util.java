@@ -108,7 +108,7 @@ public class Util {
      *
      * @return true, if valid
      */
-    public static boolean isPythonConformName(String name) {
+    public static boolean isPythonConformFSN(String name) {
         if (name == null) {
             return false;
         }
@@ -119,50 +119,33 @@ public class Util {
             return false;
         }
 
-        Pattern regexPattern = Pattern.compile("[_a-zA-Z@]+[_a-zA-Z0-9#@]*");
 
         for (String part : splitted) {
-            if (!regexPattern.matcher(part).matches()) {
-                return false;
-            }
-            PythonWords id = PythonWords.get(part);
-            if (PythonWords.RESERVED_WORDS.contains(id)) {
+            if(!isPythonConformName(part)){
                 return false;
             }
         }
         return true;
     }
 
-    /**
-     * Check id pattern
-     *
-     * @param value
-     *
-     * @return FormValidation
-     */
-    public static FormValidation validateId(String value) {
-
-        if (isIdValid(value)) {
-            return FormValidation.ok();
-        }
-
-        return FormValidation.error(Messages.EXAM_RegExId());
-    }
 
     /**
      * Check name pattern
      *
-     * @param value
+     * @param name
      *
-     * @return FormValidation
+     * @return true, if valid
      */
-    public static FormValidation validatePythonConformName(String value) {
-
-        if (isPythonConformName(value)) {
-            return FormValidation.ok();
+    public static boolean isPythonConformName(String name) {
+        Pattern regexPattern = Pattern.compile("[_a-zA-Z@]+[_a-zA-Z0-9#@]*");
+        if (!regexPattern.matcher(name).matches()) {
+            return false;
         }
-
-        return FormValidation.error(Messages.EXAM_RegExFsn());
+        PythonWords id = PythonWords.get(name);
+        if (PythonWords.RESERVED_WORDS.contains(id)) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -193,7 +176,7 @@ public class Util {
 
         boolean uuidValid = isUuidValid(value);
         boolean idValid = isIdValid(value);
-        boolean fsnValid = isPythonConformName(value);
+        boolean fsnValid = isPythonConformFSN(value);
 
         if (uuidValid || idValid || fsnValid) {
             return FormValidation.ok();
@@ -205,6 +188,45 @@ public class Util {
         errorMsg.append("\r\n");
         errorMsg.append(Messages.EXAM_RegExFsn());
         errorMsg.append("\r\n");
+
+        return FormValidation.error(errorMsg.toString());
+    }
+
+
+    /**
+     * Check value on id, uuid and python name
+     *
+     * @param value
+     *
+     * @return FormValidation
+     */
+    public static FormValidation validateSystemConfig(String value) {
+
+        StringBuilder errorMsg = new StringBuilder("");
+        errorMsg.append(Messages.EXAM_RegExSysConf());
+        errorMsg.append("\r\n");
+
+        String[] splitted = value.trim().split(" ", 2);
+
+        if(splitted.length != 2){
+            return FormValidation.error(errorMsg.toString());
+        }
+
+        boolean uuidValid = isUuidValid(splitted[0]);
+        boolean pythonValid = isPythonConformName(splitted[1]);
+
+        if (uuidValid && pythonValid) {
+            return FormValidation.ok();
+        }
+
+        if(!uuidValid) {
+            errorMsg.append(Messages.EXAM_RegExUuid());
+            errorMsg.append("\r\n");
+        }
+        if(!pythonValid) {
+            errorMsg.append(Messages.EXAM_RegExFsn());
+            errorMsg.append("\r\n");
+        }
 
         return FormValidation.error(errorMsg.toString());
     }

@@ -38,8 +38,6 @@ import jenkins.internal.enumeration.RestAPILogLevelEnum;
  */
 public class TestConfiguration {
 
-    private Boolean useExecutionFile;
-
     private ModelConfiguration modelProject;
     private ReportConfiguration reportProject;
 
@@ -57,29 +55,14 @@ public class TestConfiguration {
     private String pdfSelectFilter;
     private Boolean pdfMeasureImages;
 
+    private Boolean useExecutionFile;
+    private String pathPCode;
+
     /**
      * Konstruktor.
      */
     public TestConfiguration() {
 
-    }
-
-
-    /**
-     * @return useExecutionFile.
-     */
-    public Boolean getUseExecutionFile() {
-        return useExecutionFile;
-    }
-
-    /**
-     * Setzt das useExecutionFile.
-     *
-     * @param useExecutionFile
-     *            Das zu setzende useExecutionFile.
-     */
-    public void setUseExecutionFile(Boolean useExecutionFile) {
-        this.useExecutionFile = useExecutionFile;
     }
 
     /**
@@ -92,8 +75,7 @@ public class TestConfiguration {
     /**
      * Setzt das reportPrefix.
      *
-     * @param reportPrefix
-     *            Das zu setzende reportPrefix.
+     * @param reportPrefix Das zu setzende reportPrefix.
      */
     public void setReportPrefix(String reportPrefix) {
         this.reportPrefix = reportPrefix;
@@ -109,8 +91,7 @@ public class TestConfiguration {
     /**
      * Setzt das modelProject.
      *
-     * @param modelProject
-     *            Das zu setzende modelProject.
+     * @param modelProject Das zu setzende modelProject.
      */
     public void setModelProject(ModelConfiguration modelProject) {
         this.modelProject = modelProject;
@@ -126,8 +107,7 @@ public class TestConfiguration {
     /**
      * Setzt das reportProject.
      *
-     * @param reportProject
-     *            Das zu setzende reportProject.
+     * @param reportProject Das zu setzende reportProject.
      */
     public void setReportProject(ReportConfiguration reportProject) {
         this.reportProject = reportProject;
@@ -143,8 +123,7 @@ public class TestConfiguration {
     /**
      * Setzt das systemConfig.
      *
-     * @param systemConfig
-     *            Das zu setzende systemConfig.
+     * @param systemConfig Das zu setzende systemConfig.
      */
     public void setSystemConfig(String systemConfig) {
         this.systemConfig = systemConfig;
@@ -160,8 +139,7 @@ public class TestConfiguration {
     /**
      * Setzt das modelConfig.
      *
-     * @param modelConfig
-     *            Das zu setzende modelConfig.
+     * @param modelConfig Das zu setzende modelConfig.
      */
     public void setModelConfig(String modelConfig) {
         this.modelConfig = modelConfig;
@@ -177,8 +155,7 @@ public class TestConfiguration {
     /**
      * Setzt das testObject.
      *
-     * @param testObject
-     *            Das zu setzende testObject.
+     * @param testObject Das zu setzende testObject.
      */
     public void setTestObject(String testObject) {
         this.testObject = testObject;
@@ -194,8 +171,7 @@ public class TestConfiguration {
     /**
      * Setzt das logLevelTC.
      *
-     * @param logLevelTC
-     *            Das zu setzende logLevelTC.
+     * @param logLevelTC Das zu setzende logLevelTC.
      */
     public void setLogLevelTC(RestAPILogLevelEnum logLevelTC) {
         this.logLevelTC = logLevelTC;
@@ -211,8 +187,7 @@ public class TestConfiguration {
     /**
      * Setzt das logLevelTL.
      *
-     * @param logLevelTL
-     *            Das zu setzende logLevelTL.
+     * @param logLevelTL Das zu setzende logLevelTL.
      */
     public void setLogLevelTL(RestAPILogLevelEnum logLevelTL) {
         this.logLevelTL = logLevelTL;
@@ -228,8 +203,7 @@ public class TestConfiguration {
     /**
      * Setzt das logLevelLC.
      *
-     * @param logLevelLC
-     *            Das zu setzende logLevelLC.
+     * @param logLevelLC Das zu setzende logLevelLC.
      */
     public void setLogLevelLC(RestAPILogLevelEnum logLevelLC) {
         this.logLevelLC = logLevelLC;
@@ -245,52 +219,91 @@ public class TestConfiguration {
     /**
      * Setzt das pythonPath.
      *
-     * @param pythonPath
-     *            Das zu setzende pythonPath.
+     * @param pythonPath Das zu setzende pythonPath.
      */
     public void setPythonPath(String pythonPath) {
         this.pythonPath = pythonPath;
     }
 
-    /** @return Name des pdfReportTemplate. */
+    /**
+     * @return Name des pdfReportTemplate.
+     */
     public String getPdfReportTemplate() {
         return this.pdfReportTemplate;
     }
 
     /**
      * Setzt das pdfReportTemplate.
-     * @param pdfReportTemplate
-     *            Das zu setzende pdfReportTemplate.
+     *
+     * @param pdfReportTemplate Das zu setzende pdfReportTemplate.
      */
     public void setPdfReportTemplate(String pdfReportTemplate) {
         this.pdfReportTemplate = pdfReportTemplate;
     }
 
-    /** @return Name des pdfSelectFilter. */
+    /**
+     * @return Name des pdfSelectFilter.
+     */
     public String getPdfSelectFilter() {
         return this.pdfSelectFilter;
     }
 
     /**
      * Setzt den pdfSelectFilter.
-     * @param pdfSelectFilter
-     *            Der zu setzende pdfSelectFilter.
+     *
+     * @param pdfSelectFilter Der zu setzende pdfSelectFilter.
      */
     public void setPdfSelectFilter(String pdfSelectFilter) {
         this.pdfSelectFilter = pdfSelectFilter;
     }
 
-    /** @return include pdfMeasureImages */
+    /**
+     * @return include pdfMeasureImages
+     */
     public Boolean getPdfMeasureImages() {
         return this.pdfMeasureImages;
     }
 
     /**
      * Setzt pdfMeasureImages.
-     * @param pdfMeasureImages
-     *            include pdfMeasureImages
+     *
+     * @param pdfMeasureImages include pdfMeasureImages
      */
     public void setPdfMeasureImages(Boolean pdfMeasureImages) {
         this.pdfMeasureImages = pdfMeasureImages;
+    }
+
+    /**
+     * @return useExecutionFile.
+     */
+    public Boolean getUseExecutionFile() {
+        return this.useExecutionFile;
+    }
+
+    /**
+     * Setzt das useExecutionFile.
+     *
+     * @param useExecutionFile Das zu setzende useExecutionFile.
+     */
+    public void setUseExecutionFile(Boolean useExecutionFile) {
+        this.useExecutionFile = useExecutionFile;
+    }
+
+    /**
+     * get path of the pCode folder
+     *
+     * @return path
+     */
+    public String getPathPCode() {
+        return this.pathPCode;
+    }
+
+    /**
+     * set path of the pCode folder
+     *
+     * @param pathPCode path as String
+     */
+    public void setPathPCode(String pathPCode) {
+        this.pathPCode = pathPCode;
     }
 }

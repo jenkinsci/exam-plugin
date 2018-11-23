@@ -46,6 +46,7 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.Remote;
+import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.FilterConfiguration;
 import jenkins.internal.data.ReportConfiguration;
 import jenkins.internal.data.TestConfiguration;
@@ -372,9 +373,10 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
                 "-DRESTAPI_PORT=" + port);
 
-        if(!examPluginConfig.getLicenseHost().isEmpty() && examPluginConfig.getLicensePort() != 0){
-            args.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(), "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
+        if(examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0){
+            throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
         }
+        args.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(), "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
 
         if (javaOpts != null) {
             env.put("JAVA_OPTS", env.expand(javaOpts));
@@ -395,7 +397,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                     "http://" + slaveIp + ":" + port + "/examRest");
             try {
 
-                Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
+/*                Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
                 if (clientRequest.isApiAvailable()) {
                     listener.getLogger().println("ERROR: EXAM is allready running");
                     throw new AbortException("ERROR: EXAM is allready running");
@@ -403,9 +405,11 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 process.stderr(examErr);
                 process.stdout(eca);
                 process.start();
-
+*/
                 ret = clientRequest.connectClient(5 * 60 * 1000);
                 if (ret) {
+                    ApiVersion apiVersion = clientRequest.getApiVersion();
+                    listener.getLogger().println("EXAM api version: " + apiVersion.toString());
                     TestConfiguration tc = createTestConfiguration();
                     tc.setPythonPath(pythonexe);
                     FilterConfiguration fc = new FilterConfiguration();
@@ -433,10 +437,10 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                     source.copyRecursiveTo(target);
                 }
             } catch (Exception e) {
-                throw new AbortException("ERROR: " + e.getMessage());
+                throw new AbortException("ERROR: " + e.toString());
             } finally {
                 eca.forceEol();
-                clientRequest.disconnectClient(60 * 1000);
+//                clientRequest.disconnectClient(60 * 1000);
             }
             return;
         } catch (IOException e) {
@@ -555,10 +559,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
 
         public RestAPILogLevelEnum[] getLogLevels() {
             return RestAPILogLevelEnum.values();
-        }
-
-        public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
-            return jenkins.internal.Util.validateElementForSearch(value);
         }
 
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {

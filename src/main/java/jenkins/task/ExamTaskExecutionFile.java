@@ -31,13 +31,13 @@ package jenkins.task;
 
 import hudson.AbortException;
 import hudson.Extension;
-import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import jenkins.internal.Util;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.data.ReportConfiguration;
 import jenkins.internal.data.TestConfiguration;
@@ -57,6 +57,8 @@ import org.kohsuke.stapler.QueryParameter;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Ant launcher.
@@ -95,8 +97,8 @@ public class ExamTaskExecutionFile extends ExamTask {
 
     TestConfiguration addDataToTestConfiguration(TestConfiguration tc) throws AbortException {
 
-        tc.setPythonPath(pathPCode);
-        tc.setTestObject(getPathExecutionFile());
+        tc.setPathPCode(pathPCode);
+        tc.setTestObject(pathExecutionFile);
 
         return tc;
     }
@@ -113,6 +115,17 @@ public class ExamTaskExecutionFile extends ExamTask {
 
         public String getDisplayName() {
             return Messages.EXAM_DisplayNameExecutionFile();
+        }
+
+        public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
+            String[] splitted = value.trim().split(" ");
+            if(splitted.length != 2){
+                return FormValidation.error(Messages.EXAM_RegExSysConf());
+            }
+            if(!Util.isUuidValid(splitted[0])){
+                return FormValidation.error(Messages.EXAM_RegExSysConf());
+            }
+            return FormValidation.ok();
         }
 
         public String getDefaultLogLevel() {

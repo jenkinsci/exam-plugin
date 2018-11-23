@@ -27,9 +27,11 @@
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<div>
-    Sets the default system configuration. For EXAM, use the UUID and the name
-    of the system configuration from the EXAM model, e.g. "61b56acdbe4247a9e04400144f6890f0 English_EXAM_System".
-    You can find both values on the General property page for the SystemConfiguration.
-    For MODENA, you have to provide the name of the system configuration .ini file.
-</div>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <f:section title="${%Modeler}">
+        <st:include page="/jenkins/task/ExamSubmodules/Modeler/configExamTool.jelly" />
+    </f:section>
+</j:jelly>
