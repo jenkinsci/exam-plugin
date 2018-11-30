@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29,19 +29,16 @@
  */
 package jenkins;
 
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
 import hudson.tasks.BatchFile;
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.junit.Assert;
-import org.jvnet.hudson.test.JenkinsRule;
 import org.apache.commons.io.FileUtils;
-import hudson.model.*;
-import hudson.tasks.Shell;
-import org.junit.*;
+import org.hamcrest.CoreMatchers;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 
-import java.util.regex.Matcher;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class AppTestExample {
     @Rule
