@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37,11 +37,11 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import hudson.AbortException;
 import hudson.model.Executor;
-import jenkins.internal.data.ExamStatus;
-import jenkins.internal.data.TestrunFilter;
-import jenkins.internal.data.FilterConfiguration;
 import jenkins.internal.data.ApiVersion;
+import jenkins.internal.data.ExamStatus;
+import jenkins.internal.data.FilterConfiguration;
 import jenkins.internal.data.TestConfiguration;
+import jenkins.internal.data.TestrunFilter;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -51,14 +51,14 @@ import java.io.PrintStream;
  * REST Api calls to EXAM
  */
 public class ClientRequest {
-
+    
     private String baseUrl = "";
     private PrintStream logger;
     private Client client = null;
-    private long waitTime = 5000;
-
+    long waitTime = 5000;
+    
     private final static int OK = Response.ok().build().getStatus();
-
+    
     /**
      * Constructor for REST Api calls to EXAM
      */
@@ -66,99 +66,99 @@ public class ClientRequest {
         this.baseUrl = baseUrl;
         this.logger = logger;
     }
-
+    
     public String getBaseUrl() {
         return baseUrl;
     }
-
+    
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
     }
-
+    
     public PrintStream getLogger() {
         return logger;
     }
-
+    
     public void setLogger(PrintStream logger) {
         this.logger = logger;
     }
-
+    
     /**
      * Request the job xxecution status from EXAM Client
      *
      * @return ExamStatus
      */
     public ExamStatus getStatus() throws AbortException {
-        if(client == null){
+        if (client == null) {
             logger.println("WARNING: no EXAM connected");
             return null;
         }
-
+        
         WebResource service = client.resource(baseUrl + "/testrun/status");
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
                 .get(ClientResponse.class);
-
+        
         handleResponseError(response);
-
+        
         return response.getEntity(ExamStatus.class);
     }
-
+    
     /**
      * Request the Api Version from EXAM Client
      *
      * @return ApiVersion
      */
     public ApiVersion getApiVersion() throws AbortException {
-        if(client == null){
+        if (client == null) {
             logger.println("WARNING: no EXAM connected");
             return null;
         }
         WebResource service = client.resource(baseUrl + "/workspace/apiVersion");
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
                 .get(ClientResponse.class);
-
+        
         handleResponseError(response);
-
+        
         return response.getEntity(ApiVersion.class);
     }
-
+    
     /**
      * Checks, if the EXAM Client ist responding
      *
      * @return true, is available
      */
-    public boolean isApiAvailable(){
+    public boolean isApiAvailable() {
         boolean clientCreated = false;
         boolean isAvailable = true;
-        if(client == null){
+        if (client == null) {
             clientCreated = true;
             createClient();
         }
         try {
             getStatus();
-        }catch (Exception e){
+        } catch (Exception e) {
             isAvailable = false;
         }
-
-        if(clientCreated){
+        
+        if (clientCreated) {
             destroyClient();
         }
         return isAvailable;
     }
-
+    
     /**
      * Setting the  EXAM Client
      *
      * @param filterConfig FilterConfiguration
      */
     public void setTestrunFilter(FilterConfiguration filterConfig) throws AbortException {
-        if(client == null){
+        if (client == null) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("setting testrun filter");
         int i = 0;
-        for(TestrunFilter filter : filterConfig.getTestrunFilter()){
+        for (TestrunFilter filter : filterConfig.getTestrunFilter()) {
             i++;
             logger.println(i + ") name: " + filter.getName());
             logger.println(i + ") regEx: " + filter.getValue());
@@ -167,91 +167,91 @@ public class ClientRequest {
             logger.println();
         }
         WebResource service = client.resource(baseUrl + "/testrun/setFilter");
-
+        
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
                 .post(ClientResponse.class, filterConfig);
-
+        
         handleResponseError(response);
     }
-
+    
     /**
      * Request the Api Version from EXAM Client
      *
      * @param reportProject
      */
-    public void convert(String reportProject) throws AbortException  {
-        if(client == null){
+    public void convert(String reportProject) throws AbortException {
+        if (client == null) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("convert to junit");
-        WebResource service = client.resource(baseUrl + "/testrun/convertToJunit/"+reportProject);
-
+        WebResource service = client.resource(baseUrl + "/testrun/convertToJunit/" + reportProject);
+        
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
                 .get(ClientResponse.class);
-
+        
         handleResponseError(response);
     }
-
+    
     /**
      * Configure and start testrun at EXAM Client
      *
      * @param testConfig
      */
     public void startTestrun(TestConfiguration testConfig) throws AbortException {
-        if(client == null){
+        if (client == null) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("starting testrun");
         WebResource service = client.resource(baseUrl + "/testrun/start");
-
+        
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
                 .post(ClientResponse.class, testConfig);
-
+        
         handleResponseError(response);
     }
-
+    
     private void handleResponseError(ClientResponse response) throws AbortException {
         if (response.getStatus() != OK) {
             String errorMessage = "Failed : HTTP error code : " + response.getStatus();
-            try{
+            try {
                 String entity = response.getEntity(String.class);
-                if(entity instanceof String){
+                if (entity instanceof String) {
                     errorMessage += "\n" + entity;
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
             logger.println("ERROR: " + errorMessage);
             throw new AbortException(errorMessage);
         }
     }
-
+    
     /**
      * stops a testrun
      */
-    public void stopTestrun() throws AbortException{
-        if(client == null){
+    public void stopTestrun() throws AbortException {
+        if (client == null) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("stopping testrun");
         WebResource service = client.resource(baseUrl + "/testrun/stop?timeout=300");
-
+        
         ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
-                                         .post(ClientResponse.class);
-
+                .post(ClientResponse.class);
+        
         handleResponseError(response);
     }
-
+    
     /**
      * Deletes the project configuration at EXAM and deletes the corresponding report and pcode folders
      *
      * @param projectName
      */
     public void clearWorkspace(String projectName) throws AbortException {
-        if(client == null){
+        if (client == null) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
@@ -263,25 +263,25 @@ public class ClientRequest {
             logger.println("deleting project and pcode for project \"" + projectName + "\" from EXAM workspace");
             service = client.resource(baseUrl + "/workspace/delete?projectName=" + projectName);
         }
-
+        
         ClientResponse response = service.get(ClientResponse.class);
-
+        
         handleResponseError(response);
     }
-
+    
     /**
      * make EXAM shutting down
      */
     public void shutdown() {
-        if(client == null){
+        if (client == null) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("closing EXAM");
         client.resource(baseUrl + "/workspace/shutdown");
-
+        
     }
-
+    
     /**
      * try to connect to EXAM REST Server within a timeout
      *
@@ -292,18 +292,18 @@ public class ClientRequest {
     public boolean connectClient(int timeout) {
         logger.println("connecting to EXAM");
         createClient();
-
+        
         long timeoutTime = System.currentTimeMillis() + timeout;
-        while (timeoutTime > System.currentTimeMillis()){
-            if(isApiAvailable()){
+        while (timeoutTime > System.currentTimeMillis()) {
+            if (isApiAvailable()) {
                 return true;
             }
         }
         logger.println("ERROR: EXAM does not answer in " + timeout / 1000 + "s");
         return false;
     }
-
-    private void createClient(){
+    
+    private void createClient() {
         if (client == null) {
             ClientConfig clientConfig = new DefaultClientConfig();
             clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
@@ -312,14 +312,14 @@ public class ClientRequest {
             logger.println("Client already connected");
         }
     }
-
-    private void destroyClient(){
-        if(client != null) {
+    
+    private void destroyClient() {
+        if (client != null) {
             client.destroy();
         }
         client = null;
     }
-
+    
     /**
      * Try to disconnect from EXAM Client
      *
@@ -331,18 +331,18 @@ public class ClientRequest {
             return;
         } else {
             logger.println("disconnect from EXAM");
-
+            
             WebResource service = client.resource(baseUrl + "/workspace/shutdown");
             try {
                 ClientResponse responseShutdown = service.get(ClientResponse.class);
-            }catch (Exception e){
+            } catch (Exception e) {
                 logger.println(e.getMessage());
             }
-
+            
             long timeoutTime = System.currentTimeMillis() + timeout;
             boolean shutdownOK = false;
-            while (timeoutTime > System.currentTimeMillis()){
-                if(!isApiAvailable()){
+            while (timeoutTime > System.currentTimeMillis()) {
+                if (!isApiAvailable()) {
                     shutdownOK = true;
                     break;
                 }
@@ -350,34 +350,34 @@ public class ClientRequest {
             if (!shutdownOK) {
                 logger.println("ERROR: EXAM does not shutdown in " + timeout + "ms");
             }
-
+            
             destroyClient();
         }
     }
-
+    
     /**
      * Waits for the EXAM Testrun ends
      *
      * @param executor Executor
      */
-    public void waitForTestrunEnds(Executor executor) throws AbortException{
+    public void waitForTestrunEnds(Executor executor) throws AbortException {
         boolean testDetected = false;
         int breakAfter = 10;
-        while(true){
-            if(executor.isInterrupted()){
+        while (true) {
+            if (executor.isInterrupted()) {
                 this.stopTestrun();
                 return;
             }
             ExamStatus status = this.getStatus();
-            if(!testDetected) {
+            if (!testDetected) {
                 breakAfter--;
                 testDetected = "TestRun".equalsIgnoreCase(status.getJobName());
-                if(!testDetected && breakAfter <= 0){
+                if (!testDetected && breakAfter <= 0) {
                     logger.println("No Testrun detected");
                     break;
                 }
-            }else{
-                if(!status.getJobRunning()){
+            } else {
+                if (!status.getJobRunning()) {
                     break;
                 }
             }

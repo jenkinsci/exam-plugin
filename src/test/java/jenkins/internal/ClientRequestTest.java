@@ -31,7 +31,6 @@ package jenkins.internal;
 
 import com.sun.jersey.api.client.Client;
 import hudson.AbortException;
-import hudson.Launcher;
 import hudson.model.Executor;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.ExamStatus;
@@ -41,7 +40,12 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.MockingDetails;
@@ -55,29 +59,28 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ClientRequestTest {
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
-
+    
     private static String baseUrl = "http://localhost:8085";
-    @Mock
-    private ClientRequest testObject;
-    @Mock
-    private PrintStream printMock;
     @Mock
     private static MockWebServer server;
     @Mock
     private static ServerDispatcher dispatcher;
-
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
+    @Mock
+    private ClientRequest testObject;
+    @Mock
+    private PrintStream printMock;
+    
     @BeforeClass
     public static void oneTimeSetup() throws IOException {
         dispatcher = new ServerDispatcher();
     }
-
+    
     @AfterClass
     public static void oneTimeTearDown() throws IOException {
     }
-
+    
     @Before
     public void setUp() throws Exception {
         server = new MockWebServer();
@@ -89,13 +92,13 @@ public class ClientRequestTest {
         Whitebox.setInternalState(testObject, "waitTime", 100);
         Whitebox.invokeMethod(testObject, "createClient");
     }
-
+    
     @After
     public void tearDown() throws Exception {
         Whitebox.invokeMethod(testObject, "destroyClient");
         server.shutdown();
     }
-
+    
     @Test
     public void getBaseUrl() {
         String testString = "myTestString";
@@ -103,7 +106,7 @@ public class ClientRequestTest {
         String testIt = testObject.getBaseUrl();
         assertEquals(testString, testIt);
     }
-
+    
     @Test
     public void setBaseUrl() {
         String testString = "myTestString";
@@ -111,147 +114,179 @@ public class ClientRequestTest {
         String testIt = Whitebox.getInternalState(testObject, "baseUrl");
         assertEquals(testString, testIt);
     }
-
+    
     @Test
-    public void getStatus() throws AbortException {
-        ExamStatus examStatus = testObject.getStatus();
-        assertEquals("myTestJob", examStatus.getJobName());
+    public void getStatus() {
+        try {
+            ExamStatus examStatus = testObject.getStatus();
+            assertEquals("myTestJob", examStatus.getJobName());
+        } catch (AbortException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
     }
-
+    
     @Test
     public void isApiAvailable() throws Exception {
         assertTrue(testObject.isApiAvailable());
-
+        
         dispatcher.clearAllResponse();
         assertFalse(testObject.isApiAvailable());
         dispatcher.setDefaults();
-
+        
         Whitebox.invokeMethod(testObject, "destroyClient");
         assertTrue(testObject.isApiAvailable());
     }
-
+    
     @Test
-    public void startTestrun() throws AbortException {
-        testObject.startTestrun(null);
-        verify(printMock).println("starting testrun");
-
-        clearInvocations(printMock);
+    public void startTestrun() {
+        try {
+            testObject.startTestrun(null);
+            verify(printMock).println("starting testrun");
+        } catch (AbortException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+    
+    @Test
+    public void startTestrunWithException() throws AbortException {
         dispatcher.removeResponse("/testrun/start");
-        exception.expect(RuntimeException.class);
+        exception.expect(AbortException.class);
         testObject.startTestrun(null);
         verify(printMock).println("starting testrun");
     }
-
+    
     @Test
-    public void stopTestrun() throws AbortException {
-        testObject.stopTestrun();
-        verify(printMock).println("stopping testrun");
-
-        clearInvocations(printMock);
+    public void stopTestrun() {
+        try {
+            testObject.stopTestrun();
+            verify(printMock).println("stopping testrun");
+        } catch (AbortException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+    
+    @Test
+    public void stopTestrunWithException() throws AbortException {
         dispatcher.removeResponse("/testrun/stop");
-        exception.expect(RuntimeException.class);
+        exception.expect(AbortException.class);
         testObject.stopTestrun();
         verify(printMock).println("stopping testrun");
     }
-
+    
     @Test
-    public void clearWorkspace() throws AbortException {
-        String strAll = "deleting all projects and pcode from EXAM workspace";
-        testObject.clearWorkspace(null);
-        verify(printMock).println(strAll);
-        clearInvocations(printMock);
-        testObject.clearWorkspace("");
-        verify(printMock).println(strAll);
-        testObject.clearWorkspace("myProject");
-        verify(printMock).println("deleting project and pcode for project \"myProject\" from EXAM workspace");
-
+    public void clearWorkspace() {
+        try {
+            String strAll = "deleting all projects and pcode from EXAM workspace";
+            testObject.clearWorkspace(null);
+            verify(printMock).println(strAll);
+            clearInvocations(printMock);
+            testObject.clearWorkspace("");
+            verify(printMock).println(strAll);
+            testObject.clearWorkspace("myProject");
+            verify(printMock).println("deleting project and pcode for project \"myProject\" from EXAM workspace");
+            
+        } catch (AbortException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+    
+    @Test
+    public void clearWorkspaceWithException() throws AbortException {
         dispatcher.clearAllResponse();
-        exception.expect(RuntimeException.class);
+        exception.expect(AbortException.class);
         testObject.clearWorkspace("");
     }
-
+    
     @Test
     public void shutdown() {
         testObject.shutdown();
         verify(printMock).println("closing EXAM");
     }
-
+    
     @Test
     public void connectClient() throws IOException {
         assertTrue(testObject.connectClient(1000));
         verify(printMock, never()).println("ERROR: EXAM does not answer in 1s");
-
+        
         server.shutdown();
         clearInvocations(printMock);
         assertFalse(testObject.connectClient(1000));
         verify(printMock).println("ERROR: EXAM does not answer in 1s");
     }
-
+    
     @Test
     public void disconnectClient() throws Exception {
         testObject.disconnectClient(1000);
         verify(printMock).println("disconnect from EXAM");
         verify(printMock).println("ERROR: EXAM does not shutdown in 1000ms");
-
+        
         Whitebox.invokeMethod(testObject, "createClient");
         clearInvocations(printMock);
         dispatcher.removeResponse("/testrun/status");
         testObject.disconnectClient(1000);
         verify(printMock).println("disconnect from EXAM");
         verify(printMock, never()).println("ERROR: EXAM does not shutdown in 1000ms");
-
+        
         testObject.disconnectClient(1000);
         verify(printMock).println("Client is not connected");
-
+        
         Whitebox.invokeMethod(testObject, "createClient");
         clearInvocations(printMock);
         server.shutdown();
         testObject.disconnectClient(1000);
-
+        
         verify(printMock).println("disconnect from EXAM");
         inOrder(printMock).verify(printMock, calls(2)).println(anyString());
     }
-
+    
     @Test
-    public void waitForTestrunEnds() throws AbortException {
-        Executor executor = mock(Executor.class);
-        when(executor.isInterrupted()).thenReturn(false);
-        dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .addHeader("Cache-Control", "no-cache")
-                .setBody("{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":1}"));
-        testObject.waitForTestrunEnds(executor);
-
-        inOrder(executor).verify(executor, calls(2)).isInterrupted();
-        int reqCount = server.getRequestCount();
-        assertEquals("unexpected count of server calls", 2, reqCount);
-
-        clearInvocations(executor);
-        when(executor.isInterrupted()).thenReturn(true);
-        testObject.waitForTestrunEnds(executor);
-        inOrder(executor).verify(executor, calls(1)).isInterrupted();
+    public void waitForTestrunEnds() {
+        try {
+            Executor executor = mock(Executor.class);
+            when(executor.isInterrupted()).thenReturn(false);
+            dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":1}"));
+            testObject.waitForTestrunEnds(executor);
+            
+            inOrder(executor).verify(executor, calls(2)).isInterrupted();
+            int reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", 2, reqCount);
+            
+            clearInvocations(executor);
+            when(executor.isInterrupted()).thenReturn(true);
+            testObject.waitForTestrunEnds(executor);
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+        } catch (AbortException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
     }
-
+    
     @Test
-    public void waitForTestrunEnds_noStart() throws AbortException {
-        Executor executor = mock(Executor.class);
-        when(executor.isInterrupted()).thenReturn(false);
-        dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .addHeader("Cache-Control", "no-cache")
-                .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"false\",\"testRunState\":1}"));
-        testObject.waitForTestrunEnds(executor);
-
-        inOrder(executor).verify(executor, calls(10)).isInterrupted();
-        int reqCount = server.getRequestCount();
-        assertEquals("unexpected count of server calls", 10, reqCount);
-
-        clearInvocations(executor);
-        when(executor.isInterrupted()).thenReturn(true);
-        testObject.waitForTestrunEnds(executor);
-        inOrder(executor).verify(executor, calls(1)).isInterrupted();
+    public void waitForTestrunEnds_noStart() {
+        try {
+            Executor executor = mock(Executor.class);
+            when(executor.isInterrupted()).thenReturn(false);
+            dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"false\",\"testRunState\":1}"));
+            testObject.waitForTestrunEnds(executor);
+            
+            inOrder(executor).verify(executor, calls(10)).isInterrupted();
+            int reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", 10, reqCount);
+            
+            clearInvocations(executor);
+            when(executor.isInterrupted()).thenReturn(true);
+            testObject.waitForTestrunEnds(executor);
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+        } catch (AbortException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
     }
-
+    
     @Test
     public void getLogger() {
         PrintStream printMock = mock(PrintStream.class, "PrintMock for Test");
@@ -264,7 +299,7 @@ public class ClientRequestTest {
         String mockName = mockDetails.getMockCreationSettings().getMockName().toString();
         assertEquals("PrintMock for Test", mockName);
     }
-
+    
     @Test
     public void setLogger() {
         PrintStream printMock = mock(PrintStream.class, "PrintMock for Test");
@@ -277,119 +312,123 @@ public class ClientRequestTest {
         String mockName = mockDetails.getMockCreationSettings().getMockName().toString();
         assertEquals("PrintMock for Test", mockName);
     }
-
+    
     @Test
     public void createClient() throws Exception {
         Whitebox.invokeMethod(testObject, "createClient");
         verify(printMock).println("Client already connected");
     }
-
+    
     @Test
     public void noClient() throws Exception {
         Whitebox.invokeMethod(testObject, "destroyClient");
-
+        
         clearInvocations(printMock);
         testObject.getApiVersion();
         verify(printMock).println("WARNING: no EXAM connected");
-
+        
         clearInvocations(printMock);
         testObject.setTestrunFilter(null);
         verify(printMock).println("WARNING: no EXAM connected");
-
+        
         clearInvocations(printMock);
         testObject.convert(null);
         verify(printMock).println("WARNING: no EXAM connected");
-
+        
         clearInvocations(printMock);
         testObject.shutdown();
         verify(printMock).println("WARNING: no EXAM connected");
-
+        
         clearInvocations(printMock);
         testObject.clearWorkspace("");
         verify(printMock).println("WARNING: no EXAM connected");
-
+        
         clearInvocations(printMock);
         testObject.stopTestrun();
         verify(printMock).println("WARNING: no EXAM connected");
-
+        
         clearInvocations(printMock);
         testObject.getStatus();
         verify(printMock).println("WARNING: no EXAM connected");
-
+        
         clearInvocations(printMock);
         testObject.startTestrun(null);
         verify(printMock).println("WARNING: no EXAM connected");
     }
-
+    
     @Test
     public void getApiVersion() {
         ApiVersion toTest = new ApiVersion();
         toTest.setMajor(2);
         toTest.setMinor(5);
         toTest.setFix(7);
-
-        ApiVersion apiVersion = testObject.getApiVersion();
+        
+        ApiVersion apiVersion = null;
+        try {
+            apiVersion = testObject.getApiVersion();
+        } catch (AbortException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
         assertEquals(toTest.getFix(), apiVersion.getFix());
         assertEquals(toTest.getMinor(), apiVersion.getMinor());
         assertEquals(toTest.getMajor(), apiVersion.getMajor());
     }
-
+    
     // Note:
     // This Test has to run after the "startTestrun" Test because it manipulates the mocked Response
-    @Test(expected = RuntimeException.class)
+    @Test(expected = AbortException.class)
     public void handleResponseError() throws Exception {
         // change Response that handleResponseError gets an Error
         dispatcher.removeResponse("/testrun/start");
-        dispatcher.setResponse("/testrun/start", new MockResponse().setResponseCode(204)
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .addHeader("Cache-Control", "no-cache")
-                .setBody("{}"));
-
+        dispatcher.setResponse("/testrun/start",
+                new MockResponse().setResponseCode(204).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache").setBody("{}"));
+        
         // start Testrun with error Response => handleResponseError gets called
         testObject.startTestrun(null);
     }
-
+    
     @Test
     public void setTestrunFilter() throws Exception {
         TestrunFilter testrunFilter1 = new TestrunFilter("trf1", "val1", true, false);
         TestrunFilter testrunFilter2 = new TestrunFilter("trf2", "val2", false, true);
-
+        
         FilterConfiguration filterConfig = new FilterConfiguration();
         filterConfig.addTestrunFilter(testrunFilter1);
         filterConfig.addTestrunFilter(testrunFilter2);
-
+        
         Whitebox.invokeMethod(testObject, "setTestrunFilter", filterConfig);
-
+        
         RecordedRequest request = server.takeRequest();
         String requestRoute = request.getPath();
         String requestBody = request.getBody().readUtf8();
-
+        
         ObjectMapper om = new ObjectMapper();
         String filterConfigToTest = om.writeValueAsString(filterConfig);
-
+        
         assertEquals(requestBody, filterConfigToTest);
         assertEquals(requestRoute, "/testrun/setFilter");
     }
-
+    
     @Test
     public void destroyClient() throws Exception {
         Whitebox.invokeMethod(testObject, "destroyClient");
-
+        
         Client client = Whitebox.getInternalState(testObject, "client");
-
+        
         assertNull(client);
     }
-
+    
     @Test
     public void convert() throws Exception {
         String path = "/testrun/convertToJunit/";
         String testReportProject = "testProject";
         Whitebox.invokeMethod(testObject, "convert", testReportProject);
-
+        
         RecordedRequest request = server.takeRequest();
         String requestBody = request.getBody().readUtf8();
         String requestRoute = request.getPath();
-
+        
         assertEquals(path + testReportProject, requestRoute);
         assertEquals("", requestBody);
     }
