@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
 public class TestrunFilterTest {
@@ -37,21 +38,21 @@ public class TestrunFilterTest {
         this.trf = new TestrunFilter();
         assertNull(this.trf.name);
         assertNull(this.trf.value);
-        assertEquals(this.trf.adminCases, false);
-        assertEquals(this.trf.activateTestcases, false);
+        assertFalse(this.trf.adminCases);
+        assertFalse(this.trf.activateTestcases);
     }
 
     @Test
     public void constructorTest() {
-        assertEquals(this.trf.name, this.name);
-        assertEquals(this.trf.value, this.value);
-        assertEquals(this.trf.activateTestcases, this.activeTestcases);
-        assertEquals(this.trf.adminCases, this.adminCases);
+        assertEquals(this.name, this.trf.name);
+        assertEquals(this.value, this.trf.value);
+        assertEquals(this.activeTestcases, this.trf.activateTestcases);
+        assertEquals(this.adminCases, this.trf.adminCases);
     }
 
     @Test
     public void getName() {
-        assertEquals(this.trf.name, trf.getName());
+        assertEquals(name, trf.getName());
     }
 
     @Test

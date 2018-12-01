@@ -29,21 +29,33 @@
  */
 package jenkins.internal;
 
+import hudson.FilePath;
+import hudson.model.Node;
+import hudson.slaves.DumbSlave;
 import hudson.util.FormValidation;
 import jenkins.task._exam.Messages;
+import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.WithoutJenkins;
 import org.powermock.reflect.Whitebox;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class UtilTest {
-    
+
+    @Rule
+    public JenkinsRule jenkinsRule = new JenkinsRule();
+
     private char[] chars = "1234567890abcdef".toCharArray();
-    
+
     private String generateValidUuid(boolean withMinus) {
         String uuid = "";
         Random rand = new Random();
@@ -61,27 +73,41 @@ public class UtilTest {
         }
         return uuid;
     }
-    
+
     private String generateValidId() {
         Random rnd = new Random();
-        
+
         int rndId = rnd.nextInt(999999999) + 1;
         return "I" + rndId;
     }
-    
+
     @Test
+    public void workspaceToNode() throws Exception {
+        DumbSlave slave = jenkinsRule.createOnlineSlave();
+        slave.setLabelString("exam");
+        slave.save();
+        FilePath rootPath = slave.getWorkspaceRoot();
+
+        Node node = Util.workspaceToNode(rootPath);
+        assertEquals(slave, node);
+    }
+
+    @Test
+    @WithoutJenkins
     public void isUuidValid() throws Exception {
         String uuid = generateValidUuid(false);
         assertTrue("TestUuid: " + uuid, Util.isUuidValid(uuid));
     }
-    
+
     @Test
+    @WithoutJenkins
     public void isUuidValidMinus() throws Exception {
         String uuid = generateValidUuid(true);
         assertTrue("TestUuid: " + uuid, Util.isUuidValid(uuid));
     }
-    
+
     @Test
+    @WithoutJenkins
     public void isUuidValidFalse() throws Exception {
         String uuid = generateValidUuid(false) + "a";
         assertFalse("TestUuid: " + uuid, Util.isUuidValid(uuid));
@@ -90,38 +116,42 @@ public class UtilTest {
         uuid = generateValidUuid(false).substring(1) + "g";
         assertFalse("TestUuid: " + uuid, Util.isUuidValid(uuid));
     }
-    
+
     @Test
+    @WithoutJenkins
     public void validateUuid() throws Exception {
         FormValidation ret = Util.validateUuid(generateValidUuid(false));
         assertEquals(FormValidation.Kind.OK, ret.kind);
     }
-    
+
     @Test
+    @WithoutJenkins
     public void validateUuidFalse() throws Exception {
         FormValidation ret = Util.validateUuid(generateValidUuid(false) + "g");
         assertEquals(FormValidation.Kind.ERROR, ret.kind);
     }
-    
+
     @Test
+    @WithoutJenkins
     public void isIdValid() throws Exception {
         String id1 = this.generateValidId();
         String id2 = this.generateValidId();
         String id3 = "blablablallslsjkdf";
         String id4 = "3" + this.generateValidId();
-        
+
         Boolean result1 = Whitebox.invokeMethod(Util.class, "isIdValid", id1);
         Boolean result2 = Whitebox.invokeMethod(Util.class, "isIdValid", id2);
         Boolean result3 = Whitebox.invokeMethod(Util.class, "isIdValid", id3);
         Boolean result4 = Whitebox.invokeMethod(Util.class, "isIdValid", id4);
-        
+
         assertTrue(result1);
         assertTrue(result2);
         assertFalse(result3);
         assertFalse(result4);
     }
-    
+
     @Test
+    @WithoutJenkins
     public void isPythonConformFSN() {
         Map<String, Boolean> testsAndExpectedResults = new HashMap<String, Boolean>() {{
             put("_IAmAPythonConformName", true);
@@ -135,7 +165,7 @@ public class UtilTest {
             put("AmAlsoNo.34huhu", false);
             put(null, false);
         }};
-        
+
         testsAndExpectedResults.forEach((name, expectedValue) -> {
             try {
                 Boolean result = Whitebox.invokeMethod(Util.class, "isPythonConformFSN", name);
@@ -149,26 +179,28 @@ public class UtilTest {
             }
         });
     }
-    
+
     @Test
+    @WithoutJenkins
     public void validateElementForSearch() throws Exception {
         String newLine = "\r\n";
         String expectedErrorMsg =
                 Messages.EXAM_RegExUuid() + newLine + Messages.EXAM_RegExId() + newLine + Messages.EXAM_RegExFsn()
                         + newLine;
-        
+
         String invalidString = "#IAmAlsoNoPythonConformName";
         String validString = this.generateValidId();
-        
+
         FormValidation fv_invalidResult = Whitebox
                 .invokeMethod(Util.class, "validateElementForSearch", invalidString);
         FormValidation fv_validResult = Whitebox.invokeMethod(Util.class, "validateElementForSearch", validString);
-        
+
         assertEquals(FormValidation.error(expectedErrorMsg).getMessage(), fv_invalidResult.getMessage());
         assertEquals(FormValidation.ok(), fv_validResult);
     }
-    
+
     @Test
+    @WithoutJenkins
     public void validateSystemConfig() throws Exception {
         String newLine = "\r\n";
         String expectedErrorMsg_1 = Messages.EXAM_RegExSysConf() + newLine;
@@ -177,13 +209,13 @@ public class UtilTest {
         String expectedErrorMsg_4 =
                 Messages.EXAM_RegExSysConf() + newLine + Messages.EXAM_RegExUuid() + newLine + Messages
                         .EXAM_RegExFsn() + newLine;
-        
+
         String invalidString_1 = "IAmNotValid";
         String invalidString_2 = generateValidUuid(false) + "3 This_is_my_Sysconfig";
         String invalidString_3 = generateValidUuid(false) + " 1This_is_my_Sysconfig";
         String invalidString_4 = generateValidUuid(false) + "3 1This_is_my_Sysconfig";
         String validString = generateValidUuid(false) + " This_is_my_Sysconfig";
-        
+
         FormValidation fv_invalidResult_1 = Whitebox
                 .invokeMethod(Util.class, "validateSystemConfig", invalidString_1);
         FormValidation fv_invalidResult_2 = Whitebox
@@ -193,7 +225,7 @@ public class UtilTest {
         FormValidation fv_invalidResult_4 = Whitebox
                 .invokeMethod(Util.class, "validateSystemConfig", invalidString_4);
         FormValidation fv_validResult = Whitebox.invokeMethod(Util.class, "validateSystemConfig", validString);
-        
+
         assertEquals(FormValidation.error(expectedErrorMsg_1).getMessage(), fv_invalidResult_1.getMessage());
         assertEquals(FormValidation.error(expectedErrorMsg_2).getMessage(), fv_invalidResult_2.getMessage());
         assertEquals(FormValidation.error(expectedErrorMsg_3).getMessage(), fv_invalidResult_3.getMessage());
