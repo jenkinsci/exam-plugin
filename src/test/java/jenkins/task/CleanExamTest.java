@@ -6,8 +6,11 @@ import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
-import jenkins.plugins.exam.config.ExamPluginConfig;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
@@ -15,6 +18,7 @@ import org.jvnet.hudson.test.TestBuilder;
 import java.io.IOException;
 import java.util.List;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class CleanExamTest {
@@ -54,12 +58,19 @@ public class CleanExamTest {
         });
     }
 
+    @Test
+    public void getDescriptor() {
+        CleanExam.DescriptorImpl descriptor = testObject.getDescriptor();
+        assertTrue(descriptor.isApplicable(examJenkinsProject.getClass()));
+    }
+
     //#region Helpermethod
 
     private void addPrebuildStep() {
         examJenkinsProject.getBuildersList().add(new TestBuilder() {
             @Override
-            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+                    throws InterruptedException, IOException {
                 listener.getLogger().println("PreBuildStep!!");
                 try {
                     FilePath workspace = build.getWorkspace();
