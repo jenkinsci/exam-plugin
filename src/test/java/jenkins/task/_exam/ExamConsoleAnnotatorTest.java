@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -30,55 +30,48 @@
 package jenkins.task._exam;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.internal.runners.statements.ExpectException;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-
-import static org.junit.Assert.*;
+import java.nio.charset.StandardCharsets;
 
 public class ExamConsoleAnnotatorTest {
-
-    @Rule
-    public ExpectedException thrown= ExpectedException.none();
-
+    
     private ExamConsoleAnnotator testObject;
-
+    
     @Before
-    public void setUp(){
+    public void setUp() {
         testObject = new ExamConsoleAnnotator(null, Charset.defaultCharset());
-
+        
     }
-
+    
     @Test
     public void eol() throws IOException {
         OutputStream writeMock = Mockito.mock(OutputStream.class);
-        ExamConsoleAnnotator obj = new ExamConsoleAnnotator(writeMock,Charset.defaultCharset());
+        ExamConsoleAnnotator obj = new ExamConsoleAnnotator(writeMock, Charset.defaultCharset());
         String testString = "dfhkjd f akdf la k dhf sd";
         String expected = "EXAM: ";
-        obj.eol(testString.getBytes(),testString.length());
-        Mockito.verify(writeMock).write(expected.getBytes());
-        Mockito.verify(writeMock).write(testString.getBytes(), 0, testString.length());
+        obj.eol(testString.getBytes(StandardCharsets.UTF_8), testString.length());
+        Mockito.verify(writeMock).write(expected.getBytes(StandardCharsets.UTF_8));
+        Mockito.verify(writeMock).write(testString.getBytes(StandardCharsets.UTF_8), 0, testString.length());
     }
-
+    
     @Test
     public void close() throws IOException {
         testObject.close();
-
+        
         OutputStream stream = new OutputStream() {
             @Override
             public void write(int b) throws IOException {
                 return;
             }
         };
-
-        Whitebox.setInternalState(testObject,"out",stream);
+        
+        Whitebox.setInternalState(testObject, "out", stream);
         testObject.close();
     }
 }

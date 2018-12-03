@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37,6 +37,7 @@ import hudson.Util;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Node;
 import hudson.model.TaskListener;
+import hudson.remoting.VirtualChannel;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
@@ -49,6 +50,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,11 +65,12 @@ import java.util.logging.Logger;
  * @author Thomas Reinicke
  */
 public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>, EnvironmentSpecific<ExamTool> {
-
-    @SuppressWarnings("unused") private static final Logger LOGGER = Logger.getLogger(ExamTool.class.getName());
-
+    
+    @SuppressWarnings("unused")
+    private static final Logger LOGGER = Logger.getLogger(ExamTool.class.getName());
+    
     private String relativeDataPath;
-
+    
     /**
      * Constructor for ExamTool.
      *
@@ -75,81 +78,71 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
      * @param home       Tool location (usually "c:\program files\EXAM\exam.exe")
      * @param properties {@link java.util.List} of properties for this tool
      */
-    @DataBoundConstructor public ExamTool(String name, String home, String relativeConfigPath,
-            List<? extends ToolProperty<?>> properties) {
+    @DataBoundConstructor
+    public ExamTool(String name, String home, String relativeConfigPath, List<? extends ToolProperty<?>> properties) {
         super(name, home, properties);
         this.relativeDataPath = Util.fixEmptyAndTrim(relativeConfigPath);
     }
-
+    
     /**
      * Constructor for ExamTool.
      *
-     * @param name
-     * @param home
-     * @param properties
+     * @param name       String
+     * @param home       String
+     * @param properties List<? extends ToolProperty<?>>
      */
     public ExamTool(String name, String home, List<? extends ToolProperty<?>> properties) {
         super(name, home, properties);
         this.relativeDataPath = null;
     }
-
+    
     @DataBoundSetter
     public void setRelativeDataPath(String relativeDataPath) {
         this.relativeDataPath = relativeDataPath;
     }
-
+    
     public String getRelativeConfigPath() {
         return relativeDataPath;
     }
-
-    /**
-     * Constant <code>DEFAULT="Default"</code>
-     */
-    public static transient final String DEFAULT = "Default";
-
+    
     private static final long serialVersionUID = 1;
-
+    
     /**
      * Get the EXAM Tool for a specific node
      *
-     * @param node
-     * @param log
+     * @param node Node
+     * @param log  TaskListener
      *
-     * @return
+     * @return ExamTool
      *
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
     public ExamTool forNode(Node node, TaskListener log) throws IOException, InterruptedException {
-        return new ExamTool(getName(), translateFor(node, log), getRelativeConfigPath(),
-                Collections.<ToolProperty<?>>emptyList());
+        return new ExamTool(getName(), translateFor(node, log), getRelativeConfigPath(), Collections.emptyList());
     }
-
-    @Override public ExamTool forEnvironment(EnvVars environment) {
+    
+    @Override
+    public ExamTool forEnvironment(EnvVars environment) {
         return new ExamTool(getName(), environment.expand(getHome()), getRelativeConfigPath(),
-                Collections.<ToolProperty<?>>emptyList());
+                Collections.emptyList());
     }
-
-    @Override public DescriptorImpl getDescriptor() {
+    
+    @Override
+    public DescriptorImpl getDescriptor() {
         Jenkins jenkinsInstance = Jenkins.getInstance();
-        if (jenkinsInstance == null) {
-            /*
-             * Throw AssertionError exception to match behavior of
-             * Jenkins.getDescriptorOrDie
-             */
-            throw new AssertionError("No Jenkins instance");
-        }
         return (DescriptorImpl) jenkinsInstance.getDescriptorOrDie(getClass());
     }
-
+    
     /**
      * Descriptor for ExamTool
      */
     @Extension
     @Symbol("ExamTool")
     public static class DescriptorImpl extends ToolDescriptor<ExamTool> {
-        @CopyOnWrite private volatile ExamTool[] installations = new ExamTool[0];
-
+        @CopyOnWrite
+        private volatile ExamTool[] installations = new ExamTool[0];
+        
         /**
          * Descriptor for ExamTool
          */
@@ -157,56 +150,67 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
             super();
             load();
         }
-
-        @Override public String getDisplayName() {
+        
+        @Override
+        @Nonnull
+        public String getDisplayName() {
             return "EXAM";
         }
-
-        @Override public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+        
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject json) {
             installations = req.bindJSONToList(clazz, json.get("tool")).toArray(new ExamTool[0]);
             req.bindJSON(this, json);
             save();
             return true;
         }
-
+        
         // for compatibility reasons, the persistence is done by
         // ExamTaskModel.DescriptorImpl
-        @Override public ExamTool[] getInstallations() {
-            return installations;
+        @Override
+        public ExamTool[] getInstallations() {
+            return installations.clone();
         }
-
-        @Override public void setInstallations(ExamTool... installations) {
+        
+        @Override
+        public void setInstallations(ExamTool... installations) {
             this.installations = installations;
         }
-
+        
         /**
          * Return list of applicable GitTool descriptors.
+         *
          * @return list of applicable GitTool descriptors
          */
         @SuppressWarnings("unchecked")
         public List<ToolDescriptor<? extends ExamTool>> getApplicableDescriptors() {
             List<ToolDescriptor<? extends ExamTool>> r = new ArrayList<>();
             Jenkins jenkinsInstance = Jenkins.getInstance();
-            for (ToolDescriptor<?> td : jenkinsInstance.<ToolInstallation,ToolDescriptor<?>>getDescriptorList(ToolInstallation.class)) {
+            for (ToolDescriptor<?> td : jenkinsInstance.<ToolInstallation, ToolDescriptor<?>>getDescriptorList(
+                    ToolInstallation.class)) {
                 if (ExamTool.class.isAssignableFrom(td.clazz)) { // This checks cast is allowed
-                    r.add((ToolDescriptor<? extends ExamTool>)td); // This is the unchecked cast
+                    r.add((ToolDescriptor<? extends ExamTool>) td); // This is the unchecked cast
                 }
             }
             return r;
         }
     }
-
+    
     /**
      * Gets the executable path of this EXAM on the given target system.
      */
     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
-        return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
+        VirtualChannel channel = launcher.getChannel();
+        if (channel == null) {
+            return "";
+        }
+        String answer = channel.call(new MasterToSlaveCallable<String, IOException>() {
             private static final long serialVersionUID = 906341330603832653L;
-
+            
             /**
              * Gets the executable path of this EXAM on the given target system.
              */
-            public String call() throws IOException {
+            public String call() {
                 File exe = getExeFile();
                 if (exe.exists()) {
                     return exe.getPath();
@@ -214,13 +218,14 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
                 return null;
             }
         });
+        return answer == null ? "" : answer;
     }
-
+    
     private File getExeFile() {
         String execName = "EXAM.exe";
         String home = Util.replaceMacro(getHome(), EnvVars.masterEnvVars);
-
+        
         return new File(home, execName);
     }
-
+    
 }

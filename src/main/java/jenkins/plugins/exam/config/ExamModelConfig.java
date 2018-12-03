@@ -35,7 +35,6 @@ import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.util.FormValidation;
-import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -44,23 +43,22 @@ import javax.annotation.CheckForNull;
 
 @XStreamAlias("exam-model-config")
 public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
-
+    
     public static final String TARGET_ENDPOINT = "http://examServer:8080/exam/ExamModelerService";
-
+    
     /**
      * The optional display name of this server.
      */
-    @CheckForNull
     protected String name;
     private String modelName;
     private int examVersion;
     private String targetEndpoint = TARGET_ENDPOINT;
-
+    
     @DataBoundConstructor
     public ExamModelConfig(String modelName) {
         this.modelName = modelName;
     }
-
+    
     /**
      * Sets the optional display name.
      *
@@ -70,7 +68,7 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     public void setName(@CheckForNull String name) {
         this.name = Util.fixEmptyAndTrim(name);
     }
-
+    
     /**
      * Sets the model name.
      *
@@ -80,7 +78,7 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     public void setModelName(@CheckForNull String modelName) {
         this.modelName = Util.fixEmptyAndTrim(modelName);
     }
-
+    
     /**
      * Sets the exam version.
      *
@@ -90,7 +88,7 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     public void setExamVersion(int examVersion) {
         this.examVersion = examVersion;
     }
-
+    
     /**
      * Set the target endpoint.
      *
@@ -98,56 +96,57 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
      *                       is unchecked or value is blank
      */
     @DataBoundSetter
-    public void setTargetEndpoint(@CheckForNull String targetEndpoint) {
-        this.targetEndpoint = targetEndpoint.isEmpty() ? TARGET_ENDPOINT : targetEndpoint;
+    public void setTargetEndpoint(String targetEndpoint) {
+        this.targetEndpoint = targetEndpoint == null || targetEndpoint.isEmpty() ? TARGET_ENDPOINT : targetEndpoint;
     }
-
+    
     /**
      * Gets the optional display name of this server.
      *
      * @return the optional display name of this server, may be empty or
      * {@code null} but best effort is made to ensure that it has some
      * meaningful text.
+     *
      * @since 1.28.0
      */
     public String getName() {
         return name;
     }
-
+    
     public int getExamVersion() {
         return examVersion;
     }
-
+    
     public String getModelName() {
         return modelName;
     }
-
+    
     public String getTargetEndpoint() {
         return targetEndpoint;
     }
-
+    
     public String getDisplayName() {
         return Messages.ExamModelConfig_displayName(getName(), getModelName(), getTargetEndpoint());
     }
-
+    
     @Extension
     public static class DescriptorImpl extends Descriptor<ExamModelConfig> {
-
+        
         @Override
         public String getDisplayName() {
             return "EXAM Model";
         }
-
+        
         // TODO Prüfungen für Modellnamen und TargetEndpoint ergänzen
-
+        
         public FormValidation doCheckName(@QueryParameter String value) {
-
+            
             if (value.contains(" ")) {
                 return FormValidation.error(Messages.ExamPluginConfig_spacesNotAllowed());
             }
-            ExamModelConfig[] modelConfigs = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
-                                                    .getModelConfigs().toArray(new ExamModelConfig[0]);
-
+            //ExamModelConfig[] modelConfigs = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
+            //                                       .getModelConfigs().toArray(new ExamModelConfig[0]);
+            
             // TODO prüfung einbauen
             return FormValidation.ok();
         }

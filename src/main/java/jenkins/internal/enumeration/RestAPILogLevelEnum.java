@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -33,84 +33,95 @@ package jenkins.internal.enumeration;
  * EXAM Loglevel
  */
 public enum RestAPILogLevelEnum {
-
-    /** No logging */
+    
+    /**
+     * No logging
+     */
     OFF(0),
-
-    /** Level used for errors and exceptions */
+    
+    /**
+     * Level used for errors and exceptions
+     */
     ERROR(10),
-
-    /** Level used for warnings */
+    
+    /**
+     * Level used for warnings
+     */
     WARNING(15),
-
-    /** Default level used for user messages */
+    
+    /**
+     * Default level used for user messages
+     */
     INFO(20),
-
-    /** Debug level */
+    
+    /**
+     * Debug level
+     */
     DEBUG(25),
-
-    /** Finest level for debugging method calls */
+    
+    /**
+     * Finest level for debugging method calls
+     */
     INTERNAL(30);
-
+    
     private int value;
-
+    
     /**
      * Constructor for LogLevel
      *
-     * @param value
-     *            Possible Values: 0 - OFF 5 - EXECUTION 10 - ERROR 15 - WARNING 20 - INFO 25 - DEBUG 30 - INTERNAL
-     * @return LogLevelEnum
+     * @param value Possible Values: 0 - OFF 5 - EXECUTION 10 - ERROR 15 - WARNING 20 - INFO 25 - DEBUG 30 - INTERNAL
      */
-    private RestAPILogLevelEnum(int value) {
+    RestAPILogLevelEnum(int value) {
         this.value = value;
     }
-
+    
     /**
      * Get the Int-Value of the given LogLevel
      *
      * @return int of the LogLevel
      */
     public Integer toInt() {
-        return Integer.valueOf(this.value);
+        return this.value;
     }
-
+    
     /**
      * Cast the Integer to a LogLevel Possible Values: 0 - OFF 5 - EXECUTION 10 - ERROR 15 - WARNING 20 - INFO 25 -
      * DEBUG 30 - INTERNAL
      *
-     * @param i
-     * @return LogLevelEnum
+     * @param i Integer
+     *
+     * @return LogLevelEnum RestAPILogLevelEnum
      */
     public static RestAPILogLevelEnum fromInt(Integer i) {
-        switch (i.intValue()) {
-        case 0:
-            return OFF;
-        case 10:
-            return ERROR;
-        case 15:
-            return WARNING;
-        case 20:
-            return INFO;
-        case 25:
-            return DEBUG;
-        case 30:
-            return INTERNAL;
-        default:
-            return null;
+        switch (i) {
+            case 0:
+                return OFF;
+            case 10:
+                return ERROR;
+            case 15:
+                return WARNING;
+            case 20:
+                return INFO;
+            case 25:
+                return DEBUG;
+            case 30:
+                return INTERNAL;
+            default:
+                return null;
         }
     }
-
+    
     /**
      * Checks if the given loglevel is included in the other
      *
-     * @param l
-     *            loglevel that should be included
+     * @param l loglevel that should be included
+     *
      * @return true if the loglevel is included or equal
      */
     public boolean includesLogLevel(RestAPILogLevelEnum l) {
-        return l.toInt().intValue() <= this.value;
+        return l.toInt() <= this.value;
     }
-
+    
     /**
      * Get the possible names of the enum.
      *

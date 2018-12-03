@@ -177,7 +177,7 @@ public class ClientRequest {
     /**
      * Request the Api Version from EXAM Client
      *
-     * @param reportProject
+     * @param reportProject String
      */
     public void convert(String reportProject) throws AbortException {
         if (client == null) {
@@ -196,7 +196,7 @@ public class ClientRequest {
     /**
      * Configure and start testrun at EXAM Client
      *
-     * @param testConfig
+     * @param testConfig TestConfiguration
      */
     public void startTestrun(TestConfiguration testConfig) throws AbortException {
         if (client == null) {
@@ -217,9 +217,7 @@ public class ClientRequest {
             String errorMessage = "Failed : HTTP error code : " + response.getStatus();
             try {
                 String entity = response.getEntity(String.class);
-                if (entity instanceof String) {
-                    errorMessage += "\n" + entity;
-                }
+                errorMessage += "\n" + entity;
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
@@ -248,14 +246,14 @@ public class ClientRequest {
     /**
      * Deletes the project configuration at EXAM and deletes the corresponding report and pcode folders
      *
-     * @param projectName
+     * @param projectName String
      */
     public void clearWorkspace(String projectName) throws AbortException {
         if (client == null) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
-        WebResource service = null;
+        WebResource service;
         if (projectName == null || projectName.isEmpty()) {
             logger.println("deleting all projects and pcode from EXAM workspace");
             service = client.resource(baseUrl + "/workspace/delete");
@@ -285,7 +283,7 @@ public class ClientRequest {
     /**
      * try to connect to EXAM REST Server within a timeout
      *
-     * @param timeout
+     * @param timeout millis
      *
      * @return true, if connected
      */
@@ -323,18 +321,17 @@ public class ClientRequest {
     /**
      * Try to disconnect from EXAM Client
      *
-     * @param timeout
+     * @param timeout millis
      */
     public void disconnectClient(int timeout) {
         if (client == null) {
             logger.println("Client is not connected");
-            return;
         } else {
             logger.println("disconnect from EXAM");
             
             WebResource service = client.resource(baseUrl + "/workspace/shutdown");
             try {
-                ClientResponse responseShutdown = service.get(ClientResponse.class);
+                service.get(ClientResponse.class);
             } catch (Exception e) {
                 logger.println(e.getMessage());
             }

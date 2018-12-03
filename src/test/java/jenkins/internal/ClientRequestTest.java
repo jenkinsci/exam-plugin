@@ -81,9 +81,13 @@ public class ClientRequestTest {
     public static void oneTimeTearDown() throws IOException {
     }
     
+    private static void setServer(MockWebServer myServer) {
+        ClientRequestTest.server = myServer;
+    }
+    
     @Before
     public void setUp() throws Exception {
-        server = new MockWebServer();
+        ClientRequestTest.setServer(new MockWebServer());
         dispatcher.setDefaults();
         server.setDispatcher(dispatcher);
         server.start(8085);

@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37,15 +37,16 @@ import jenkins.internal.enumeration.PythonWords;
 import jenkins.model.Jenkins;
 import jenkins.task._exam.Messages;
 
+import javax.annotation.Nonnull;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
-
+    
     /**
      * Get the Node of a workspace
      *
-     * @param workspace
+     * @param workspace FilePath
      *
      * @return Node
      */
@@ -60,11 +61,11 @@ public class Util {
         }
         return j;
     }
-
+    
     /**
      * Check uuid pattern
      *
-     * @param uuid
+     * @param uuid String
      *
      * @return true, if valid
      */
@@ -76,17 +77,15 @@ public class Util {
         Pattern regexSystemConfig = Pattern.compile("[0-9a-f]{32}");
         Matcher matcher = regexSystemConfig.matcher(myUuid);
         if (matcher.find()) {
-            if (matcher.groupCount() == 0) {
-                return true;
-            }
+            return matcher.groupCount() == 0;
         }
         return false;
     }
-
+    
     /**
      * Check id pattern
      *
-     * @param id
+     * @param id String
      *
      * @return true, if valid
      */
@@ -100,7 +99,7 @@ public class Util {
         }
         return false;
     }
-
+    
     /**
      * Check name pattern
      *
@@ -112,27 +111,25 @@ public class Util {
         if (name == null) {
             return false;
         }
-
+        
         String[] splitted = name.split("\\.");
-
+        
         if (splitted.length == 1 && name.startsWith("I")) {
             return false;
         }
-
-
+        
         for (String part : splitted) {
-            if(!isPythonConformName(part)){
+            if (!isPythonConformName(part)) {
                 return false;
             }
         }
         return true;
     }
-
-
+    
     /**
      * Check name pattern
      *
-     * @param name
+     * @param name String
      *
      * @return true, if valid
      */
@@ -142,92 +139,88 @@ public class Util {
             return false;
         }
         PythonWords id = PythonWords.get(name);
-        if (PythonWords.RESERVED_WORDS.contains(id)) {
-            return false;
-        }
-        return true;
+        return !PythonWords.RESERVED_WORDS.contains(id);
     }
-
+    
     /**
      * Check uuid pattern
      *
-     * @param value
+     * @param value String
      *
      * @return FormValidation
      */
     public static FormValidation validateUuid(String value) {
-
+        
         if (isUuidValid(value)) {
             return FormValidation.ok();
         }
-
+        
         return FormValidation.error(Messages.EXAM_RegExUuid());
     }
-
+    
     /**
      * Check value on id, uuid and python name
      *
-     * @param value
+     * @param value String
      *
      * @return FormValidation
      */
     public static FormValidation validateElementForSearch(String value) {
         StringBuilder errorMsg = new StringBuilder("");
-
+        
         boolean uuidValid = isUuidValid(value);
         boolean idValid = isIdValid(value);
         boolean fsnValid = isPythonConformFSN(value);
-
+        
         if (uuidValid || idValid || fsnValid) {
             return FormValidation.ok();
         }
-
+        
         errorMsg.append(Messages.EXAM_RegExUuid());
         errorMsg.append("\r\n");
         errorMsg.append(Messages.EXAM_RegExId());
         errorMsg.append("\r\n");
         errorMsg.append(Messages.EXAM_RegExFsn());
         errorMsg.append("\r\n");
-
+        
         return FormValidation.error(errorMsg.toString());
     }
-
-
+    
     /**
      * Check value on id, uuid and python name
      *
-     * @param value
+     * @param value String
      *
      * @return FormValidation
      */
-    public static FormValidation validateSystemConfig(String value) {
-
-        StringBuilder errorMsg = new StringBuilder("");
+    public static FormValidation validateSystemConfig(@Nonnull String value) {
+        
+        StringBuilder errorMsg = new StringBuilder();
         errorMsg.append(Messages.EXAM_RegExSysConf());
         errorMsg.append("\r\n");
-
+        
         String[] splitted = value.trim().split(" ", 2);
-
-        if(splitted.length != 2){
+        
+        if (splitted.length != 2) {
             return FormValidation.error(errorMsg.toString());
         }
-
+        
         boolean uuidValid = isUuidValid(splitted[0]);
         boolean pythonValid = isPythonConformName(splitted[1]);
-
+        
         if (uuidValid && pythonValid) {
             return FormValidation.ok();
         }
-
-        if(!uuidValid) {
+        
+        if (!uuidValid) {
             errorMsg.append(Messages.EXAM_RegExUuid());
             errorMsg.append("\r\n");
         }
-        if(!pythonValid) {
+        if (!pythonValid) {
             errorMsg.append(Messages.EXAM_RegExFsn());
             errorMsg.append("\r\n");
         }
-
+        
         return FormValidation.error(errorMsg.toString());
     }
 }

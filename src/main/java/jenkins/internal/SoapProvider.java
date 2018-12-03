@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -50,9 +50,10 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 
 @Provider
-@Consumes({MediaType.TEXT_XML,"multipart/related"})
+@Consumes({ MediaType.TEXT_XML, "multipart/related" })
 @Produces(MediaType.TEXT_XML)
 public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBodyReader<SOAPMessage> {
     /**
@@ -68,7 +69,7 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
     public boolean isWriteable(Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType) {
         return SOAPMessage.class.isAssignableFrom(aClass);
     }
-
+    
     /**
      * reading form a soap message
      *
@@ -89,7 +90,7 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
             throws IOException, WebApplicationException {
         try {
             String data = "";
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
                 String line;
                 StringBuilder builder = new StringBuilder();
                 while ((line = br.readLine()) != null) {
@@ -100,7 +101,7 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
                 }
                 data = builder.toString();
             }
-            data = data.substring(data.indexOf("<?xml "),data.lastIndexOf("--MIMEBoundary"));
+            data = data.substring(data.indexOf("<?xml "), data.lastIndexOf("--MIMEBoundary"));
             MessageFactory messageFactory = MessageFactory.newInstance();
             StreamSource messageSource = new StreamSource(new StringReader(data));
             SOAPMessage message = messageFactory.createMessage();
@@ -113,7 +114,7 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
         }
         return null;
     }
-
+    
     /**
      * get size of soap message
      *
@@ -125,10 +126,11 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
      *
      * @return
      */
-    public long getSize(SOAPMessage soapMessage, Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType) {
+    public long getSize(SOAPMessage soapMessage, Class<?> aClass, Type type, Annotation[] annotations,
+            MediaType mediaType) {
         return -1;
     }
-
+    
     /**
      * sending a soap message
      *
@@ -152,7 +154,7 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
             e.printStackTrace();
         }
     }
-
+    
     public boolean isReadable(Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType) {
         return aClass.isAssignableFrom(SOAPMessage.class);
     }

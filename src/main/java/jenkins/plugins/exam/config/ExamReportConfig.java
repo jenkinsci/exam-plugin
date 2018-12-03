@@ -42,15 +42,15 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 @XStreamAlias("exam-report-config")
 public class ExamReportConfig extends AbstractDescribableImpl<ExamReportConfig> {
-
+    
     /**
      * The optional display name of this server.
      */
-    @CheckForNull
     private String name = "";
     private String dbType = "";
     private String host = "";
@@ -59,23 +59,25 @@ public class ExamReportConfig extends AbstractDescribableImpl<ExamReportConfig> 
     private String schema = "";
     private String dbUser = "";
     private String dbPass = "";
-
+    
     @DataBoundConstructor
     public ExamReportConfig() {
     }
-
+    
     /**
      * Gets the optional display name of this server.
      *
      * @return the optional display name of this server, may be empty or
      * {@code null} but best effort is made to ensure that it has some
      * meaningful text.
+     *
      * @since 1.28.0
      */
+    @Nonnull
     public String getName() {
-        return name;
+        return Util.fixNull(name);
     }
-
+    
     /**
      * Sets the optional display name.
      *
@@ -85,112 +87,108 @@ public class ExamReportConfig extends AbstractDescribableImpl<ExamReportConfig> 
     public void setName(@CheckForNull String name) {
         this.name = Util.fixNull(name).trim();
     }
-
+    
     public String getDbType() {
         return dbType;
     }
-
+    
     @DataBoundSetter
     public void setDbType(@CheckForNull String dbType) {
         this.dbType = Util.fixNull(dbType).trim();
     }
-
+    
+    @Nonnull
     public String getHost() {
-        return host;
+        return Util.fixNull(host);
     }
-
+    
     @DataBoundSetter
     public void setHost(@CheckForNull String host) {
         this.host = Util.fixNull(host).trim();
     }
-
+    
+    @Nonnull
     public String getPort() {
-        return port;
+        return Util.fixNull(port);
     }
-
+    
     @DataBoundSetter
     public void setPort(@CheckForNull String port) {
         this.port = Util.fixNull(port).trim();
     }
-
+    
+    @Nonnull
     public String getServiceOrSid() {
-        return serviceOrSid;
+        return Util.fixNull(serviceOrSid);
     }
-
+    
     @DataBoundSetter
     public void setServiceOrSid(@CheckForNull String serviceOrSid) {
         this.serviceOrSid = Util.fixNull(serviceOrSid).trim();
     }
-
+    
+    @Nonnull
     public String getSchema() {
-        return schema;
+        return Util.fixNull(schema);
     }
-
+    
     @DataBoundSetter
     public void setSchema(@CheckForNull String schema) {
         this.schema = Util.fixNull(schema).trim();
     }
-
+    
     public String getDbUser() {
         return dbUser;
     }
-
+    
     @DataBoundSetter
     public void setDbUser(@CheckForNull String dbUser) {
         this.dbUser = Util.fixNull(dbUser).trim();
     }
-
+    
     public String getDbPass() {
         return dbPass;
     }
-
+    
     @DataBoundSetter
     public void setDbPass(@CheckForNull String dbPass) {
         this.dbPass = Util.fixNull(dbPass).trim();
     }
-
+    
     public String getDisplayName() {
         return Messages.ExamReportConfig_displayName(getName(), getSchema(), getHost(), getPort());
     }
-
+    
     @Override
     public ExamReportConfig.DescriptorImpl getDescriptor() {
         Jenkins jenkinsInstance = Jenkins.getInstance();
-        if (jenkinsInstance == null) {
-            /*
-             * Throw AssertionError exception to match behavior of
-             * Jenkins.getDescriptorOrDie
-             */
-            throw new AssertionError("No Jenkins instance");
-        }
         return (ExamReportConfig.DescriptorImpl) jenkinsInstance.getDescriptorOrDie(getClass());
     }
-
+    
     @Extension
     public static class DescriptorImpl extends Descriptor<ExamReportConfig> {
-
-        private volatile DbKind[] dbTypes = DbKind.values();
-
+        
+        private DbKind[] dbTypes = DbKind.values();
+        
         public DescriptorImpl() {
             load();
         }
-
+        
         protected DescriptorImpl(Class<? extends ExamReportConfig> clazz) {
             super(clazz);
         }
-
+        
         public DbKind[] getDbTypes() {
             return Arrays.copyOf(dbTypes, dbTypes.length);
         }
-
-
+        
         @Override
+        @Nonnull
         public String getDisplayName() {
             return "EXAM Report";
         }
-
-
-        public FormValidation doCheckName(@QueryParameter String value) {
+        
+        FormValidation doCheckName(@QueryParameter String value) {
             if (value.contains(" ")) {
                 return FormValidation.error(Messages.ExamPluginConfig_spacesNotAllowed());
             }
