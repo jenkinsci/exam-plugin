@@ -1,6 +1,6 @@
 Date today = new Date();
 String now = today.getTime().toString();
-String branch = %BRANCH_NAME%
+String branch = env.BRANCH_NAME
 branch = branch.encodeURL()
 
 pipeline{
