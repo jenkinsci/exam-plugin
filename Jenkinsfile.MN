@@ -1,5 +1,5 @@
 Date today = new Date();
-String now = now.getTime().toString();
+String now = today.getTime().toString();
 
 pipeline{
     agent {
