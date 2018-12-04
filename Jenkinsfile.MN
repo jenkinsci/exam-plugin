@@ -1,0 +1,41 @@
+Date today = new Date();
+String now = now.getTime().toString();
+
+pipeline{
+    agent {
+        node {
+            label 'build'
+        }
+    }
+    tools {
+        jdk 'java8_x86_64'
+        maven 'M3'
+    }
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '60', numToKeepStr: '60')
+    }
+    stages{
+        stage('SCM Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Build') {
+            steps {
+				withCredentials([usernamePassword(credentialsId: 'teamscale', passwordVariable: 'ts_key', usernameVariable: 'ts_user')]) {
+					configFileProvider([configFile(fileId: 'JENKINS', targetLocation: 'settings.xml', variable: 'settings')]) {
+						bat "mvn deploy -s \"%settings%\" -Penable-jacoco,teamscale -Dts.user=%ts_user% -Dts.url=\"%ts.url%\" -Dts.apikey=%ts_key% -Dcurl.path=\"%curl%\" -Dts.branch=%BRANCH_NAME% -Dbuild.time=${now}"
+					}
+				}
+            }
+        }
+    }
+    post {
+        always {
+			archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/site/jacoco/jacoco.xml'
+            junit '**/target/surefire-reports/*.xml'
+        }
+    }
+}
