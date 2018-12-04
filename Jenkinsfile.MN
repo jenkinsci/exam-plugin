@@ -17,11 +17,6 @@ pipeline{
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '60', numToKeepStr: '60')
     }
     stages{
-        stage('SCM Checkout') {
-            steps {
-                checkout scm
-            }
-        }
         stage('Build') {
             steps {
 				withCredentials([usernamePassword(credentialsId: 'teamscale', passwordVariable: 'ts_key', usernameVariable: 'ts_user')]) {
