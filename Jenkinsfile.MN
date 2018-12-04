@@ -1,5 +1,7 @@
 Date today = new Date();
 String now = today.getTime().toString();
+String branch = %BRANCH_NAME%
+branch = branch.encodeURL()
 
 pipeline{
     agent {
@@ -21,7 +23,7 @@ pipeline{
             steps {
 				withCredentials([usernamePassword(credentialsId: 'teamscale', passwordVariable: 'ts_key', usernameVariable: 'ts_user')]) {
 					configFileProvider([configFile(fileId: 'JENKINS', targetLocation: 'settings.xml', variable: 'settings')]) {
-						bat "mvn deploy -s \"%settings%\" -Penable-jacoco,teamscale -Dts.user=%ts_user% -Dts.url=\"%ts.url%\" -Dts.apikey=%ts_key% -Dcurl.path=\"%curl%\" -Dts.branch=%BRANCH_NAME% -Dbuild.time=${now}"
+						bat "mvn deploy -s \"%settings%\" -Penable-jacoco,teamscale -Dts.user=%ts_user% -Dts.url=\"%ts.url%\" -Dts.apikey=%ts_key% -Dcurl.path=\"%curl%\" -Dts.branch=${branch} -Dbuild.time=${now}"
 					}
 				}
             }
