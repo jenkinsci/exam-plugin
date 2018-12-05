@@ -60,47 +60,6 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     }
     
     /**
-     * Sets the optional display name.
-     *
-     * @param name the optional display name.
-     */
-    @DataBoundSetter
-    public void setName(@CheckForNull String name) {
-        this.name = Util.fixEmptyAndTrim(name);
-    }
-    
-    /**
-     * Sets the model name.
-     *
-     * @param modelName the model name.
-     */
-    @DataBoundSetter
-    public void setModelName(@CheckForNull String modelName) {
-        this.modelName = Util.fixEmptyAndTrim(modelName);
-    }
-    
-    /**
-     * Sets the exam version.
-     *
-     * @param examVersion exam version without delimiters.
-     */
-    @DataBoundSetter
-    public void setExamVersion(int examVersion) {
-        this.examVersion = examVersion;
-    }
-    
-    /**
-     * Set the target endpoint.
-     *
-     * @param targetEndpoint custom url if TE. Default value will be used in case of custom
-     *                       is unchecked or value is blank
-     */
-    @DataBoundSetter
-    public void setTargetEndpoint(String targetEndpoint) {
-        this.targetEndpoint = targetEndpoint == null || targetEndpoint.isEmpty() ? TARGET_ENDPOINT : targetEndpoint;
-    }
-    
-    /**
      * Gets the optional display name of this server.
      *
      * @return the optional display name of this server, may be empty or
@@ -113,16 +72,57 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
         return name;
     }
     
+    /**
+     * Sets the optional display name.
+     *
+     * @param name the optional display name.
+     */
+    @DataBoundSetter
+    public void setName(@CheckForNull String name) {
+        this.name = Util.fixEmptyAndTrim(name);
+    }
+    
     public int getExamVersion() {
         return examVersion;
+    }
+    
+    /**
+     * Sets the exam version.
+     *
+     * @param examVersion exam version without delimiters.
+     */
+    @DataBoundSetter
+    public void setExamVersion(int examVersion) {
+        this.examVersion = examVersion;
     }
     
     public String getModelName() {
         return modelName;
     }
     
+    /**
+     * Sets the model name.
+     *
+     * @param modelName the model name.
+     */
+    @DataBoundSetter
+    public void setModelName(@CheckForNull String modelName) {
+        this.modelName = Util.fixEmptyAndTrim(modelName);
+    }
+    
     public String getTargetEndpoint() {
         return targetEndpoint;
+    }
+    
+    /**
+     * Set the target endpoint.
+     *
+     * @param targetEndpoint custom url if TE. Default value will be used in case of custom
+     *                       is unchecked or value is blank
+     */
+    @DataBoundSetter
+    public void setTargetEndpoint(String targetEndpoint) {
+        this.targetEndpoint = targetEndpoint == null || targetEndpoint.isEmpty() ? TARGET_ENDPOINT : targetEndpoint;
     }
     
     public String getDisplayName() {

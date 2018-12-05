@@ -213,6 +213,12 @@ public enum PythonWords {
         }
     }
     
+    private String literal;
+    
+    PythonWords(String literal) {
+        this.literal = literal;
+    }
+    
     /**
      * @param identifier Ein Bezeichner aus irgend einem Python-Quelltext.
      *
@@ -220,12 +226,6 @@ public enum PythonWords {
      */
     public static PythonWords get(String identifier) {
         return LITERALS.get(identifier);
-    }
-    
-    private String literal;
-    
-    PythonWords(String literal) {
-        this.literal = literal;
     }
     
     /**

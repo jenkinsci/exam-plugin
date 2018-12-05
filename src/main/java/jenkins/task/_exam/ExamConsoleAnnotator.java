@@ -35,7 +35,6 @@ import hudson.console.LineTransformationOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
@@ -57,7 +56,7 @@ public class ExamConsoleAnnotator extends LineTransformationOutputStream {
     @Override
     protected void eol(byte[] b, int len) throws IOException {
         
-        out.write("EXAM: ".getBytes(StandardCharsets.UTF_8));
+        out.write("EXAM: ".getBytes(charset));
         out.write(b, 0, len);
     }
     

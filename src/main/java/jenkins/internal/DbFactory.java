@@ -35,6 +35,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 
+import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPBody;
@@ -95,7 +96,8 @@ public class DbFactory {
         SOAPEnvelope retEnvelope = retMessage.getSOAPPart().getEnvelope();
         SOAPBody retBody = retEnvelope.getBody();
         if (retBody == null) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+            throw new ServerErrorException("Failed : HTTP error code : " + response.getStatus(),
+                    response.getStatus());
         }
         SOAPFault retFault = retBody.getFault();
         String examServerFault = getExamServerFault(modelName, retFault);
@@ -103,7 +105,8 @@ public class DbFactory {
             return examServerFault;
         }
         if (response.getStatus() != OK) {
-            throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
+            throw new ServerErrorException("Failed : HTTP error code : " + response.getStatus(),
+                    response.getStatus());
         }
         return "OK";
     }

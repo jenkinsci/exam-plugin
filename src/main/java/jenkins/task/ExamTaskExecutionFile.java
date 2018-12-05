@@ -31,34 +31,14 @@ package jenkins.task;
 
 import hudson.AbortException;
 import hudson.Extension;
-import hudson.model.AbstractProject;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
-import hudson.tools.ToolInstallation;
 import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
 import jenkins.internal.Util;
-import jenkins.internal.data.ModelConfiguration;
-import jenkins.internal.data.ReportConfiguration;
 import jenkins.internal.data.TestConfiguration;
-import jenkins.internal.descriptor.ExamDescriptor;
-import jenkins.internal.enumeration.RestAPILogLevelEnum;
-import jenkins.model.Jenkins;
-import jenkins.plugins.exam.ExamTool;
-import jenkins.plugins.exam.config.ExamModelConfig;
-import jenkins.plugins.exam.config.ExamPluginConfig;
-import jenkins.plugins.exam.config.ExamReportConfig;
-import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 import jenkins.task._exam.Messages;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Ant launcher.
@@ -66,68 +46,66 @@ import java.util.regex.Pattern;
  * @author Kohsuke Kawaguchi
  */
 public class ExamTaskExecutionFile extends ExamTask {
-
+    
     private String pathExecutionFile;
     private String pathPCode;
-
-
-    public String getPathExecutionFile() {
-        return pathExecutionFile;
-    }
-
-    @DataBoundSetter
-    public void setPathExecutionFile(String pathExecutionFile) {
-        this.pathExecutionFile = pathExecutionFile;
-    }
-
-    public String getPathPCode() {
-        return pathPCode;
-    }
-
-    @DataBoundSetter
-    public void setPathPCode(String pathPCode) {
-        this.pathPCode = pathPCode;
-    }
-
+    
     @DataBoundConstructor
     public ExamTaskExecutionFile(String examName, String pythonName, String examReport, String systemConfiguration) {
         super(examName, pythonName, examReport, systemConfiguration);
         setUseExecutionFile(true);
     }
-
+    
+    public String getPathExecutionFile() {
+        return pathExecutionFile;
+    }
+    
+    @DataBoundSetter
+    public void setPathExecutionFile(String pathExecutionFile) {
+        this.pathExecutionFile = pathExecutionFile;
+    }
+    
+    public String getPathPCode() {
+        return pathPCode;
+    }
+    
+    @DataBoundSetter
+    public void setPathPCode(String pathPCode) {
+        this.pathPCode = pathPCode;
+    }
+    
     TestConfiguration addDataToTestConfiguration(TestConfiguration tc) throws AbortException {
-
+        
         tc.setPathPCode(pathPCode);
         tc.setTestObject(pathExecutionFile);
-
+        
         return tc;
     }
-
-
+    
     @Override
     public ExamTaskExecutionFile.DescriptorExamTaskExecutionFile getDescriptor() {
         return (ExamTaskExecutionFile.DescriptorExamTaskExecutionFile) super.getDescriptor();
     }
-
+    
     @Extension
     @Symbol("examTest_ExecutionFile")
     public static class DescriptorExamTaskExecutionFile extends DescriptorExamTask {
-
+        
         public String getDisplayName() {
             return Messages.EXAM_DisplayNameExecutionFile();
         }
-
+        
         public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
             String[] splitted = value.trim().split(" ");
-            if(splitted.length != 2){
+            if (splitted.length != 2) {
                 return FormValidation.error(Messages.EXAM_RegExSysConf());
             }
-            if(!Util.isUuidValid(splitted[0])){
+            if (!Util.isUuidValid(splitted[0])) {
                 return FormValidation.error(Messages.EXAM_RegExSysConf());
             }
             return FormValidation.ok();
         }
-
+        
         public String getDefaultLogLevel() {
             return super.getDefaultLogLevel();
         }

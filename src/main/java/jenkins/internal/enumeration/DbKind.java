@@ -74,16 +74,6 @@ public enum DbKind {
             /* schemaDelimiter */"/", //$NON-NLS-1$
             /* urlPostfix */"?" + "loginTimeout=30");//$NON-NLS-1$//$NON-NLS-2$
     
-    /**
-     * Get the possible names of the enum.
-     *
-     * @return the names of the enum as String array
-     */
-    public static String[] getUserStrings() {
-        return new String[] { ORACLE_SERVICE.getUserString(), ORACLE_SID.getUserString(),
-                POSTGRESQL.getUserString() };
-    }
-    
     protected String userString;
     protected String scriptDirectoryString;
     protected String jdbcDriverClass;
@@ -110,6 +100,16 @@ public enum DbKind {
         this.urlPostfix = urlPostfix;
         this.schemaDelimiter = schemaDelimiter;
         this.defaultPort = defaultPort;
+    }
+    
+    /**
+     * Get the possible names of the enum.
+     *
+     * @return the names of the enum as String array
+     */
+    public static String[] getUserStrings() {
+        return new String[] { ORACLE_SERVICE.getUserString(), ORACLE_SID.getUserString(),
+                POSTGRESQL.getUserString() };
     }
     
     /**

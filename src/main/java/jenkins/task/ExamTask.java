@@ -75,58 +75,76 @@ import java.util.List;
 
 public abstract class ExamTask extends Builder implements SimpleBuildStep {
     
-    private boolean useExecutionFile;
-    
-    private String hash = "";
-    
     /**
      * JAVA_OPTS if not null.
      */
     protected String javaOpts;
-    
     /**
      * Identifies {@link ExamTool} to be used.
      */
     protected String examName;
-    
     /**
      * Identifies {@link PythonInstallation} to be used.
      */
     protected String pythonName;
     protected boolean clearWorkspace;
-    
     /**
      * Definiert die default SystemConfiguration
      */
     protected String systemConfiguration;
-    
     protected List<TestrunFilter> testrunFilter = new ArrayList<TestrunFilter>();
-    
     protected boolean logging;
     protected String loglevelTestCtrl = RestAPILogLevelEnum.INFO.name();
     protected String loglevelTestLogic = RestAPILogLevelEnum.INFO.name();
     protected String loglevelLibCtrl = RestAPILogLevelEnum.INFO.name();
-    
     /**
      * Identifies {@link jenkins.plugins.exam.config.ExamReportConfig} to be used.
      */
     protected String examReport;
-    
     protected boolean pdfReport;
     protected String pdfReportTemplate;
     protected String pdfSelectFilter;
     protected boolean pdfMeasureImages;
-    
     /**
      * Definiert den Report Prefix
      */
     protected String reportPrefix;
+    private boolean useExecutionFile;
+    private String hash = "";
     
     public ExamTask(String examName, String pythonName, String examReport, String systemConfiguration) {
         this.examName = examName;
         this.pythonName = pythonName;
         this.examReport = examReport;
         this.systemConfiguration = Util.fixEmptyAndTrim(systemConfiguration);
+    }
+    
+    /**
+     * Backward compatibility by checking the number of parameters
+     */
+    private static ArgumentListBuilder toWindowsCommand(ArgumentListBuilder args) {
+        List<String> arguments = args.toList();
+        
+        // branch for core equals or greater than 1.654
+        boolean[] masks = args.toMaskArray();
+        // don't know why are missing single quotes.
+        
+        args = new ArgumentListBuilder();
+        args.add(arguments.get(0), arguments.get(1)); // "cmd.exe", "/C",
+        // ...
+        
+        int size = arguments.size();
+        for (int i = 2; i < size; i++) {
+            String arg = arguments.get(i).replaceAll("^(-D[^\" ]+)=$", "$0\"\"");
+            
+            if (masks[i]) {
+                args.addMasked(arg);
+            } else {
+                args.add(arg);
+            }
+        }
+        
+        return args;
     }
     
     public boolean getUseExecutionFile() {
@@ -137,13 +155,13 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         this.useExecutionFile = useExecutionFile;
     }
     
-    @DataBoundSetter
-    public void setSystemConfiguration(String systemConfiguration) {
-        this.systemConfiguration = systemConfiguration;
-    }
-    
     public String getReportPrefix() {
         return reportPrefix;
+    }
+    
+    @DataBoundSetter
+    public void setReportPrefix(String reportPrefix) {
+        this.reportPrefix = reportPrefix;
     }
     
     public boolean getPdfReport() {
@@ -180,11 +198,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     @DataBoundSetter
     public void setPdfMeasureImages(boolean pdfMeasureImages) {
         this.pdfMeasureImages = pdfMeasureImages;
-    }
-    
-    @DataBoundSetter
-    public void setReportPrefix(String reportPrefix) {
-        this.reportPrefix = reportPrefix;
     }
     
     public boolean getLogging() {
@@ -232,11 +245,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         this.loglevelLibCtrl = loglevelLibCtrl;
     }
     
-    @DataBoundSetter
-    public void setClearWorkspace(boolean clearWorkspace) {
-        this.clearWorkspace = clearWorkspace;
-    }
-    
     public String getExamName() {
         return examName;
     }
@@ -253,8 +261,18 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         return systemConfiguration;
     }
     
+    @DataBoundSetter
+    public void setSystemConfiguration(String systemConfiguration) {
+        this.systemConfiguration = systemConfiguration;
+    }
+    
     public boolean isClearWorkspace() {
         return clearWorkspace;
+    }
+    
+    @DataBoundSetter
+    public void setClearWorkspace(boolean clearWorkspace) {
+        this.clearWorkspace = clearWorkspace;
     }
     
     /**
@@ -281,16 +299,16 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         return null;
     }
     
-    @DataBoundSetter
-    public void setJavaOpts(String javaOpts) {
-        this.javaOpts = Util.fixEmptyAndTrim(javaOpts);
-    }
-    
     /**
      * Gets the JAVA_OPTS parameter, or null.
      */
     public String getJavaOpts() {
         return javaOpts;
+    }
+    
+    @DataBoundSetter
+    public void setJavaOpts(String javaOpts) {
+        this.javaOpts = Util.fixEmptyAndTrim(javaOpts);
     }
     
     public ExamTool.DescriptorImpl getToolDescriptor() {
@@ -460,34 +478,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             }
             throw new AbortException(errorMessage);
         }
-    }
-    
-    /**
-     * Backward compatibility by checking the number of parameters
-     */
-    private static ArgumentListBuilder toWindowsCommand(ArgumentListBuilder args) {
-        List<String> arguments = args.toList();
-        
-        // branch for core equals or greater than 1.654
-        boolean[] masks = args.toMaskArray();
-        // don't know why are missing single quotes.
-        
-        args = new ArgumentListBuilder();
-        args.add(arguments.get(0), arguments.get(1)); // "cmd.exe", "/C",
-        // ...
-        
-        int size = arguments.size();
-        for (int i = 2; i < size; i++) {
-            String arg = arguments.get(i).replaceAll("^(-D[^\" ]+)=$", "$0\"\"");
-            
-            if (masks[i]) {
-                args.addMasked(arg);
-            } else {
-                args.add(arg);
-            }
-        }
-        
-        return args;
     }
     
     private ExamReportConfig getReport(String name) {

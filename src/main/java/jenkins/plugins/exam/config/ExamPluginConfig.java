@@ -52,16 +52,38 @@ import java.util.Set;
  */
 @Extension
 public class ExamPluginConfig extends GlobalConfiguration {
-    private static final String EXAM_PLUGIN_CONFIGURATION_ID = "exam-plugin-configuration";
-    
     public static final ExamPluginConfig EMPTY_CONFIG = new ExamPluginConfig(Collections.emptyList(),
             Collections.emptyList(), 8085, 5053, "localhost");
-    
+    private static final String EXAM_PLUGIN_CONFIGURATION_ID = "exam-plugin-configuration";
     private List<ExamModelConfig> modelConfigs = new ArrayList<>();
     private List<ExamReportConfig> reportConfigs = new ArrayList<>();
     private int port = 8085;
     private int licensePort = 0;
     private String licenseHost = "";
+    
+    public ExamPluginConfig() {
+        load();
+    }
+    
+    public ExamPluginConfig(List<ExamModelConfig> modelConfigs, List<ExamReportConfig> reportConfigs, int port,
+            int licensePort, String licenseHost) {
+        this.modelConfigs = modelConfigs;
+        this.reportConfigs = reportConfigs;
+        this.licenseHost = licenseHost;
+        this.licensePort = licensePort;
+        this.port = port;
+    }
+    
+    /**
+     * Shortcut method for getting instance of {@link ExamPluginConfig}.
+     *
+     * @return configuration of plugin
+     */
+    @Nonnull
+    public static ExamPluginConfig configuration() {
+        ExamPluginConfig pluginConfig = ExamPluginConfig.all().get(ExamPluginConfig.class);
+        return pluginConfig == null ? ExamPluginConfig.EMPTY_CONFIG : pluginConfig;
+    }
     
     public int getPort() {
         return port;
@@ -87,10 +109,6 @@ public class ExamPluginConfig extends GlobalConfiguration {
         this.licenseHost = licenseHost;
     }
     
-    public ExamPluginConfig() {
-        load();
-    }
-    
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
         boolean boolSuper = super.configure(req, json);
@@ -98,29 +116,20 @@ public class ExamPluginConfig extends GlobalConfiguration {
         return boolSuper;
     }
     
-    public ExamPluginConfig(List<ExamModelConfig> modelConfigs, List<ExamReportConfig> reportConfigs, int port,
-            int licensePort, String licenseHost) {
-        this.modelConfigs = modelConfigs;
-        this.reportConfigs = reportConfigs;
-        this.licenseHost = licenseHost;
-        this.licensePort = licensePort;
-        this.port = port;
+    public List<ExamModelConfig> getModelConfigs() {
+        return modelConfigs;
     }
     
     public void setModelConfigs(List<ExamModelConfig> modelConfigs) {
         this.modelConfigs = modelConfigs;
     }
     
-    public List<ExamModelConfig> getModelConfigs() {
-        return modelConfigs;
+    public List<ExamReportConfig> getReportConfigs() {
+        return reportConfigs;
     }
     
     public void setReportConfigs(List<ExamReportConfig> reportConfigs) {
         this.reportConfigs = reportConfigs;
-    }
-    
-    public List<ExamReportConfig> getReportConfigs() {
-        return reportConfigs;
     }
     
     /**
@@ -135,17 +144,6 @@ public class ExamPluginConfig extends GlobalConfiguration {
     @Nonnull
     public String getDisplayName() {
         return "EXAM";
-    }
-    
-    /**
-     * Shortcut method for getting instance of {@link ExamPluginConfig}.
-     *
-     * @return configuration of plugin
-     */
-    @Nonnull
-    public static ExamPluginConfig configuration() {
-        ExamPluginConfig pluginConfig = ExamPluginConfig.all().get(ExamPluginConfig.class);
-        return pluginConfig == null ? ExamPluginConfig.EMPTY_CONFIG : pluginConfig;
     }
     
     public FormValidation doVerifyModelConnections() throws SOAPException {

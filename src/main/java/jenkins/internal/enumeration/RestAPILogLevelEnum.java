@@ -76,15 +76,6 @@ public enum RestAPILogLevelEnum {
     }
     
     /**
-     * Get the Int-Value of the given LogLevel
-     *
-     * @return int of the LogLevel
-     */
-    public Integer toInt() {
-        return this.value;
-    }
-    
-    /**
      * Cast the Integer to a LogLevel Possible Values: 0 - OFF 5 - EXECUTION 10 - ERROR 15 - WARNING 20 - INFO 25 -
      * DEBUG 30 - INTERNAL
      *
@@ -112,6 +103,24 @@ public enum RestAPILogLevelEnum {
     }
     
     /**
+     * Get the possible names of the enum.
+     *
+     * @return the names of the enum as String array
+     */
+    public static String[] getValues() {
+        return new String[] { OFF.name(), ERROR.name(), WARNING.name(), INFO.name(), DEBUG.name(), INTERNAL.name() };
+    }
+    
+    /**
+     * Get the Int-Value of the given LogLevel
+     *
+     * @return int of the LogLevel
+     */
+    public Integer toInt() {
+        return this.value;
+    }
+    
+    /**
      * Checks if the given loglevel is included in the other
      *
      * @param l loglevel that should be included
@@ -120,14 +129,5 @@ public enum RestAPILogLevelEnum {
      */
     public boolean includesLogLevel(RestAPILogLevelEnum l) {
         return l.toInt() <= this.value;
-    }
-    
-    /**
-     * Get the possible names of the enum.
-     *
-     * @return the names of the enum as String array
-     */
-    public static String[] getValues() {
-        return new String[] { OFF.name(), ERROR.name(), WARNING.name(), INFO.name(), DEBUG.name(), INTERNAL.name() };
     }
 }

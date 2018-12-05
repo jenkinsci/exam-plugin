@@ -94,9 +94,6 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
                 String line;
                 StringBuilder builder = new StringBuilder();
                 while ((line = br.readLine()) != null) {
-                    //if (builder.length() != 0) {
-                    //    builder.append("\n\r");
-                    //}
                     builder.append(line);
                 }
                 data = builder.toString();

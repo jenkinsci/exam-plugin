@@ -32,30 +32,19 @@ package jenkins.task;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.Util;
-import hudson.model.AbstractProject;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
-import hudson.tools.ToolInstallation;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.internal.data.ModelConfiguration;
-import jenkins.internal.data.ReportConfiguration;
 import jenkins.internal.data.TestConfiguration;
-import jenkins.internal.descriptor.ExamDescriptor;
-import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.model.Jenkins;
-import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
-import jenkins.plugins.exam.config.ExamReportConfig;
-import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 import jenkins.task._exam.Messages;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -64,57 +53,57 @@ import java.util.List;
  * @author Kohsuke Kawaguchi
  */
 public class ExamTaskModel extends ExamTask {
-
+    
     /**
      * Identifies {@link jenkins.plugins.exam.config.ExamModelConfig} to be used.
      */
     private String examModel;
-
+    
     /**
      * Definiert den Pfad zum ExecutionFile
      */
     private String executionFile;
-
+    
     /**
      * Definiert die ModelConfiguration
      */
     private String modelConfiguration;
-
-    @DataBoundSetter
-    public void setExamModel(String examModel) {
-        this.examModel = examModel;
-    }
-
-    @DataBoundSetter
-    public void setExecutionFile(String executionFile) {
-        this.executionFile = executionFile;
-    }
-
-    @DataBoundSetter
-    public void setModelConfiguration(String modelConfiguration) {
-        this.modelConfiguration = modelConfiguration;
-    }
-
+    
     @DataBoundConstructor
     public ExamTaskModel(String examName, String pythonName, String examReport, String executionFile,
-                String systemConfiguration) {
+            String systemConfiguration) {
         super(examName, pythonName, examReport, systemConfiguration);
         this.executionFile = Util.fixEmptyAndTrim(executionFile);
         setUseExecutionFile(false);
     }
-
+    
     public String getExamModel() {
         return examModel;
     }
-
+    
+    @DataBoundSetter
+    public void setExamModel(String examModel) {
+        this.examModel = examModel;
+    }
+    
     public String getExecutionFile() {
         return executionFile;
     }
-
+    
+    @DataBoundSetter
+    public void setExecutionFile(String executionFile) {
+        this.executionFile = executionFile;
+    }
+    
     public String getModelConfiguration() {
         return modelConfiguration;
     }
-
+    
+    @DataBoundSetter
+    public void setModelConfiguration(String modelConfiguration) {
+        this.modelConfiguration = modelConfiguration;
+    }
+    
     private ExamModelConfig getModel(String name) {
         for (ExamModelConfig mConfig : getDescriptor().getModelConfigs()) {
             if (mConfig.getName().equalsIgnoreCase(name)) {
@@ -123,7 +112,7 @@ public class ExamTaskModel extends ExamTask {
         }
         return null;
     }
-
+    
     TestConfiguration addDataToTestConfiguration(TestConfiguration tc) throws AbortException {
         ModelConfiguration mod = new ModelConfiguration();
         ExamModelConfig m = getModel(examModel);
@@ -134,48 +123,47 @@ public class ExamTaskModel extends ExamTask {
         mod.setModelName(m.getModelName());
         mod.setTargetEndpoint(m.getTargetEndpoint());
         mod.setModelConfigUUID(modelConfiguration);
-
+        
         tc.setModelProject(mod);
         tc.setTestObject(executionFile);
-
+        
         return tc;
     }
-
+    
     @Override
     public ExamTaskModel.DescriptorExamTaskModel getDescriptor() {
         return (ExamTaskModel.DescriptorExamTaskModel) super.getDescriptor();
     }
-
+    
     @Extension
     @Symbol("examTest_Model")
     public static class DescriptorExamTaskModel extends DescriptorExamTask {
-
+        
         public String getDisplayName() {
             return Messages.EXAM_DisplayNameModel();
         }
-
+        
         public String getDefaultLogLevel() {
             return super.getDefaultLogLevel();
         }
-
+        
         public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
             return jenkins.internal.Util.validateElementForSearch(value);
         }
-
+        
         public FormValidation doCheckExecutionFile(@QueryParameter String value) {
             return jenkins.internal.Util.validateElementForSearch(value);
         }
-
+        
         public List<ExamModelConfig> getModelConfigs() {
-            return Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
-                    .getModelConfigs();
+            return Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
         }
-
-        public ListBoxModel doFillExamModelItems(){
+        
+        public ListBoxModel doFillExamModelItems() {
             ListBoxModel items = new ListBoxModel();
             List<ExamModelConfig> models = getModelConfigs();
             models.sort((ExamModelConfig o1, ExamModelConfig o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
-
+            
             for (ExamModelConfig model : models) {
                 items.add(model.getDisplayName(), model.getName());
             }

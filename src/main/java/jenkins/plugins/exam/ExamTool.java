@@ -68,7 +68,7 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
     
     @SuppressWarnings("unused")
     private static final Logger LOGGER = Logger.getLogger(ExamTool.class.getName());
-    
+    private static final long serialVersionUID = 1;
     private String relativeDataPath;
     
     /**
@@ -105,8 +105,6 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
         return relativeDataPath;
     }
     
-    private static final long serialVersionUID = 1;
-    
     /**
      * Get the EXAM Tool for a specific node
      *
@@ -132,6 +130,38 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
     public DescriptorImpl getDescriptor() {
         Jenkins jenkinsInstance = Jenkins.getInstance();
         return (DescriptorImpl) jenkinsInstance.getDescriptorOrDie(getClass());
+    }
+    
+    /**
+     * Gets the executable path of this EXAM on the given target system.
+     */
+    public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
+        VirtualChannel channel = launcher.getChannel();
+        if (channel == null) {
+            return "";
+        }
+        String answer = channel.call(new MasterToSlaveCallable<String, IOException>() {
+            private static final long serialVersionUID = 906341330603832653L;
+            
+            /**
+             * Gets the executable path of this EXAM on the given target system.
+             */
+            public String call() {
+                File exe = getExeFile();
+                if (exe.exists()) {
+                    return exe.getPath();
+                }
+                return null;
+            }
+        });
+        return answer == null ? "" : answer;
+    }
+    
+    private File getExeFile() {
+        String execName = "EXAM.exe";
+        String home = Util.replaceMacro(getHome(), EnvVars.masterEnvVars);
+        
+        return new File(home, execName);
     }
     
     /**
@@ -194,38 +224,6 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
             }
             return r;
         }
-    }
-    
-    /**
-     * Gets the executable path of this EXAM on the given target system.
-     */
-    public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
-        VirtualChannel channel = launcher.getChannel();
-        if (channel == null) {
-            return "";
-        }
-        String answer = channel.call(new MasterToSlaveCallable<String, IOException>() {
-            private static final long serialVersionUID = 906341330603832653L;
-            
-            /**
-             * Gets the executable path of this EXAM on the given target system.
-             */
-            public String call() {
-                File exe = getExeFile();
-                if (exe.exists()) {
-                    return exe.getPath();
-                }
-                return null;
-            }
-        });
-        return answer == null ? "" : answer;
-    }
-    
-    private File getExeFile() {
-        String execName = "EXAM.exe";
-        String home = Util.replaceMacro(getHome(), EnvVars.masterEnvVars);
-        
-        return new File(home, execName);
     }
     
 }

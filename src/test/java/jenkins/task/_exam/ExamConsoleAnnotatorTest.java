@@ -36,7 +36,6 @@ import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class ExamConsoleAnnotatorTest {
@@ -45,14 +44,14 @@ public class ExamConsoleAnnotatorTest {
     
     @Before
     public void setUp() {
-        testObject = new ExamConsoleAnnotator(null, Charset.defaultCharset());
+        testObject = new ExamConsoleAnnotator(null, StandardCharsets.UTF_8);
         
     }
     
     @Test
     public void eol() throws IOException {
         OutputStream writeMock = Mockito.mock(OutputStream.class);
-        ExamConsoleAnnotator obj = new ExamConsoleAnnotator(writeMock, Charset.defaultCharset());
+        ExamConsoleAnnotator obj = new ExamConsoleAnnotator(writeMock, StandardCharsets.UTF_8);
         String testString = "dfhkjd f akdf la k dhf sd";
         String expected = "EXAM: ";
         obj.eol(testString.getBytes(StandardCharsets.UTF_8), testString.length());

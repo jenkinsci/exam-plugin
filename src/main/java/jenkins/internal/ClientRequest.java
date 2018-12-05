@@ -52,12 +52,11 @@ import java.io.PrintStream;
  */
 public class ClientRequest {
     
+    private final static int OK = Response.ok().build().getStatus();
+    long waitTime = 5000;
     private String baseUrl = "";
     private PrintStream logger;
     private Client client = null;
-    long waitTime = 5000;
-    
-    private final static int OK = Response.ok().build().getStatus();
     
     /**
      * Constructor for REST Api calls to EXAM
