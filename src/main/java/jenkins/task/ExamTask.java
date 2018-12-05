@@ -497,6 +497,37 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     }
     
     private TestConfiguration createTestConfiguration() throws AbortException {
+        TestConfiguration tc = new TestConfiguration();
+        
+        tc.setUseExecutionFile(Boolean.valueOf(useExecutionFile));
+        tc.setModelConfig("");
+        tc.setSystemConfig(systemConfiguration);
+        tc.setTestObject("");
+        tc.setReportPrefix(reportPrefix);
+        
+        addReportToTestConfiguration(tc);
+        addPdfReportToTestConfiguration(tc);
+        addLogLevelToTestConfiguration(tc);
+        
+        tc = addDataToTestConfiguration(tc);
+        return tc;
+    }
+    
+    private void addPdfReportToTestConfiguration(TestConfiguration tc) {
+        if (pdfReport && !pdfReportTemplate.isEmpty()) {
+            tc.setPdfReportTemplate(pdfReportTemplate);
+            tc.setPdfSelectFilter(pdfSelectFilter);
+            tc.setPdfMeasureImages(pdfMeasureImages);
+        }
+    }
+    
+    private void addLogLevelToTestConfiguration(TestConfiguration tc) {
+        tc.setLogLevelTC(RestAPILogLevelEnum.valueOf(loglevelTestCtrl));
+        tc.setLogLevelTL(RestAPILogLevelEnum.valueOf(loglevelTestLogic));
+        tc.setLogLevelLC(RestAPILogLevelEnum.valueOf(loglevelLibCtrl));
+    }
+    
+    private void addReportToTestConfiguration(TestConfiguration tc) {
         ReportConfiguration rep = new ReportConfiguration();
         ExamReportConfig r = getReport(examReport);
         rep.setProjectName(r.getName());
@@ -507,27 +538,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         rep.setDbService(r.getServiceOrSid());
         rep.setDbType(r.getDbType());
         rep.setDbUser(r.getDbUser());
-        
-        TestConfiguration tc = new TestConfiguration();
-        tc.setUseExecutionFile(Boolean.valueOf(useExecutionFile));
         tc.setReportProject(rep);
-        tc.setModelConfig("");
-        tc.setSystemConfig(systemConfiguration);
-        tc.setTestObject("");
-        tc.setReportPrefix(reportPrefix);
-        
-        if (pdfReport && !pdfReportTemplate.isEmpty()) {
-            tc.setPdfReportTemplate(pdfReportTemplate);
-            tc.setPdfSelectFilter(pdfSelectFilter);
-            tc.setPdfMeasureImages(pdfMeasureImages);
-        }
-        
-        tc.setLogLevelTC(RestAPILogLevelEnum.valueOf(loglevelTestCtrl));
-        tc.setLogLevelTL(RestAPILogLevelEnum.valueOf(loglevelTestLogic));
-        tc.setLogLevelLC(RestAPILogLevelEnum.valueOf(loglevelLibCtrl));
-        
-        tc = addDataToTestConfiguration(tc);
-        return tc;
     }
     
     protected static class DescriptorExamTask extends BuildStepDescriptor<Builder>
