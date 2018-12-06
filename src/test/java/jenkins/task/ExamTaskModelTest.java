@@ -7,7 +7,7 @@ import hudson.model.Result;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.plugins.exam.config.ExamModelConfig;
-import jenkins.task.TestUtil.Util;
+import jenkins.task.TestUtil.TUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -19,6 +19,7 @@ import org.jvnet.hudson.test.WithoutJenkins;
 import org.powermock.reflect.Whitebox;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class ExamTaskModelTest {
     
@@ -26,6 +27,7 @@ public class ExamTaskModelTest {
     public JenkinsRule jenkinsRule = new JenkinsRule();
     @ClassRule
     public static BuildWatcher buildWatcher = new BuildWatcher();
+    
     private FreeStyleProject examTestProject;
     private ExamTaskModel testObject;
     private String examName;
@@ -54,8 +56,8 @@ public class ExamTaskModelTest {
     
     @After
     public void tearDown() {
-        Util.cleanUpExamTools(jenkinsRule);
-        Util.cleanUpPythonInstallations(jenkinsRule);
+        TUtil.cleanUpExamTools(jenkinsRule);
+        TUtil.cleanUpPythonInstallations(jenkinsRule);
         
         examTestProject = null;
         testObject = null;
@@ -97,15 +99,45 @@ public class ExamTaskModelTest {
     }
     
     @Test
+    @WithoutJenkins
+    public void setExecutionFile() throws Exception {
+        String testString = "testString";
+        testObject.setExecutionFile(testString);
+        String setExecutionFile = Whitebox.getInternalState(testObject, "executionFile");
+        
+        assertEquals(testString, setExecutionFile);
+    }
+    
+    @Test
+    public void getModel() throws Exception {
+        ExamModelConfig modelConfig = Whitebox.invokeMethod(testObject, "getModel", examModel);
+        assertNull(modelConfig);
+        
+        ExamModelConfig mod = new ExamModelConfig(examModel);
+        mod.setName(examModel);
+        testObject.getDescriptor().getModelConfigs().add(mod);
+        
+        modelConfig = Whitebox.invokeMethod(testObject, "getModel", examModel);
+        assertEquals(mod, modelConfig);
+    }
+    
+    @Test
     public void perform_throwsAbortException() throws Exception {
-        Util.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
-        Util.createAndRegisterPythonInstallation(jenkinsRule, pythonName, pythonHome);
+        TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
+        TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName, pythonHome);
         
         examTestProject = jenkinsRule.createFreeStyleProject();
         examTestProject.getBuildersList().add(testObject);
         FreeStyleBuild build = examTestProject.scheduleBuild2(0).get();
         Result buildResult = build.getResult();
         assertEquals("FAILURE", buildResult.toString());
+    }
+    
+    @Test(expected = AbortException.class)
+    public void addDataToTestConfiguration_withException() throws AbortException {
+        TestConfiguration tc = new TestConfiguration();
+        
+        testObject.addDataToTestConfiguration(tc);
     }
     
     @Test

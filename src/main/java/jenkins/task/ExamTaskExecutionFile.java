@@ -96,12 +96,29 @@ public class ExamTaskExecutionFile extends ExamTask {
         }
         
         public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
+            String newLine = "\r\n";
+            StringBuilder errorMsg = new StringBuilder();
             String[] splitted = value.trim().split(" ");
+            boolean errorFound = false;
             if (splitted.length != 2) {
-                return FormValidation.error(Messages.EXAM_RegExSysConf());
+                errorMsg.append(Messages.EXAM_RegExSysConf());
+                errorMsg.append(newLine);
+                errorFound = true;
             }
-            if (!Util.isUuidValid(splitted[0])) {
-                return FormValidation.error(Messages.EXAM_RegExSysConf());
+            if (splitted.length >= 2 && !Util.isUuidValid(splitted[0])) {
+                errorMsg.append(Messages.EXAM_RegExUuid());
+                errorMsg.append(newLine);
+                errorFound = true;
+            }
+            if (splitted.length >= 2 && !Util.isPythonConformName(splitted[1])) {
+                errorMsg.append(Messages.EXAM_RegExPython());
+                errorMsg.append(newLine);
+                errorFound = true;
+            }
+            if (errorFound) {
+                errorMsg.deleteCharAt(errorMsg.length() - 1);
+                errorMsg.deleteCharAt(errorMsg.length() - 1);
+                return FormValidation.error(errorMsg.toString());
             }
             return FormValidation.ok();
         }

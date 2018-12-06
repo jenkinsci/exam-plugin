@@ -6,7 +6,7 @@ import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
-import jenkins.task.TestUtil.Util;
+import jenkins.task.TestUtil.TUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -182,7 +182,7 @@ public class ExamTaskTest {
     @Test
     @WithoutJenkins
     public void getTestrunFilter() {
-        List<TestrunFilter> testrunFilters = Util.createTestrunFilter();
+        List<TestrunFilter> testrunFilters = TUtil.createTestrunFilter();
         Whitebox.setInternalState(testObject, "testrunFilter", testrunFilters);
         List<TestrunFilter> setTestrunFilter = testObject.getTestrunFilter();
         
@@ -192,7 +192,7 @@ public class ExamTaskTest {
     @Test
     @WithoutJenkins
     public void setTestrunFilter() {
-        List<TestrunFilter> testrunFilters = Util.createTestrunFilter();
+        List<TestrunFilter> testrunFilters = TUtil.createTestrunFilter();
         testObject.setTestrunFilter(testrunFilters);
         List<TestrunFilter> setFilters = Whitebox.getInternalState(testObject, "testrunFilter");
         
@@ -399,7 +399,7 @@ public class ExamTaskTest {
     public void getPython() {
         assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(PythonInstallation.DescriptorImpl.class)
                 .getInstallations().length);
-        PythonInstallation newInstallation = Util
+        PythonInstallation newInstallation = TUtil
                 .createAndRegisterPythonInstallation(jenkinsRule, pythonName, "testHome");
         assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(PythonInstallation.DescriptorImpl.class)
                 .getInstallations().length);
@@ -417,7 +417,7 @@ public class ExamTaskTest {
     public void getExam() {
         assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
                 .getInstallations().length);
-        ExamTool newExamTool = Util.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
+        ExamTool newExamTool = TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
         assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
                 .getInstallations().length);
         
