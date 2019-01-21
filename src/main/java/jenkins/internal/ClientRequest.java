@@ -53,7 +53,8 @@ import java.io.PrintStream;
 public class ClientRequest {
     
     private final static int OK = Response.ok().build().getStatus();
-    long waitTime = 5000;
+    long waitTime = 1000;
+    int breakAfter = 60;
     private String baseUrl = "";
     private PrintStream logger;
     private Client client = null;
@@ -358,7 +359,6 @@ public class ClientRequest {
      */
     public void waitForTestrunEnds(Executor executor) throws AbortException {
         boolean testDetected = false;
-        int breakAfter = 10;
         while (true) {
             if (executor.isInterrupted()) {
                 this.stopTestrun();

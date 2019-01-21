@@ -28,24 +28,26 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
+         xmlns:f="/lib/form">
 
     <j:set var="helpPath" value="/plugin/exam/help/task/ExamSubModules/Testrunner"/>
 
     <f:section title="${%Testrun}">
         <f:entry title="Python Version" field="pythonName" help="${helpPath}/help-pythonName.html">
-            <f:select />
+            <f:select/>
         </f:entry>
         <f:entry title="${%Python Path}" field="pathPCode" help="${helpPath}/help-pathPCode.html">
-            <f:textbox />
+            <f:textbox/>
         </f:entry>
         <f:entry title="${%Execution File}" field="pathExecutionFile" help="${helpPath}/help-pathExecutionFile.html">
-            <f:textbox />
+            <f:textbox/>
         </f:entry>
-        <f:entry title="${%SystemConfiguration}" field="systemConfiguration" help="${helpPath}/help-systemConfiguration_ExecutionFile.html">
-            <f:textbox />
+        <f:entry title="${%SystemConfiguration}" field="systemConfiguration"
+                 help="${helpPath}/help-systemConfiguration_ExecutionFile.html">
+            <f:textbox/>
         </f:entry>
-        <st:include page="/jenkins/task/ExamSubmodules/Testrunner/configLoggingFilter.jelly" />
+        <st:include page="/jenkins/task/ExamSubmodules/Testrunner/configLoggingFilter.jelly"
+                    class="jenkins.task.ExamTask"/>
     </f:section>
 </j:jelly>

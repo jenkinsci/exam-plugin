@@ -94,6 +94,7 @@ public class ClientRequestTest {
         printMock = mock(PrintStream.class, "PrintMock");
         testObject = new ClientRequest(printMock, baseUrl);
         Whitebox.setInternalState(testObject, "waitTime", 100);
+        Whitebox.setInternalState(testObject, "breakAfter", 10);
         Whitebox.invokeMethod(testObject, "createClient");
     }
     

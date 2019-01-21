@@ -28,21 +28,23 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
+         xmlns:f="/lib/form">
 
     <j:set var="helpPath" value="/plugin/exam/help/task/ExamSubModules/Modeler"/>
 
     <f:section title="${%Modeler}">
-        <st:include page="/jenkins/task/ExamSubmodules/Modeler/configExamTool.jelly" />
+        <st:include page="/jenkins/task/ExamSubmodules/Modeler/configExamTool.jelly"
+                    class="jenkins.task.ExamTask"/>
         <f:entry title="${%Modell}" field="examModel" help="${helpPath}/help-examModel.html">
-            <f:select />
+            <f:select/>
         </f:entry>
-        <f:entry title="${%ModelConfiguration}" field="modelConfiguration" help="${helpPath}/help-modelConfiguration.html">
-            <f:textbox />
+        <f:entry title="${%ModelConfiguration}" field="modelConfiguration"
+                 help="${helpPath}/help-modelConfiguration.html">
+            <f:textbox/>
         </f:entry>
         <f:entry title="${%delete project}" field="clearWorkspace" help="${helpPath}/help-clearWorkspace.html">
-            <f:checkbox />
+            <f:checkbox/>
         </f:entry>
     </f:section>
 </j:jelly>
