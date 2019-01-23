@@ -507,8 +507,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             listener.getLogger().println(run.getResult().toString());
             eca.forceEol();
             examErr.forceEol();
-            eca.close();
-            examErr.close();
         }
     }
     
