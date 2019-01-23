@@ -37,7 +37,7 @@
         <f:entry title="Python Version" field="pythonName" help="${helpPath}/help-pythonName.html">
             <f:select/>
         </f:entry>
-        <f:entry title="${%Python Path}" field="pathPCode" help="${helpPath}/help-pathPCode.html">
+        <f:entry title="${%PCode Path}" field="pathPCode" help="${helpPath}/help-pathPCode.html">
             <f:textbox/>
         </f:entry>
         <f:entry title="${%Execution File}" field="pathExecutionFile" help="${helpPath}/help-pathExecutionFile.html">

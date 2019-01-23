@@ -1,5 +1,6 @@
 package jenkins.plugins.exam.config;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.util.FormValidation;
 import jenkins.internal.enumeration.DbKind;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -14,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 public class ExamReportConfigDescriptorTest {
     
+    @SuppressFBWarnings("URF_UNREAD_FIELD")
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
     

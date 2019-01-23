@@ -43,6 +43,7 @@ import java.nio.charset.Charset;
 public class ExamConsoleAnnotator extends LineTransformationOutputStream {
     private final OutputStream out;
     private final Charset charset;
+    private boolean logPause = false;
     
     /**
      * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
@@ -56,8 +57,17 @@ public class ExamConsoleAnnotator extends LineTransformationOutputStream {
     @Override
     protected void eol(byte[] b, int len) throws IOException {
         
-        out.write("EXAM: ".getBytes(charset));
-        out.write(b, 0, len);
+        String logit = new String(b, charset);
+        if (logit.startsWith("-- begin listing")) {
+            logPause = true;
+        }
+        if (!logPause) {
+            out.write("EXAM: ".getBytes(charset));
+            out.write(b, 0, len);
+        }
+        if (logit.startsWith("-- end listing")) {
+            logPause = false;
+        }
     }
     
     @Override

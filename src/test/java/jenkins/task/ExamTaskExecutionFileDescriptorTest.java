@@ -1,5 +1,6 @@
 package jenkins.task;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.util.FormValidation;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.task.TestUtil.TUtil;
@@ -14,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 public class ExamTaskExecutionFileDescriptorTest {
     
+    @SuppressFBWarnings("URF_UNREAD_FIELD")
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
     

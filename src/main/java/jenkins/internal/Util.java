@@ -29,6 +29,7 @@
  */
 package jenkins.internal;
 
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.model.Node;
@@ -38,6 +39,7 @@ import jenkins.model.Jenkins;
 import jenkins.task._exam.Messages;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -222,5 +224,26 @@ public class Util {
         }
         
         return FormValidation.error(errorMsg.toString());
+    }
+    
+    public static String replaceEnvVars(@Nullable String text, @Nullable EnvVars env) {
+        if (text == null || text.isEmpty() || env == null || env.isEmpty()) {
+            return text;
+        }
+        String retString = text;
+        Pattern regexSystemConfig = Pattern.compile("%(.*)%|\\$\\{(.*)\\}");
+        Matcher matcher = regexSystemConfig.matcher(text);
+        while (matcher.find()) {
+            String group = matcher.group();
+            String sub = matcher.group(1);
+            if (group.startsWith("$")) {
+                sub = matcher.group(2);
+            }
+            String replacement = env.getOrDefault(sub, null);
+            if (replacement != null) {
+                retString = retString.replace(group, replacement);
+            }
+        }
+        return retString;
     }
 }

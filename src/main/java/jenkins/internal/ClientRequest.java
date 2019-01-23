@@ -54,7 +54,6 @@ public class ClientRequest {
     
     private final static int OK = Response.ok().build().getStatus();
     long waitTime = 1000;
-    int breakAfter = 60;
     private String baseUrl = "";
     private PrintStream logger;
     private Client client = null;
@@ -357,8 +356,9 @@ public class ClientRequest {
      *
      * @param executor Executor
      */
-    public void waitForTestrunEnds(Executor executor) throws AbortException {
+    public void waitForTestrunEnds(Executor executor, int wait) throws AbortException {
         boolean testDetected = false;
+        int breakAfter = wait;
         while (true) {
             if (executor.isInterrupted()) {
                 this.stopTestrun();
@@ -376,6 +376,62 @@ public class ClientRequest {
                 if (!status.getJobRunning()) {
                     break;
                 }
+            }
+            try {
+                Thread.sleep(waitTime);
+            } catch (InterruptedException e) {
+                // nothing to do
+            }
+        }
+    }
+    
+    /**
+     * Waits until EXAM is idle
+     *
+     * @param executor Executor
+     */
+    public void waitForExamIdle(Executor executor, int wait) throws AbortException {
+        int breakAfter = wait;
+        while (true) {
+            if (executor.isInterrupted()) {
+                return;
+            }
+            breakAfter--;
+            ExamStatus status = this.getStatus();
+            if (!status.getJobRunning()) {
+                break;
+            }
+            if (breakAfter <= 0) {
+                logger.println("EXAM is not idle after " + wait + "s");
+                break;
+            }
+            try {
+                Thread.sleep(waitTime);
+            } catch (InterruptedException e) {
+                // nothing to do
+            }
+        }
+    }
+    
+    /**
+     * Waits until EXAM is idle
+     *
+     * @param executor Executor
+     */
+    public void waitForExportPDFReportJob(Executor executor, int wait) throws AbortException {
+        int breakAfter = wait;
+        while (true) {
+            if (executor.isInterrupted()) {
+                return;
+            }
+            breakAfter--;
+            ExamStatus status = this.getStatus();
+            if (!status.getJobRunning() || !"Export Reports to PDF.".equalsIgnoreCase(status.getJobName())) {
+                break;
+            }
+            if (breakAfter <= 0) {
+                logger.println("EXAM is not idle after " + wait + "s");
+                break;
             }
             try {
                 Thread.sleep(waitTime);

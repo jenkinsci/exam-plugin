@@ -38,6 +38,7 @@ import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.Executor;
 import hudson.model.Node;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
@@ -331,9 +332,11 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         String pythonexe = "";
         Node node = jenkins.internal.Util.workspaceToNode(workspace);
         if (examTool == null || python == null) {
+            run.setResult(Result.FAILURE);
             throw new AbortException("examTool or python is null");
         } else {
             if (node == null) {
+                run.setResult(Result.FAILURE);
                 throw new AbortException(Messages.EXAM_NodeOffline());
             }
             examTool = examTool.forNode(node, listener);
@@ -341,6 +344,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             exe = examTool.getExecutable(launcher);
             pythonexe = python.getHome();
             if (pythonexe == null || pythonexe.trim().isEmpty()) {
+                run.setResult(Result.FAILURE);
                 throw new AbortException("python home not set");
             }
             if (!pythonexe.endsWith("exe")) {
@@ -350,6 +354,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 pythonexe += "python.exe";
             }
             if (exe.trim().isEmpty()) {
+                run.setResult(Result.FAILURE);
                 throw new AbortException(Messages.EXAM_ExecutableNotFound(examTool.getName()));
             }
             args.add(exe);
@@ -373,6 +378,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         File configurationFile = new File(
                 dataPath + File.separator + "configuration" + File.separator + "config.ini");
         if (!Remote.fileExists(launcher, configurationFile)) {
+            run.setResult(Result.FAILURE);
             throw new AbortException(Messages.EXAM_NotExamConfigDirectory(configurationFile.getPath()));
         }
         
@@ -386,10 +392,14 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 "-DRESTAPI_PORT=" + port);
         
         if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
+            run.setResult(Result.FAILURE);
             throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
         }
         args.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
                 "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
+        
+        args.add("-Dfile.encoding=UTF-8");
+        args.add("-Dsun.jnu.encoding=UTF-8");
         
         if (javaOpts != null) {
             env.put("JAVA_OPTS", env.expand(javaOpts));
@@ -401,19 +411,20 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         }
         
         long startTime = System.currentTimeMillis();
+        ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
+        ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger());
         try {
-            ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
-            ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger());
             String slaveIp = Remote.getIP(launcher);
-            listener.getLogger().println("RESTapi Url: http://" + slaveIp + ":" + port + "/examRest");
-            ClientRequest clientRequest = new ClientRequest(listener.getLogger(),
-                    "http://" + slaveIp + ":" + port + "/examRest");
+            String restUrl = "http://" + slaveIp + ":" + port + "/examRest";
+            listener.getLogger().println("RESTapi Url: " + restUrl);
+            ClientRequest clientRequest = new ClientRequest(listener.getLogger(), restUrl);
             Proc proc = null;
             try {
                 
                 Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
                 if (clientRequest.isApiAvailable()) {
                     listener.getLogger().println("ERROR: EXAM is already running");
+                    run.setResult(Result.FAILURE);
                     throw new AbortException("ERROR: EXAM is already running");
                 }
                 process.stderr(examErr);
@@ -424,7 +435,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 if (ret) {
                     ApiVersion apiVersion = clientRequest.getApiVersion();
                     listener.getLogger().println("EXAM api version: " + apiVersion.toString());
-                    TestConfiguration tc = createTestConfiguration();
+                    TestConfiguration tc = createTestConfiguration(env);
                     tc.setPythonPath(pythonexe);
                     FilterConfiguration fc = new FilterConfiguration();
                     
@@ -445,23 +456,26 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                     
                     Executor runExecutor = run.getExecutor();
                     if (runExecutor != null) {
-                        clientRequest.waitForTestrunEnds(runExecutor);
+                        clientRequest.waitForTestrunEnds(runExecutor, 60);
+                        listener.getLogger().println("waiting until EXAM is idle");
+                        clientRequest.waitForExamIdle(runExecutor, 300);
+                        if (pdfReport) {
+                            listener.getLogger().println("waiting for PDF Report");
+                            clientRequest.waitForExportPDFReportJob(runExecutor, 600);
+                        }
                     }
                     clientRequest.convert(tc.getReportProject().getProjectName());
                     
                     hash = "__" + RandomStringUtils.random(5, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray());
                     source = source.child("reports").child(tc.getReportProject().getProjectName()).child("junit");
-                    target = target.child("test-reports").child(tc.getModelProject().getProjectName() + hash);
+                    target = target.child("test-reports").child(tc.getReportProject().getProjectName() + hash);
                     source.copyRecursiveTo(target);
                 }
             } catch (IOException e) {
+                run.setResult(Result.FAILURE);
                 throw new AbortException("ERROR: " + e.toString());
             } finally {
                 try {
-                    eca.forceEol();
-                    examErr.forceEol();
-                    eca.close();
-                    examErr.close();
                     clientRequest.disconnectClient(10 * 1000);
                 } finally {
                     if (proc != null && proc.isAlive()) {
@@ -469,6 +483,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                     }
                 }
             }
+            run.setResult(Result.SUCCESS);
         } catch (IOException e) {
             Util.displayIOException(e, listener);
             
@@ -486,7 +501,14 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                     errorMessage += Messages.EXAM_ProjectConfigNeeded();
                 }
             }
+            run.setResult(Result.FAILURE);
             throw new AbortException(errorMessage);
+        } finally {
+            listener.getLogger().println(run.getResult().toString());
+            eca.forceEol();
+            examErr.forceEol();
+            eca.close();
+            examErr.close();
         }
     }
     
@@ -499,14 +521,15 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         return null;
     }
     
-    abstract TestConfiguration addDataToTestConfiguration(TestConfiguration testConfiguration) throws AbortException;
+    abstract TestConfiguration addDataToTestConfiguration(TestConfiguration testConfiguration, EnvVars env)
+            throws AbortException;
     
     @Override
     public ExamTask.DescriptorExamTask getDescriptor() {
         return (ExamTask.DescriptorExamTask) super.getDescriptor();
     }
     
-    private TestConfiguration createTestConfiguration() throws AbortException {
+    private TestConfiguration createTestConfiguration(EnvVars env) throws AbortException {
         TestConfiguration tc = new TestConfiguration();
         
         tc.setUseExecutionFile(Boolean.valueOf(useExecutionFile));
@@ -519,7 +542,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         addPdfReportToTestConfiguration(tc);
         addLogLevelToTestConfiguration(tc);
         
-        tc = addDataToTestConfiguration(tc);
+        tc = addDataToTestConfiguration(tc, env);
         return tc;
     }
     

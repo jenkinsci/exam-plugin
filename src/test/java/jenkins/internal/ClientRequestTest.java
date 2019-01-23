@@ -94,7 +94,6 @@ public class ClientRequestTest {
         printMock = mock(PrintStream.class, "PrintMock");
         testObject = new ClientRequest(printMock, baseUrl);
         Whitebox.setInternalState(testObject, "waitTime", 100);
-        Whitebox.setInternalState(testObject, "breakAfter", 10);
         Whitebox.invokeMethod(testObject, "createClient");
     }
     
@@ -246,6 +245,7 @@ public class ClientRequestTest {
     
     @Test
     public void waitForTestrunEnds() {
+        int numCalls = 10;
         try {
             Executor executor = mock(Executor.class);
             when(executor.isInterrupted()).thenReturn(false);
@@ -253,7 +253,7 @@ public class ClientRequestTest {
                     .addHeader("Content-Type", "application/json; charset=utf-8")
                     .addHeader("Cache-Control", "no-cache")
                     .setBody("{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":1}"));
-            testObject.waitForTestrunEnds(executor);
+            testObject.waitForTestrunEnds(executor, numCalls);
             
             inOrder(executor).verify(executor, calls(2)).isInterrupted();
             int reqCount = server.getRequestCount();
@@ -261,7 +261,7 @@ public class ClientRequestTest {
             
             clearInvocations(executor);
             when(executor.isInterrupted()).thenReturn(true);
-            testObject.waitForTestrunEnds(executor);
+            testObject.waitForTestrunEnds(executor, numCalls);
             inOrder(executor).verify(executor, calls(1)).isInterrupted();
         } catch (AbortException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
@@ -270,6 +270,7 @@ public class ClientRequestTest {
     
     @Test
     public void waitForTestrunEnds_noStart() {
+        int numCalls = 10;
         try {
             Executor executor = mock(Executor.class);
             when(executor.isInterrupted()).thenReturn(false);
@@ -277,15 +278,125 @@ public class ClientRequestTest {
                     .addHeader("Content-Type", "application/json; charset=utf-8")
                     .addHeader("Cache-Control", "no-cache")
                     .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"false\",\"testRunState\":1}"));
-            testObject.waitForTestrunEnds(executor);
+            testObject.waitForTestrunEnds(executor, numCalls);
             
-            inOrder(executor).verify(executor, calls(10)).isInterrupted();
+            inOrder(executor).verify(executor, calls(numCalls)).isInterrupted();
             int reqCount = server.getRequestCount();
-            assertEquals("unexpected count of server calls", 10, reqCount);
+            assertEquals("unexpected count of server calls", numCalls, reqCount);
             
             clearInvocations(executor);
             when(executor.isInterrupted()).thenReturn(true);
-            testObject.waitForTestrunEnds(executor);
+            testObject.waitForTestrunEnds(executor, numCalls);
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+        } catch (AbortException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+    
+    @Test
+    public void waitForExamIdle() {
+        int numCalls = 10;
+        try {
+            Executor executor = mock(Executor.class);
+            when(executor.isInterrupted()).thenReturn(false);
+            dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":0}"));
+            testObject.waitForExamIdle(executor, numCalls);
+            
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+            int reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", 1, reqCount);
+            
+            clearInvocations(executor);
+            when(executor.isInterrupted()).thenReturn(true);
+            testObject.waitForExamIdle(executor, numCalls);
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+        } catch (AbortException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+    
+    @Test
+    public void waitForExamIdle_isBusy() {
+        int numCalls = 10;
+        try {
+            Executor executor = mock(Executor.class);
+            when(executor.isInterrupted()).thenReturn(false);
+            dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"true\",\"testRunState\":0}"));
+            testObject.waitForExamIdle(executor, numCalls);
+            
+            inOrder(executor).verify(executor, calls(numCalls)).isInterrupted();
+            int reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", numCalls, reqCount);
+            
+            clearInvocations(executor);
+            when(executor.isInterrupted()).thenReturn(true);
+            testObject.waitForExamIdle(executor, numCalls);
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+        } catch (AbortException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+    
+    @Test
+    public void waitForExportPDFReportJob() {
+        int numCalls = 10;
+        String jobName = "Export Reports to PDF.";
+        try {
+            Executor executor = mock(Executor.class);
+            when(executor.isInterrupted()).thenReturn(false);
+            dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"" + jobName + "\",\"jobRunning\":\"false\",\"testRunState\":0}"));
+            testObject.waitForExportPDFReportJob(executor, numCalls);
+            
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+            int reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", 1, reqCount);
+            
+            clearInvocations(executor);
+            
+            dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"true\",\"testRunState\":0}"));
+            testObject.waitForExportPDFReportJob(executor, numCalls);
+            
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+            reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", 2, reqCount);
+            
+        } catch (AbortException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+    
+    @Test
+    public void waitForExportPDFReportJob_isBusy() {
+        int numCalls = 10;
+        String jobName = "Export Reports to PDF.";
+        try {
+            Executor executor = mock(Executor.class);
+            when(executor.isInterrupted()).thenReturn(false);
+            dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"" + jobName + "\",\"jobRunning\":\"true\",\"testRunState\":0}"));
+            testObject.waitForExportPDFReportJob(executor, numCalls);
+            
+            inOrder(executor).verify(executor, calls(numCalls)).isInterrupted();
+            int reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", numCalls, reqCount);
+            
+            clearInvocations(executor);
+            when(executor.isInterrupted()).thenReturn(true);
+            testObject.waitForExportPDFReportJob(executor, numCalls);
             inOrder(executor).verify(executor, calls(1)).isInterrupted();
         } catch (AbortException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);

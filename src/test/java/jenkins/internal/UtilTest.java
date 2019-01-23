@@ -29,6 +29,7 @@
  */
 package jenkins.internal;
 
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Node;
 import hudson.slaves.DumbSlave;
@@ -201,5 +202,43 @@ public class UtilTest {
         assertEquals(FormValidation.error(expectedErrorMsg_3).getMessage(), fv_invalidResult_3.getMessage());
         assertEquals(FormValidation.error(expectedErrorMsg_4).getMessage(), fv_invalidResult_4.getMessage());
         assertEquals(FormValidation.ok(), fv_validResult);
+    }
+    
+    @Test
+    @WithoutJenkins
+    public void replaceEnvVars() throws Exception {
+        String workspace = "C:\\my\\work\\dir";
+        String actual = "";
+        String expected = "";
+        
+        EnvVars env = new EnvVars();
+        env.put("path", "c:\\this\\is\\my\\path;C:\\and\\another\\one");
+        env.put("WORKSPACE", workspace);
+        env.put("something", "unknown");
+        
+        actual = "%WORKSPACE%\\to\\my\\file.xml";
+        expected = workspace + "\\to\\my\\file.xml";
+        actual = Util.replaceEnvVars(actual, env);
+        assertEquals(expected, actual);
+        
+        actual = "%WORKSPACE%";
+        expected = workspace;
+        actual = Util.replaceEnvVars(actual, env);
+        assertEquals(expected, actual);
+        
+        actual = "${WORKSPACE}\\to\\my\\file.xml";
+        expected = workspace + "\\to\\my\\file.xml";
+        actual = Util.replaceEnvVars(actual, env);
+        assertEquals(expected, actual);
+        
+        actual = "this is something ${something}";
+        expected = "this is something unknown";
+        actual = Util.replaceEnvVars(actual, env);
+        assertEquals(expected, actual);
+        
+        actual = "%nothing% to ${replace}";
+        expected = actual;
+        actual = Util.replaceEnvVars(actual, env);
+        assertEquals(expected, actual);
     }
 }
