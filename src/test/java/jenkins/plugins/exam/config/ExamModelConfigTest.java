@@ -14,7 +14,7 @@ public class ExamModelConfigTest {
 
     @Before
     public void setUp() {
-        testObject = new ExamModelConfig("Exam");
+        testObject = new ExamModelConfig("ExamTaskModel");
     }
 
     @After
@@ -87,7 +87,7 @@ public class ExamModelConfigTest {
 
         // set without empty string
         String targetEndpointErrorTest = "";
-        testObject = new ExamModelConfig("Exam");
+        testObject = new ExamModelConfig("ExamTaskModel");
         testObject.setTargetEndpoint(targetEndpointErrorTest);
 
         String result = Whitebox.getInternalState(testObject, "targetEndpoint");

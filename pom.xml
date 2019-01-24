@@ -63,7 +63,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.6</version>
+        <version>3.28</version>
         <relativePath/>
     </parent>
     <artifactId>exam</artifactId>
@@ -71,7 +71,8 @@
     <packaging>hpi</packaging>
 
     <name>MicroNova EXAM Plugin</name>
-    <description>This plugin integrates the RESTapi of the Testautomation tool EXAM for automated test execution.</description>
+    <description>This plugin integrates the RESTapi of the Testautomation tool EXAM for automated test execution.
+    </description>
     <url>https://plugins.jenkins.io/exam</url>
 
     <organization>
@@ -100,39 +101,39 @@
         -->
     </properties>
 
-  <!-- If you want this to appear on the wiki page:
-  <developers>
-    <developer>
-      <id>tomasch</id>
-      <name>Thomas Reinicke</name>
-      <email></email>
-    </developer>
-  </developers>
-  -->
-  <!-- Assuming you want to host on @jenkinsci:
-  <scm>
-    <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-    <url>http://github.com/jenkinsci/${project.artifactId}-plugin</url>
-  </scm>
-   -->
+    <!-- If you want this to appear on the wiki page:
+    <developers>
+      <developer>
+        <id>tomasch</id>
+        <name>Thomas Reinicke</name>
+        <email></email>
+      </developer>
+    </developers>
+    -->
+    <!-- Assuming you want to host on @jenkinsci:
+    <scm>
+      <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+      <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+      <url>http://github.com/jenkinsci/${project.artifactId}-plugin</url>
+    </scm>
+     -->
 
-  <repositories>
-    <repository>
-      <id>repo.jenkins-ci.org</id>
-      <url>https://repo.jenkins-ci.org/public/</url>
-    </repository>
-      <repository>
-          <id>maven</id>
-          <url>https://mvnrepository.com/</url>
-      </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>repo.jenkins-ci.org</id>
-      <url>https://repo.jenkins-ci.org/public/</url>
-    </pluginRepository>
-  </pluginRepositories>
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </repository>
+        <repository>
+            <id>maven</id>
+            <url>https://mvnrepository.com/</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <!--
   <repositories>
@@ -149,64 +150,107 @@
   </repositories>
   -->
 
-  <dependencies>
-      <dependency>
-          <groupId>com.google.code.findbugs</groupId>
-          <artifactId>annotations</artifactId>
-          <version>3.0.1</version>
-      </dependency>
-      <dependency>
-          <groupId>org.jenkins-ci.plugins</groupId>
-          <artifactId>junit</artifactId>
-          <version>1.6</version>
-      </dependency>
-      <dependency>
-          <groupId>org.jenkins-ci.plugins</groupId>
-          <artifactId>shiningpanda</artifactId>
-          <version>0.22</version>
-      </dependency>
-      <dependency>
-          <groupId>org.jenkins-ci.plugins.workflow</groupId>
-          <artifactId>workflow-step-api</artifactId>
-          <version>2.13</version>
-      </dependency>
-      <dependency>
-          <groupId>org.glassfish.jersey.media</groupId>
-          <artifactId>jersey-media-moxy</artifactId>
-          <version>2.26</version>
-      </dependency>
-      <dependency>
-          <groupId>com.sun.jersey</groupId>
-          <artifactId>jersey-json</artifactId>
-          <version>1.19.4</version>
-      </dependency>
-      <dependency>
-          <groupId>com.sun.jersey</groupId>
-          <artifactId>jersey-client</artifactId>
-          <version>1.19.4</version>
-      </dependency>
-      <dependency>
-          <groupId>org.glassfish</groupId>
-          <artifactId>javax.xml.soap</artifactId>
-          <version>3.1.1</version>
-      </dependency>
-      <dependency>
-          <groupId>org.powermock</groupId>
-          <artifactId>powermock-module-junit4</artifactId>
-          <version>1.7.3</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.powermock</groupId>
-          <artifactId>powermock-api-mockito2</artifactId>
-          <version>1.7.3</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>com.squareup.okhttp3</groupId>
-          <artifactId>mockwebserver</artifactId>
-          <version>3.10.0</version>
-          <scope>test</scope>
-      </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>junit</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>shiningpanda</artifactId>
+            <version>0.22</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-step-api</artifactId>
+            <version>2.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-moxy</artifactId>
+            <version>2.26</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
+            <version>1.19.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>1.19.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.xml.soap</artifactId>
+            <version>3.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>1.7.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>1.7.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <version>3.10.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+	
+	<profiles>
+		<profile>
+			<id>teamscale</id>
+			<build>
+				<plugins>
+				  <plugin>
+					 <groupId>org.apache.maven.plugins</groupId>
+					 <artifactId>maven-antrun-plugin</artifactId>
+					 <version>1.7</version>
+					 <dependencies>
+						<dependency>
+						   <groupId>org.jacoco</groupId>
+						   <artifactId>org.jacoco.ant</artifactId>
+						   <version>0.5.6.201201232323</version>
+						</dependency>
+						<dependency>
+						   <groupId>ant-contrib</groupId>
+						   <artifactId>ant-contrib</artifactId>
+						   <version>20020829</version>
+						</dependency>
+					 </dependencies>
+					 <executions>
+						<execution>
+						   <id>jacoco-report</id>
+						   <phase>post-integration-test</phase>
+						   <goals>
+							  <goal>run</goal>
+						   </goals>
+						   <configuration>
+							  <target> 
+								  <echo message="${ts.url}/p/${ts.project}/external-report?format=JACOCO&amp;adjusttimestamp=true&amp;partition=${project.artifactId}&amp;message=JaCoCo_${project.artifactId}&amp;t=${ts.branch}:${build.time}" />
+								  <exec dir="${project.basedir}/target/site/jacoco"  executable="${curl.path}">
+									  <arg value="-X"/>
+									  <arg value="POST"/>
+									  <arg value="-u${ts.user}:${ts.apikey}"/>
+									  <arg value="-Freport=@jacoco.xml"/>
+									  <arg value="${ts.url}/p/${ts.project}/external-report?format=JACOCO&amp;adjusttimestamp=true&amp;partition=${project.artifactId}&amp;message=JaCoCo_${project.artifactId}&amp;t=${ts.branch}:${build.time}"/>
+								 </exec>
+							 </target>
+						   </configuration>
+						 </execution>
+					  </executions>
+				  </plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

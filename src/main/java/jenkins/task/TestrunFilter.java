@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2018 MicroNova AG
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
- *     1. Redistributions of source code must retain the above copyright notice, this
- *        list of conditions and the following disclaimer.
- *
- *     2. Redistributions in binary form must reproduce the above copyright notice, this
- *        list of conditions and the following disclaimer in the documentation and/or
- *        other materials provided with the distribution.
- *
- *     3. Neither the name of MicroNova AG nor the names of its
- *        contributors may be used to endorse or promote products derived from
- *        this software without specific prior written permission.
- *
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -31,76 +31,81 @@ package jenkins.task;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
-import hudson.model.*;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
-import hudson.util.FormValidation;
-import jenkins.model.Jenkins;
-import jenkins.plugins.exam.config.ExamModelConfig;
-import jenkins.plugins.exam.config.ExamPluginConfig;
-import jenkins.task._exam.Messages;
-import jenkins.tasks.SimpleBuildStep;
-import org.jenkinsci.Symbol;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import java.io.IOException;
 
-@XStreamAlias("testrun-filter") public class TestrunFilter extends AbstractDescribableImpl<TestrunFilter>{
-
-    @CheckForNull protected String name;
-    @CheckForNull protected String value;
+@XStreamAlias("testrun-filter")
+public class TestrunFilter extends AbstractDescribableImpl<TestrunFilter> {
+    
+    @CheckForNull
+    protected String name;
+    @CheckForNull
+    protected String value;
     protected boolean adminCases;
     protected boolean activateTestcases = false;
-
-    public String getName() {
-        return name;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public boolean getAdminCases() {
-        return adminCases;
-    }
-
-    public boolean getActivateTestcases() {
-        return activateTestcases;
-    }
-
-    @Override public DescriptorImpl getDescriptor() {
-        return (DescriptorImpl) super.getDescriptor();
-    }
-
-    @DataBoundConstructor public TestrunFilter(String name, String value, boolean adminCases, boolean activateTestcases) {
+    
+    /**
+     * Constructor of the TestrunFilter Part
+     *
+     * @param name
+     * @param value
+     * @param adminCases
+     * @param activateTestcases
+     */
+    @DataBoundConstructor
+    public TestrunFilter(String name, String value, boolean adminCases, boolean activateTestcases) {
         this.name = name;
         this.value = value;
         this.adminCases = adminCases;
         this.activateTestcases = activateTestcases;
     }
-
-    @Extension public static class DescriptorImpl extends Descriptor<TestrunFilter> {
-
+    
+    public String getName() {
+        return name;
+    }
+    
+    public String getValue() {
+        return value;
+    }
+    
+    public boolean getAdminCases() {
+        return adminCases;
+    }
+    
+    public boolean getActivateTestcases() {
+        return activateTestcases;
+    }
+    
+    @Override
+    public DescriptorImpl getDescriptor() {
+        return (DescriptorImpl) super.getDescriptor();
+    }
+    
+    /**
+     * Descriptor of the TestrunFilter Part
+     */
+    @Extension
+    public static class DescriptorImpl extends Descriptor<TestrunFilter> {
+        
+        /**
+         * Descriptor of the TestrunFilter Part
+         */
         public DescriptorImpl() {
             load();
         }
-
+        
         protected DescriptorImpl(Class<? extends TestrunFilter> clazz) {
             super(clazz);
             load();
         }
-
-        @Override public String getDisplayName() {
+        
+        @Override
+        public String getDisplayName() {
             return "Testrun Filter";
         }
-
+        
     }
 }

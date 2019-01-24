@@ -30,5 +30,5 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
 >
-    <st:include page="config.jelly" class="jenkins.task.Exam"/>
+    <st:include page="config.jelly" class="jenkins.task.ExamTaskModel"/>
 </j:jelly>

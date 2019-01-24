@@ -34,14 +34,16 @@ import hudson.util.FormValidation;
 import jenkins.internal.DbFactory;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
-import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.xml.soap.SOAPException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Global configuration to store all EXAM Models
@@ -50,74 +52,28 @@ import java.util.*;
  */
 @Extension
 public class ExamPluginConfig extends GlobalConfiguration {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExamPluginConfig.class);
-    public static final String EXAM_PLUGIN_CONFIGURATION_ID = "exam-plugin-configuration";
-
-    public static final ExamPluginConfig EMPTY_CONFIG = new ExamPluginConfig(Collections.<ExamModelConfig>emptyList(),
-            Collections.<ExamReportConfig>emptyList(), 8085, 5053, "localhost");
-
-    private List<ExamModelConfig> modelConfigs = new ArrayList<ExamModelConfig>();
-    private List<ExamReportConfig> reportConfigs = new ArrayList<ExamReportConfig>();
-    private int port;
-    private int licensePort;
-    private String licenseHost;
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
+    public static final ExamPluginConfig EMPTY_CONFIG = new ExamPluginConfig(Collections.emptyList(),
+            Collections.emptyList(), 8085, 5053, "localhost");
+    private static final String EXAM_PLUGIN_CONFIGURATION_ID = "exam-plugin-configuration";
+    private List<ExamModelConfig> modelConfigs = new ArrayList<>();
+    private List<ExamReportConfig> reportConfigs = new ArrayList<>();
+    private int port = 8085;
+    private int licensePort = 0;
+    private String licenseHost = "";
+    
     public ExamPluginConfig() {
         load();
     }
-
-    @Override
-    public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-        boolean bsuper = super.configure(req, json);
-        save();
-        return bsuper && true;
-    }
-
-    public ExamPluginConfig(List<ExamModelConfig> modelConfigs, List<ExamReportConfig> reportConfigs, int port, int licensePort, String licenseHost) {
+    
+    public ExamPluginConfig(List<ExamModelConfig> modelConfigs, List<ExamReportConfig> reportConfigs, int port,
+            int licensePort, String licenseHost) {
         this.modelConfigs = modelConfigs;
         this.reportConfigs = reportConfigs;
         this.licenseHost = licenseHost;
         this.licensePort = licensePort;
         this.port = port;
     }
-
-    public void setModelConfigs(List<ExamModelConfig> modelConfigs) {
-        this.modelConfigs = modelConfigs;
-    }
-
-    public List<ExamModelConfig> getModelConfigs() {
-        return modelConfigs;
-    }
-
-    public void setReportConfigs(List<ExamReportConfig> reportConfigs) {
-        this.reportConfigs = reportConfigs;
-    }
-
-    public List<ExamReportConfig> getReportConfigs() {
-        return reportConfigs;
-    }
-
-    /**
-     * To avoid long class name as id in xml tag name and config file
-     */
-    @Override
-    public String getId() {
-        return EXAM_PLUGIN_CONFIGURATION_ID;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return "EXAM";
-    }
-
+    
     /**
      * Shortcut method for getting instance of {@link ExamPluginConfig}.
      *
@@ -125,36 +81,93 @@ public class ExamPluginConfig extends GlobalConfiguration {
      */
     @Nonnull
     public static ExamPluginConfig configuration() {
-        if (ExamPluginConfig.all().get(ExamPluginConfig.class) == null) {
-            return ExamPluginConfig.EMPTY_CONFIG;
-        }
-        return ExamPluginConfig.all().get(ExamPluginConfig.class);
+        ExamPluginConfig pluginConfig = ExamPluginConfig.all().get(ExamPluginConfig.class);
+        return pluginConfig == null ? ExamPluginConfig.EMPTY_CONFIG : pluginConfig;
     }
-
-
-    public FormValidation doVerifyModelConnections()
-            throws SOAPException {
-
+    
+    public int getPort() {
+        return port;
+    }
+    
+    public void setPort(int port) {
+        this.port = port;
+    }
+    
+    public int getLicensePort() {
+        return licensePort;
+    }
+    
+    public void setLicensePort(int licensePort) {
+        this.licensePort = licensePort;
+    }
+    
+    public String getLicenseHost() {
+        return licenseHost;
+    }
+    
+    public void setLicenseHost(String licenseHost) {
+        this.licenseHost = licenseHost;
+    }
+    
+    @Override
+    public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+        boolean boolSuper = super.configure(req, json);
+        save();
+        return boolSuper;
+    }
+    
+    public List<ExamModelConfig> getModelConfigs() {
+        return modelConfigs;
+    }
+    
+    public void setModelConfigs(List<ExamModelConfig> modelConfigs) {
+        this.modelConfigs = modelConfigs;
+    }
+    
+    public List<ExamReportConfig> getReportConfigs() {
+        return reportConfigs;
+    }
+    
+    public void setReportConfigs(List<ExamReportConfig> reportConfigs) {
+        this.reportConfigs = reportConfigs;
+    }
+    
+    /**
+     * To avoid long class name as id in xml tag name and config file
+     */
+    @Override
+    public String getId() {
+        return EXAM_PLUGIN_CONFIGURATION_ID;
+    }
+    
+    @Override
+    @Nonnull
+    public String getDisplayName() {
+        return "EXAM";
+    }
+    
+    public FormValidation doVerifyModelConnections() throws SOAPException {
+        
         Map<String, List<String>> status = new HashMap<>();
-
+        
         for (ExamModelConfig mConfig : modelConfigs) {
             String message = DbFactory.testModelConnection(mConfig.getModelName(), mConfig.getTargetEndpoint(),
                     mConfig.getExamVersion());
             if (!status.containsKey(message)) {
-                status.put(message, new ArrayList<String>());
+                status.put(message, new ArrayList<>());
             }
             status.get(message).add(mConfig.getName());
         }
-
+        
         StringBuilder sb = new StringBuilder();
-
+        
         Set<String> keys = status.keySet();
         if (keys.size() == 1 && keys.contains("OK")) {
             sb.append("connections OK");
             sb.append("\n");
             return FormValidation.ok(sb.toString());
         }
-
+        
         for (Map.Entry<String, List<String>> entry : status.entrySet()) {
             if (entry.getKey().equalsIgnoreCase("OK")) {
                 continue;
@@ -167,7 +180,7 @@ public class ExamPluginConfig extends GlobalConfiguration {
                 sb.append("\n");
             }
         }
-
+        
         return FormValidation.error(sb.toString());
     }
 }

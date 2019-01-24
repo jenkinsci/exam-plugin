@@ -48,20 +48,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ant launcher.
- *
- * @author Kohsuke Kawaguchi
+ * Build Step for CleanExam
  */
 public class CleanExam extends Builder implements SimpleBuildStep {
-
+    
+    /**
+     * Build Step for CleanExam
+     */
     @DataBoundConstructor
     public CleanExam() {
     }
-
+    
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
-
+            @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        
         listener.getLogger().println("delete junit from workspace");
         List<Integer> dirIndexes = new ArrayList<>();
         List<FilePath> directorys = workspace.listDirectories();
@@ -74,29 +75,35 @@ public class CleanExam extends Builder implements SimpleBuildStep {
             directorys.get(index).deleteRecursive();
         }
     }
-
+    
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
     }
-
+    
+    /**
+     * Descriptor of the Build Step for CleanExam
+     */
     @Extension
     @Symbol("examCleanTarget")
     public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
-
+        
+        /**
+         * Descriptor of the Build Step for CleanExam
+         */
         public DescriptorImpl() {
             load();
         }
-
+        
         protected DescriptorImpl(Class<? extends CleanExam> clazz) {
             super(clazz);
             load();
         }
-
+        
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
             return true;
         }
-
+        
         public String getDisplayName() {
             return Messages.EXAM_CleanDisplayName();
         }
