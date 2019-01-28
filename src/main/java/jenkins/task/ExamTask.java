@@ -504,7 +504,10 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             run.setResult(Result.FAILURE);
             throw new AbortException(errorMessage);
         } finally {
-            listener.getLogger().println(run.getResult().toString());
+            Result result = run.getResult();
+            if (result != null) {
+                listener.getLogger().println(result.toString());
+            }
             eca.forceEol();
             examErr.forceEol();
         }
