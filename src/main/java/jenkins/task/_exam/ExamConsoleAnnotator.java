@@ -48,6 +48,9 @@ public class ExamConsoleAnnotator extends LineTransformationOutputStream {
     /**
      * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
      * execution.
+     *
+     * @param out     out
+     * @param charset Charset
      */
     public ExamConsoleAnnotator(OutputStream out, Charset charset) {
         this.out = out;

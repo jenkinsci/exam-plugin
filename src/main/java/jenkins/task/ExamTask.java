@@ -280,6 +280,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     
     /**
      * Gets the EXAM to invoke, or null to invoke the default one.
+     *
+     * @return ExamTool
      */
     public ExamTool getExam() {
         for (ExamTool i : getDescriptor().getInstallations()) {
@@ -292,6 +294,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     
     /**
      * Gets the EXAM to invoke, or null to invoke the default one.
+     *
+     * @return PythonInstallation
      */
     public PythonInstallation getPython() {
         for (PythonInstallation i : getDescriptor().getPythonInstallations()) {
@@ -304,6 +308,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     
     /**
      * Gets the JAVA_OPTS parameter, or null.
+     *
+     * @return javaOpts
      */
     public String getJavaOpts() {
         return javaOpts;

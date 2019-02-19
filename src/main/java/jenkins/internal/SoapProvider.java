@@ -59,12 +59,12 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
     /**
      * check writable
      *
-     * @param aClass
-     * @param type
-     * @param annotations
-     * @param mediaType
+     * @param aClass      Class
+     * @param type        Type
+     * @param annotations Annotation Array
+     * @param mediaType   MediaType
      *
-     * @return
+     * @return boolean
      */
     public boolean isWriteable(Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType) {
         return SOAPMessage.class.isAssignableFrom(aClass);
@@ -73,17 +73,17 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
     /**
      * reading form a soap message
      *
-     * @param soapEnvelopeClass
-     * @param type
-     * @param annotations
-     * @param mediaType
-     * @param stringStringMultivaluedMap
-     * @param inputStream
+     * @param soapEnvelopeClass          class SOAPMessage
+     * @param type                       Type
+     * @param annotations                Annotation Array
+     * @param mediaType                  MediaType
+     * @param stringStringMultivaluedMap MultivaluedMap
+     * @param inputStream                InputStream
      *
-     * @return
+     * @return SOAPMessage
      *
-     * @throws IOException
-     * @throws WebApplicationException
+     * @throws IOException             IOException
+     * @throws WebApplicationException WebApplicationException
      */
     public SOAPMessage readFrom(Class<SOAPMessage> soapEnvelopeClass, Type type, Annotation[] annotations,
             MediaType mediaType, MultivaluedMap<String, String> stringStringMultivaluedMap, InputStream inputStream)
@@ -115,13 +115,13 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
     /**
      * get size of soap message
      *
-     * @param soapMessage
-     * @param aClass
-     * @param type
-     * @param annotations
-     * @param mediaType
+     * @param soapMessage SOAPMessage
+     * @param aClass      Class
+     * @param type        Type
+     * @param annotations Annotation Array
+     * @param mediaType   MediaType
      *
-     * @return
+     * @return long
      */
     public long getSize(SOAPMessage soapMessage, Class<?> aClass, Type type, Annotation[] annotations,
             MediaType mediaType) {
@@ -131,16 +131,16 @@ public class SoapProvider implements MessageBodyWriter<SOAPMessage>, MessageBody
     /**
      * sending a soap message
      *
-     * @param soapMessage
-     * @param aClass
-     * @param type
-     * @param annotations
-     * @param mediaType
-     * @param stringObjectMultivaluedMap
-     * @param outputStream
+     * @param soapMessage                SOAPMessage
+     * @param aClass                     Class
+     * @param type                       Type
+     * @param annotations                Annotation Array
+     * @param mediaType                  MediaType
+     * @param stringObjectMultivaluedMap MultivaluedMap
+     * @param outputStream               OutputStream
      *
-     * @throws IOException
-     * @throws WebApplicationException
+     * @throws IOException             IOException
+     * @throws WebApplicationException WebApplicationException
      */
     public void writeTo(SOAPMessage soapMessage, Class<?> aClass, Type type, Annotation[] annotations,
             MediaType mediaType, MultivaluedMap<String, Object> stringObjectMultivaluedMap, OutputStream outputStream)

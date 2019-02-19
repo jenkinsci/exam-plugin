@@ -47,6 +47,11 @@ public class TestrunFilter {
     
     /**
      * Constructor of an EXAM Testrunfilter
+     *
+     * @param name              attribute name
+     * @param value             regex
+     * @param adminCases        check admincases
+     * @param activateTestcases activate testcases
      */
     public TestrunFilter(String name, String value, Boolean adminCases, Boolean activateTestcases) {
         this.name = name;

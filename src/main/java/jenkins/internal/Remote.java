@@ -75,6 +75,14 @@ public class Remote implements Serializable {
     
     /**
      * check if an remote path exists.
+     *
+     * @param launcher Launcher
+     * @param file     File
+     *
+     * @return boolean
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
     public static boolean fileExists(@Nonnull Launcher launcher, File file) throws IOException, InterruptedException {
         VirtualChannel channel = launcher.getChannel();

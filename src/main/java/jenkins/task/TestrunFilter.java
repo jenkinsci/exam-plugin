@@ -50,10 +50,10 @@ public class TestrunFilter extends AbstractDescribableImpl<TestrunFilter> {
     /**
      * Constructor of the TestrunFilter Part
      *
-     * @param name
-     * @param value
-     * @param adminCases
-     * @param activateTestcases
+     * @param name              attribute name
+     * @param value             regex
+     * @param adminCases        check admincases
+     * @param activateTestcases activate testcases
      */
     @DataBoundConstructor
     public TestrunFilter(String name, String value, boolean adminCases, boolean activateTestcases) {

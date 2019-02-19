@@ -60,6 +60,9 @@ public class ClientRequest {
     
     /**
      * Constructor for REST Api calls to EXAM
+     *
+     * @param logger  PrintStream
+     * @param baseUrl Url
      */
     public ClientRequest(PrintStream logger, String baseUrl) {
         this.baseUrl = baseUrl;
@@ -86,6 +89,8 @@ public class ClientRequest {
      * Request the job xxecution status from EXAM Client
      *
      * @return ExamStatus
+     *
+     * @throws AbortException AbortException
      */
     public ExamStatus getStatus() throws AbortException {
         if (client == null) {
@@ -106,6 +111,8 @@ public class ClientRequest {
      * Request the Api Version from EXAM Client
      *
      * @return ApiVersion
+     *
+     * @throws AbortException AbortException
      */
     public ApiVersion getApiVersion() throws AbortException {
         if (client == null) {
@@ -149,6 +156,8 @@ public class ClientRequest {
      * Setting the  EXAM Client
      *
      * @param filterConfig FilterConfiguration
+     *
+     * @throws AbortException AbortException
      */
     public void setTestrunFilter(FilterConfiguration filterConfig) throws AbortException {
         if (client == null) {
@@ -177,6 +186,8 @@ public class ClientRequest {
      * Request the Api Version from EXAM Client
      *
      * @param reportProject String
+     *
+     * @throws AbortException AbortException
      */
     public void convert(String reportProject) throws AbortException {
         if (client == null) {
@@ -196,6 +207,8 @@ public class ClientRequest {
      * Configure and start testrun at EXAM Client
      *
      * @param testConfig TestConfiguration
+     *
+     * @throws AbortException AbortException
      */
     public void startTestrun(TestConfiguration testConfig) throws AbortException {
         if (client == null) {
@@ -227,6 +240,8 @@ public class ClientRequest {
     
     /**
      * stops a testrun
+     *
+     * @throws AbortException AbortException
      */
     public void stopTestrun() throws AbortException {
         if (client == null) {
@@ -246,6 +261,8 @@ public class ClientRequest {
      * Deletes the project configuration at EXAM and deletes the corresponding report and pcode folders
      *
      * @param projectName String
+     *
+     * @throws AbortException AbortException
      */
     public void clearWorkspace(String projectName) throws AbortException {
         if (client == null) {
@@ -355,6 +372,9 @@ public class ClientRequest {
      * Waits for the EXAM Testrun ends
      *
      * @param executor Executor
+     * @param wait     time in s
+     *
+     * @throws AbortException AbortException
      */
     public void waitForTestrunEnds(Executor executor, int wait) throws AbortException {
         boolean testDetected = false;
@@ -389,6 +409,9 @@ public class ClientRequest {
      * Waits until EXAM is idle
      *
      * @param executor Executor
+     * @param wait     time in s
+     *
+     * @throws AbortException AbortException
      */
     public void waitForExamIdle(Executor executor, int wait) throws AbortException {
         int breakAfter = wait;
@@ -417,6 +440,9 @@ public class ClientRequest {
      * Waits until EXAM is idle
      *
      * @param executor Executor
+     * @param wait     time in s
+     *
+     * @throws AbortException AbortException
      */
     public void waitForExportPDFReportJob(Executor executor, int wait) throws AbortException {
         int breakAfter = wait;

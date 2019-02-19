@@ -50,7 +50,7 @@ public class FilterConfiguration {
     /**
      * Constructor of Configuration of EXAM Testrunfilter
      *
-     * @param testrunFilter
+     * @param testrunFilter List&lt;TestrunFilter&gt;
      */
     public FilterConfiguration(List<TestrunFilter> testrunFilter) {
         this.testrunFilter = testrunFilter;
@@ -63,7 +63,7 @@ public class FilterConfiguration {
     /**
      * Sets the Configuration of EXAM Testrunfilter
      *
-     * @param testrunFilter
+     * @param testrunFilter List&lt;TestrunFilter&gt;
      */
     public void setTestrunFilter(List<TestrunFilter> testrunFilter) {
         this.testrunFilter = testrunFilter;
@@ -72,7 +72,7 @@ public class FilterConfiguration {
     /**
      * Sets the Configuration of EXAM Testrunfilter
      *
-     * @param testrunFilter
+     * @param testrunFilter TestrunFilter
      */
     public void setTestrunFilter(TestrunFilter testrunFilter) {
         this.testrunFilter = Collections.singletonList(testrunFilter);
@@ -81,7 +81,7 @@ public class FilterConfiguration {
     /**
      * Add a EXAM Testrunfilter to the configuration list
      *
-     * @param testrunFilter
+     * @param testrunFilter TestrunFilter
      */
     public void addTestrunFilter(TestrunFilter testrunFilter) {
         this.testrunFilter.add(testrunFilter);

@@ -105,7 +105,7 @@ public class Util {
     /**
      * Check name pattern
      *
-     * @param name
+     * @param name full scoped name
      *
      * @return true, if valid
      */
