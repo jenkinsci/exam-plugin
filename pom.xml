@@ -70,9 +70,9 @@
     <packaging>hpi</packaging>
 
     <name>MicroNova EXAM Plugin</name>
-    <description>This plugin integrates the RESTapi of the Testautomation tool EXAM for automated test execution.
+    <description>This plugin integrates the REST API of the Testautomation tool EXAM for automated test execution.
     </description>
-    <url>https://plugins.jenkins.io/exam</url>
+    <url>https://wiki.jenkins.io/display/JENKINS/MicroNova+EXAM+Plugin</url>
 
     <organization>
         <name>MicroNova AG</name>
