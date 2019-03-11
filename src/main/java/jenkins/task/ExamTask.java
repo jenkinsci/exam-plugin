@@ -540,7 +540,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         TestConfiguration tc = new TestConfiguration();
         
         tc.setUseExecutionFile(Boolean.valueOf(useExecutionFile));
-        tc.setModelConfig("");
         tc.setSystemConfig(systemConfiguration);
         tc.setTestObject("");
         tc.setReportPrefix(reportPrefix);
