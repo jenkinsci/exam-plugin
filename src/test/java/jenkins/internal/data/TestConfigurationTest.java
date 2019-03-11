@@ -131,20 +131,6 @@ public class TestConfigurationTest {
     }
     
     @Test
-    public void getModelConfig() {
-        Whitebox.setInternalState(testObject, "modelConfig", TESTSTRING);
-        String testIt = testObject.getModelConfig();
-        assertEquals(TESTSTRING, testIt);
-    }
-    
-    @Test
-    public void setModelConfig() {
-        testObject.setModelConfig(TESTSTRING);
-        String testIt = Whitebox.getInternalState(testObject, "modelConfig");
-        assertEquals(TESTSTRING, testIt);
-    }
-    
-    @Test
     public void getTestObject() {
         Whitebox.setInternalState(testObject, "testObject", TESTSTRING);
         String testIt = testObject.getTestObject();
