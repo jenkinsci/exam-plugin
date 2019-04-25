@@ -420,10 +420,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
         ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger());
         try {
-            String slaveIp = Remote.getIP(launcher);
-            String restUrl = "http://" + slaveIp + ":" + port + "/examRest";
-            listener.getLogger().println("RESTapi Url: " + restUrl);
-            ClientRequest clientRequest = new ClientRequest(listener.getLogger(), restUrl);
+            ClientRequest clientRequest = new ClientRequest(listener.getLogger(), port, launcher);
             Proc proc = null;
             try {
                 
