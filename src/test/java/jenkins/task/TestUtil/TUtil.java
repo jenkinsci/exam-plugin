@@ -144,7 +144,7 @@ public class TUtil {
             newInstallations[index] = tool;
             index++;
         }
-        newExamTool = new ExamTool(examName, examHome, relativeConfigPath, Collections.emptyList());
+        newExamTool = new ExamTool(examName, examHome, Collections.emptyList(), relativeConfigPath);
         newInstallations[index] = newExamTool;
         
         jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)

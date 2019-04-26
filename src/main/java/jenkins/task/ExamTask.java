@@ -372,7 +372,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         String dataPath = examTool.getHome();
         String configurationPath;
         String examWorkspace;
-        String relativeDataPath = examTool.getRelativeConfigPath();
+        String relativeDataPath = examTool.getRelativeDataPath();
         if (relativeDataPath != null && !relativeDataPath.trim().isEmpty()) {
             dataPath = examTool.getHome() + File.separator + relativeDataPath;
         }

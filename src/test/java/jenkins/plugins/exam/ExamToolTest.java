@@ -38,7 +38,7 @@ public class ExamToolTest {
     public void setUp() {
         Jenkins instance = jenkinsRule.getInstance();
         home = instance == null ? "C:\\EXAM" : instance.getRootPath().getRemote();
-        testObject = new ExamTool(name, home, new ArrayList<>());
+        testObject = new ExamTool(name, home, new ArrayList<>(), null);
     }
     
     @After
@@ -55,7 +55,7 @@ public class ExamToolTest {
     @WithoutJenkins
     public void setRelativeDataPath() {
         String testPath = "../userData";
-        testObject.setRelativeDataPath(testPath);
+        Whitebox.setInternalState(testObject, "relativeDataPath", testPath);
         String setPath = Whitebox.getInternalState(testObject, "relativeDataPath");
         
         assertEquals(testPath, setPath);
@@ -66,7 +66,7 @@ public class ExamToolTest {
     public void getRelativeConfigPath() {
         String testPath = "../userData";
         Whitebox.setInternalState(testObject, "relativeDataPath", testPath);
-        String setPath = testObject.getRelativeConfigPath();
+        String setPath = testObject.getRelativeDataPath();
         
         assertEquals(testPath, setPath);
     }
@@ -86,10 +86,10 @@ public class ExamToolTest {
         envVars.put("first", "first");
         envVars.put("second", "second");
         String testPath = "../userData";
-        testObject.setRelativeDataPath(testPath);
+        Whitebox.setInternalState(testObject, "relativeDataPath", testPath);
         ExamTool testTool = testObject.forEnvironment(envVars);
         
-        assertEquals(testPath, testTool.getRelativeConfigPath());
+        assertEquals(testPath, testTool.getRelativeDataPath());
         assertEquals(name, testTool.getName());
         assertEquals(home, testTool.getHome());
     }
