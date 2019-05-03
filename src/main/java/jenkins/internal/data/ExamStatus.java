@@ -29,13 +29,16 @@
  */
 package jenkins.internal.data;
 
+import java.io.Serializable;
+
 /**
  * Status of running Jobs at EXAM
  *
  * @author liu
  */
-public class ExamStatus {
+public class ExamStatus implements Serializable {
     
+    private static final long serialVersionUID = 8611966286168032281L;
     private Boolean jobRunning;
     private String jobName;
     private Integer testRunState;

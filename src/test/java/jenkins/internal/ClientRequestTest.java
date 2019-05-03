@@ -29,7 +29,7 @@
  */
 package jenkins.internal;
 
-import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import hudson.Launcher;
 import hudson.model.Executor;
 import jenkins.internal.data.ApiVersion;
@@ -105,13 +105,13 @@ public class ClientRequestTest {
         printMock = mock(PrintStream.class, "PrintMock");
         testObject = new ClientRequest(printMock, apiPort, launcher);
         Whitebox.setInternalState(testObject, "waitTime", 100);
-        Whitebox.invokeMethod(testObject, "createClient");
+        Whitebox.setInternalState(testObject, "clientConnected", true);
     }
     
     @After
     public void tearDown() throws Exception {
         launcher = null;
-        Whitebox.invokeMethod(testObject, "destroyClient");
+        Whitebox.setInternalState(testObject, "clientConnected", false);
         server.shutdown();
     }
     
@@ -151,7 +151,7 @@ public class ClientRequestTest {
         assertFalse(testObject.isApiAvailable());
         dispatcher.setDefaults();
         
-        Whitebox.invokeMethod(testObject, "destroyClient");
+        Whitebox.setInternalState(testObject, "clientConnected", false);
         assertTrue(testObject.isApiAvailable());
     }
     
@@ -216,7 +216,7 @@ public class ClientRequestTest {
     }
     
     @Test
-    public void connectClient() throws IOException {
+    public void connectClient() throws IOException, InterruptedException {
         assertTrue(testObject.connectClient(1000));
         verify(printMock, never()).println("ERROR: EXAM does not answer in 1s");
         
@@ -232,7 +232,7 @@ public class ClientRequestTest {
         verify(printMock).println("disconnect from EXAM");
         verify(printMock).println("ERROR: EXAM does not shutdown in 1000ms");
         
-        Whitebox.invokeMethod(testObject, "createClient");
+        Whitebox.setInternalState(testObject, "clientConnected", true);
         clearInvocations(printMock);
         dispatcher.removeResponse("/examRest/testrun/status");
         testObject.disconnectClient(1000);
@@ -242,7 +242,7 @@ public class ClientRequestTest {
         testObject.disconnectClient(1000);
         verify(printMock).println("Client is not connected");
         
-        Whitebox.invokeMethod(testObject, "createClient");
+        Whitebox.setInternalState(testObject, "clientConnected", true);
         clearInvocations(printMock);
         server.shutdown();
         testObject.disconnectClient(1000);
@@ -440,15 +440,9 @@ public class ClientRequestTest {
     }
     
     @Test
-    public void createClient() throws Exception {
-        Whitebox.invokeMethod(testObject, "createClient");
-        verify(printMock).println("Client already connected");
-    }
-    
-    @Test
     @WithoutJenkins
     public void noClient() throws Exception {
-        Whitebox.invokeMethod(testObject, "destroyClient");
+        Whitebox.setInternalState(testObject, "clientConnected", false);
         
         clearInvocations(printMock);
         testObject.getApiVersion();
@@ -468,10 +462,6 @@ public class ClientRequestTest {
         
         clearInvocations(printMock);
         testObject.stopTestrun();
-        verify(printMock).println("WARNING: no EXAM connected");
-        
-        clearInvocations(printMock);
-        testObject.getStatus();
         verify(printMock).println("WARNING: no EXAM connected");
         
         clearInvocations(printMock);
@@ -499,7 +489,7 @@ public class ClientRequestTest {
     
     // Note:
     // This Test has to run after the "startTestrun" Test because it manipulates the mocked Response
-    @Test(expected = IOException.class)
+    @Test(expected = UniformInterfaceException.class)
     public void handleResponseError() throws Exception {
         // change Response that handleResponseError gets an Error
         dispatcher.removeResponse("/examRest/testrun/start");
@@ -531,15 +521,6 @@ public class ClientRequestTest {
         
         assertEquals(requestBody, filterConfigToTest);
         assertEquals(requestRoute, "/examRest/testrun/setFilter");
-    }
-    
-    @Test
-    public void destroyClient() throws Exception {
-        Whitebox.invokeMethod(testObject, "destroyClient");
-        
-        Client client = Whitebox.getInternalState(testObject, "client");
-        
-        assertNull(client);
     }
     
     @Test

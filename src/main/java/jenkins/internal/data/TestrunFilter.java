@@ -29,11 +29,14 @@
  */
 package jenkins.internal.data;
 
+import java.io.Serializable;
+
 /**
  * EXAM Testrunfilter
  */
-public class TestrunFilter {
+public class TestrunFilter implements Serializable {
     
+    private static final long serialVersionUID = 1999022538751995266L;
     protected String name;
     protected String value;
     protected Boolean adminCases = Boolean.FALSE;

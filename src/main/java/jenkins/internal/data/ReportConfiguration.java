@@ -29,14 +29,17 @@
  */
 package jenkins.internal.data;
 
+import java.io.Serializable;
+
 /**
  * Information of the EXAM report configuration
  *
  * @author liu
  */
-public class ReportConfiguration {
+public class ReportConfiguration implements Serializable {
     
     public static final String NO_REPORT = "NO_REPORT";
+    private static final long serialVersionUID = 4112737477385174340L;
     private String projectName = "";
     private String dbType = "";
     private String dbHost = "";

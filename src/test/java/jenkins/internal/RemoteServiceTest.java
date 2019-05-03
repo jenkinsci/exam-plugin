@@ -1,10 +1,5 @@
 package jenkins.internal;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
 import hudson.Launcher;
 import hudson.util.StreamTaskListener;
 import org.junit.After;
@@ -28,16 +23,12 @@ public class RemoteServiceTest {
     private int apiPort = 8085;
     
     private Launcher.LocalLauncher launcher;
-    private static Client client;
     
     @Mock
     private PrintStream printMock;
     
     @BeforeClass
     public static void oneTimeSetup() {
-        ClientConfig clientConfig = new DefaultClientConfig();
-        clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        client = Client.create(clientConfig);
     }
     
     @Before
@@ -54,7 +45,7 @@ public class RemoteServiceTest {
     public void get() throws IOException, InterruptedException {
         
         launcher = new Launcher.LocalLauncher(StreamTaskListener.fromStdout(), null);
-        ClientResponse response = RemoteService.get(launcher, client, apiPort, "");
+        RemoteServiceResponse response = RemoteService.get(launcher, apiPort, "", null);
         
         assertEquals(null, response);
     }
@@ -63,7 +54,7 @@ public class RemoteServiceTest {
     public void getJSON() throws IOException, InterruptedException {
         
         launcher = new Launcher.LocalLauncher(StreamTaskListener.fromStdout(), null);
-        ClientResponse response = RemoteService.getJSON(launcher, client, apiPort, "");
+        RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "", null);
         
         assertEquals(null, response);
     }
@@ -72,7 +63,7 @@ public class RemoteServiceTest {
     public void post() throws IOException, InterruptedException {
         
         launcher = new Launcher.LocalLauncher(StreamTaskListener.fromStdout(), null);
-        ClientResponse response = RemoteService.post(launcher, client, apiPort, "", null);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "", null, null);
         
         assertEquals(null, response);
     }

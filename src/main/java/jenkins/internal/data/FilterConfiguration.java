@@ -29,6 +29,7 @@
  */
 package jenkins.internal.data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,8 +37,9 @@ import java.util.List;
 /**
  * Configuration of EXAM Testrunfilter
  */
-public class FilterConfiguration {
+public class FilterConfiguration implements Serializable {
     
+    private static final long serialVersionUID = 5537490320782977390L;
     private List<TestrunFilter> testrunFilter;
     
     /**

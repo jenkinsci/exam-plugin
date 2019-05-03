@@ -27,91 +27,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package jenkins.internal.data;
+package jenkins.internal;
 
 import java.io.Serializable;
 
 /**
- * Information of the EXAM model configuration
- *
- * @author liu
+ * Serializable Response from http client
  */
-public class ModelConfiguration implements Serializable {
-    
-    private static final long serialVersionUID = 4400337933937504311L;
-    private String projectName;
-    private String modelName;
-    private String targetEndpoint;
-    private String modelConfigUUID;
+public class RemoteServiceResponse implements Serializable {
+    private static final long serialVersionUID = 9023988927320628840L;
+    private int status;
+    private Object entity;
+    private String entityString;
     
     /**
-     * Konstruktor.
-     */
-    public ModelConfiguration() {
-    
-    }
-    
-    /**
-     * @return Das projectName.
-     */
-    public String getProjectName() {
-        return this.projectName;
-    }
-    
-    /**
-     * Setzt das projectName.
+     * Serializable Response from http client
      *
-     * @param projectName Das zu setzende projectName.
+     * @param status       int response status
+     * @param entity       Object
+     * @param entityString String
      */
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
+    public RemoteServiceResponse(int status, Object entity, String entityString) {
+        this.status = status;
+        this.entity = entity;
+        this.entityString = entityString;
     }
     
     /**
-     * @return Das modelName.
-     */
-    public String getModelName() {
-        return this.modelName;
-    }
-    
-    /**
-     * Setzt das modelName.
+     * returns status
      *
-     * @param modelName Das zu setzende modelName.
+     * @return int response status
      */
-    public void setModelName(String modelName) {
-        this.modelName = modelName;
+    public int getStatus() {
+        return status;
     }
     
     /**
-     * @return Das targetEndpoint.
-     */
-    public String getTargetEndpoint() {
-        return this.targetEndpoint;
-    }
-    
-    /**
-     * Setzt das targetEndpoint.
+     * returns Entity
      *
-     * @param targetEndpoint Das zu setzende targetEndpoint.
+     * @return Object
      */
-    public void setTargetEndpoint(String targetEndpoint) {
-        this.targetEndpoint = targetEndpoint;
+    public Object getEntity() {
+        return this.entity;
     }
     
     /**
-     * @return modelConfigUUID
-     */
-    public String getModelConfigUUID() {
-        return this.modelConfigUUID;
-    }
-    
-    /**
-     * Setzt die config UUID.
+     * returns Entity as String
      *
-     * @param modelConfigUUID die config UUID.
+     * @return String
      */
-    public void setModelConfigUUID(String modelConfigUUID) {
-        this.modelConfigUUID = modelConfigUUID;
+    public String getEntityString() {
+        return this.entityString;
     }
 }
