@@ -434,7 +434,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 process.stdout(eca);
                 proc = process.start();
                 
-                boolean ret = clientRequest.connectClient(1 * 60 * 1000);
+                boolean ret = clientRequest.connectClient(5 * 60 * 1000);
                 if (ret) {
                     ApiVersion apiVersion = clientRequest.getApiVersion();
                     listener.getLogger().println("EXAM api version: " + apiVersion.toString());
