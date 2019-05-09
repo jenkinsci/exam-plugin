@@ -66,7 +66,7 @@
         <relativePath />
     </parent>
     <artifactId>exam</artifactId>
-    <version>1.0.8-SNAPSHOT</version>
+    <version>1.0.8</version>
     <packaging>hpi</packaging>
 
     <name>MicroNova EXAM Plugin</name>
@@ -115,7 +115,7 @@
         <developerConnection>scm:git:https://github.com/jenkinsci/${project.artifactId}-plugin.git
         </developerConnection>
         <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-        <tag>HEAD</tag>
+        <tag>exam-1.0.8</tag>
     </scm>
 
 
