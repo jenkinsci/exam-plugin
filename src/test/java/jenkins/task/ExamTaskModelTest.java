@@ -1,6 +1,8 @@
 package jenkins.task;
 
 import hudson.AbortException;
+import hudson.Launcher;
+import hudson.Proc;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
@@ -8,6 +10,7 @@ import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.config.ExamModelConfig;
+import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.task.TestUtil.TUtil;
 import jenkins.task._exam.Messages;
 import org.apache.commons.io.FileUtils;
@@ -17,9 +20,14 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.BuildWatcher;
+import org.jvnet.hudson.test.FakeLauncher;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.io.File;
@@ -28,6 +36,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
+@RunWith(PowerMockRunner.class)
 public class ExamTaskModelTest {
     
     @Rule
@@ -189,7 +198,7 @@ public class ExamTaskModelTest {
         String log = FileUtils.readFileToString(build.getLogFile());
         assertThat(log, CoreMatchers.containsString(Messages.EXAM_LicenseServerNotConfigured()));
     }
-    
+
     @Test
     public void perform_noTool() throws Exception {
         examTestProject = jenkinsRule.createFreeStyleProject();

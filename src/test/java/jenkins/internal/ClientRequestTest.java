@@ -217,35 +217,35 @@ public class ClientRequestTest {
     
     @Test
     public void connectClient() throws IOException, InterruptedException {
-        assertTrue(testObject.connectClient(1000));
+        assertTrue(testObject.connectClient(1));
         verify(printMock, never()).println("ERROR: EXAM does not answer in 1s");
         
         server.shutdown();
         clearInvocations(printMock);
-        assertFalse(testObject.connectClient(1000));
+        assertFalse(testObject.connectClient(1));
         verify(printMock).println("ERROR: EXAM does not answer in 1s");
     }
     
     @Test
     public void disconnectClient() throws Exception {
-        testObject.disconnectClient(1000);
+        testObject.disconnectClient(1);
         verify(printMock).println("disconnect from EXAM");
-        verify(printMock).println("ERROR: EXAM does not shutdown in 1000ms");
+        verify(printMock).println("ERROR: EXAM does not shutdown in 1s");
         
         Whitebox.setInternalState(testObject, "clientConnected", true);
         clearInvocations(printMock);
         dispatcher.removeResponse("/examRest/testrun/status");
-        testObject.disconnectClient(1000);
+        testObject.disconnectClient(1);
         verify(printMock).println("disconnect from EXAM");
-        verify(printMock, never()).println("ERROR: EXAM does not shutdown in 1000ms");
+        verify(printMock, never()).println("ERROR: EXAM does not shutdown in 1s");
         
-        testObject.disconnectClient(1000);
+        testObject.disconnectClient(1);
         verify(printMock).println("Client is not connected");
         
         Whitebox.setInternalState(testObject, "clientConnected", true);
         clearInvocations(printMock);
         server.shutdown();
-        testObject.disconnectClient(1000);
+        testObject.disconnectClient(1);
         
         verify(printMock).println("disconnect from EXAM");
         inOrder(printMock).verify(printMock, calls(2)).println(anyString());

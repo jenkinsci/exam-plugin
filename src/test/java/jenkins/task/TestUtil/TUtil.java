@@ -35,7 +35,7 @@ public class TUtil {
     // exam plugin config
     private static int pluginConfigPort = 8080;
     private static int pluginConfigLicensePort = 8090;
-    private static String pluginConfigLicenseHost = "";
+    private static String pluginConfigLicenseHost = "localhost";
     
     private static char[] chars = "1234567890abcdef".toCharArray();
     
@@ -103,6 +103,15 @@ public class TUtil {
         testrunFilters.add(new TestrunFilter("testrunFilter4", "testrunValue4", false, true));
         
         return testrunFilters;
+    }
+    public static void createAndRegisterExamPluginConfig(JenkinsRule jenkinsRule){
+        ExamPluginConfig testExamPluginConfig = getTestExamPluginConfig();
+        ExamPluginConfig examPluginConfig = jenkinsRule.getInstance().getDescriptorByType(ExamPluginConfig.class);
+        examPluginConfig.setModelConfigs(testExamPluginConfig.getModelConfigs());
+        examPluginConfig.setReportConfigs(testExamPluginConfig.getReportConfigs());
+        examPluginConfig.setLicenseHost(pluginConfigLicenseHost);
+        examPluginConfig.setLicensePort(pluginConfigLicensePort);
+        examPluginConfig.setPort(pluginConfigPort);
     }
     
     public static PythonInstallation createAndRegisterPythonInstallation(JenkinsRule jenkinsRule, String name,

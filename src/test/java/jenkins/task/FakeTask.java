@@ -4,6 +4,7 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import jenkins.internal.data.TestConfiguration;
+import jenkins.task.ExamTask;
 
 public class FakeTask extends ExamTask {
     

@@ -272,14 +272,14 @@ public class ClientRequest {
     public boolean connectClient(int timeout) throws IOException, InterruptedException {
         logger.println("connecting to EXAM");
         
-        long timeoutTime = System.currentTimeMillis() + timeout;
+        long timeoutTime = System.currentTimeMillis() + timeout * 1000;
         while (timeoutTime > System.currentTimeMillis()) {
             if (isApiAvailable()) {
                 clientConnected = true;
                 return true;
             }
         }
-        logger.println("ERROR: EXAM does not answer in " + timeout / 1000 + "s");
+        logger.println("ERROR: EXAM does not answer in " + timeout + "s");
         return false;
     }
     
@@ -300,7 +300,7 @@ public class ClientRequest {
                 logger.println(e.getMessage());
             }
             
-            long timeoutTime = System.currentTimeMillis() + timeout;
+            long timeoutTime = System.currentTimeMillis() + timeout * 1000;
             boolean shutdownOK = false;
             while (timeoutTime > System.currentTimeMillis()) {
                 if (!isApiAvailable()) {
@@ -309,7 +309,7 @@ public class ClientRequest {
                 }
             }
             if (!shutdownOK) {
-                logger.println("ERROR: EXAM does not shutdown in " + timeout + "ms");
+                logger.println("ERROR: EXAM does not shutdown in " + timeout + "s");
             }
             
             clientConnected = false;

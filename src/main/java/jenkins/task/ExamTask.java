@@ -368,59 +368,37 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         
         File buildFile = new File(exe);
         FilePath buildFilePath = new FilePath(buildFile);
-        
+
         String dataPath = examTool.getHome();
-        String configurationPath;
-        String examWorkspace;
         String relativeDataPath = examTool.getRelativeDataPath();
         if (relativeDataPath != null && !relativeDataPath.trim().isEmpty()) {
             dataPath = examTool.getHome() + File.separator + relativeDataPath;
         }
-        configurationPath = dataPath + File.separator + "configuration";
-        examWorkspace = workspace + File.separator + "workspace_exam_restApi";
+        String examWorkspace = workspace + File.separator + "workspace_exam_restApi";
+        examWorkspace = examWorkspace.replaceAll("[\\/]]", File.separator);
         FilePath source = workspace.child("workspace_exam_restApi");
         FilePath target = workspace.child("target");
-        examWorkspace = examWorkspace.replaceAll("[\\/]]", File.separator);
+
+        String configurationPath = dataPath + File.separator + "configuration";
         File configurationFile = new File(
                 dataPath + File.separator + "configuration" + File.separator + "config.ini");
         if (!Remote.fileExists(launcher, configurationFile)) {
             run.setResult(Result.FAILURE);
             throw new AbortException(Messages.EXAM_NotExamConfigDirectory(configurationFile.getPath()));
         }
-        
+
         args.add("-data", examWorkspace);
         args.add("-configuration", configurationPath);
         examTool.buildEnvVars(env);
-        
+
         ExamPluginConfig examPluginConfig = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class);
-        int port = examPluginConfig.getPort();
-        args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
-                "-DRESTAPI_PORT=" + port);
-        
-        if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
-            run.setResult(Result.FAILURE);
-            throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
-        }
-        args.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
-                "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
-        
-        args.add("-Dfile.encoding=UTF-8");
-        args.add("-Dsun.jnu.encoding=UTF-8");
-        
-        if (javaOpts != null) {
-            env.put("JAVA_OPTS", env.expand(javaOpts));
-            args.add(javaOpts.split(" "));
-        }
-        
-        if (!launcher.isUnix()) {
-            args = toWindowsCommand(args);
-        }
-        
+        int timeout = handleAdditionalArgs(run, args, env, examPluginConfig, launcher);
+
         long startTime = System.currentTimeMillis();
         ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
         ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger());
         try {
-            ClientRequest clientRequest = new ClientRequest(listener.getLogger(), port, launcher);
+            ClientRequest clientRequest = new ClientRequest(listener.getLogger(), examPluginConfig.getPort(), launcher);
             Proc proc = null;
             try {
                 
@@ -434,7 +412,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 process.stdout(eca);
                 proc = process.start();
                 
-                boolean ret = clientRequest.connectClient(5 * 60 * 1000);
+                boolean ret = clientRequest.connectClient(timeout);
                 if (ret) {
                     ApiVersion apiVersion = clientRequest.getApiVersion();
                     listener.getLogger().println("EXAM api version: " + apiVersion.toString());
@@ -479,7 +457,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 throw new AbortException("ERROR: " + e.toString());
             } finally {
                 try {
-                    clientRequest.disconnectClient(10 * 1000);
+                    clientRequest.disconnectClient(timeout);
                 } finally {
                     if (proc != null && proc.isAlive()) {
                         proc.joinWithTimeout(10, TimeUnit.SECONDS, listener);
@@ -515,7 +493,44 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             examErr.forceEol();
         }
     }
-    
+
+    private int handleAdditionalArgs(@Nonnull Run<?, ?> run, ArgumentListBuilder args, EnvVars env, ExamPluginConfig examPluginConfig, Launcher launcher) throws AbortException {
+        int timeout = 300;
+        args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
+                "-DRESTAPI_PORT=" + examPluginConfig.getPort());
+
+        if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
+            run.setResult(Result.FAILURE);
+            throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
+        }
+        args.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
+                "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
+
+        args.add("-Dfile.encoding=UTF-8");
+        args.add("-Dsun.jnu.encoding=UTF-8");
+
+        if (javaOpts != null) {
+            env.put("JAVA_OPTS", env.expand(javaOpts));
+            String[] splittedJavaOpts = javaOpts.split(" ");
+            args.add(splittedJavaOpts);
+            if(javaOpts.contains("-Dtimeout=")){
+                String sTimeout = "";
+                for(String option : splittedJavaOpts) {
+                    if(option.startsWith("-Dtimeout=")){
+                        sTimeout = option.substring(10);
+                    }
+                }
+                timeout = Integer.valueOf(sTimeout).intValue();
+            }
+        }
+
+        if (!launcher.isUnix()) {
+            args = toWindowsCommand(args);
+        }
+
+        return timeout;
+    }
+
     private ExamReportConfig getReport(String name) {
         for (ExamReportConfig rConfig : getDescriptor().getReportConfigs()) {
             if (rConfig.getName().equalsIgnoreCase(name)) {
