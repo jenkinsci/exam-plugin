@@ -1,3 +1,32 @@
+<!--
+    Copyright (c) 2018 MicroNova AG
+    All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without modification,
+    are permitted provided that the following conditions are met:
+
+        1. Redistributions of source code must retain the above copyright notice, this
+           list of conditions and the following disclaimer.
+
+        2. Redistributions in binary form must reproduce the above copyright notice, this
+           list of conditions and the following disclaimer in the documentation and/or
+           other materials provided with the distribution.
+
+        3. Neither the name of MicroNova AG nor the names of its
+           contributors may be used to endorse or promote products derived from
+           this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+    ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+    ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
     <l:layout title="EXAM build">
@@ -6,9 +35,38 @@
             <st:include page="sidepanel.jelly" it="${it.run}" optional="true"/>
         </l:side-panel>
         <l:main-panel>
-            <h1>
-                Name: ${it.name}
-            </h1>
+            <h3>Launch attributes</h3>
+            <table border="1" cellpadding="5">
+                <tr><td>EXAM name</td><td>${it.examName}</td></tr>
+                <tr><td>Python name</td><td>${it.pythonName}</td></tr>
+            </table>
+            <h3>Logging</h3>
+            <table border="1" cellpadding="5">
+                <tr><th>TestControl</th><th>TestLogic</th><th>LibControl</th></tr>
+                <tr><td>${it.loglevelTestCtrl}</td><td>${it.loglevelTestLogic}</td><td>${it.loglevelLibCtrl}</td></tr>
+            </table>
+            <h3>TestrunFilter</h3>
+            <j:if test="${it.testrunFilter.size() == 0}">
+                <p>no filter set</p>
+            </j:if>
+            <j:if test="${it.testrunFilter.size() != 0}">
+                <table border="1" cellpadding="5">
+                <tr>
+                    <th>Attribute Name</th>
+                    <th>Regular Expression</th>
+                    <th>TestCases</th>
+                    <th>AdministrativeCase</th>
+                </tr>
+                <j:forEach var="filter" items="${it.testrunFilter}">
+                    <tr>
+                        <td>${filter.name}</td>
+                        <td>${filter.value}</td>
+                        <td>${filter.activateTestcases}</td>
+                        <td>${filter.adminCases}</td>
+                    </tr>
+                </j:forEach>
+                </table>
+            </j:if>
         </l:main-panel>
     </l:layout>
 </j:jelly>

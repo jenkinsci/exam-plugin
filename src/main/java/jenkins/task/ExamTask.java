@@ -320,7 +320,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws IOException, InterruptedException {
 
-        run.addAction(new ExamReportAction(examName));
+        run.addAction(new ExamReportAction(this));
         ArgumentListBuilder args = new ArgumentListBuilder();
 
         EnvVars env = run.getEnvironment(listener);
