@@ -5,6 +5,7 @@ import hudson.model.Run;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.model.RunAction2;
 import jenkins.task.ExamTask;
+import jenkins.task.ExamTaskModel;
 import jenkins.task.TestrunFilter;
 
 import javax.annotation.CheckForNull;
@@ -19,29 +20,33 @@ public class ExamReportAction implements Action, RunAction2 {
         this.examTask = examTask;
     }
 
-    public String getPythonName(){
-        return examTask.getPythonName();
+    public ExamTask getExamTask(){
+        return examTask;
     }
 
-    public String getExamName() {
-        return examTask.getExamName();
+    public boolean isModel(){
+        return examTask instanceof ExamTaskModel;
     }
 
-    public List<TestrunFilter> getTestrunFilter() {
-        return examTask.getTestrunFilter();
+    public String getExamModel(){
+        if(examTask instanceof ExamTaskModel){
+            return ((ExamTaskModel)examTask).getExamModel();
+        }
+        return "no model configured";
     }
 
-
-    public String getLoglevelTestCtrl(){
-        return examTask.getLoglevelTestCtrl();
+    public String getModelConfiguration(){
+        if(examTask instanceof ExamTaskModel){
+            return ((ExamTaskModel)examTask).getModelConfiguration();
+        }
+        return "no modelConfig configured";
     }
 
-    public String getLoglevelTestLogic(){
-        return examTask.getLoglevelTestLogic();
-    }
-
-    public String getLoglevelLibCtrl(){
-        return examTask.getLoglevelLibCtrl();
+    public String getTestObject(){
+        if(examTask instanceof ExamTaskModel){
+            return ((ExamTaskModel)examTask).getExecutionFile();
+        }
+        return "no test object configured";
     }
 
     @CheckForNull

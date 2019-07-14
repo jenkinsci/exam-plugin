@@ -29,41 +29,75 @@
 -->
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
+    <style type="text/css">
+        table, th, td {
+            border: 1px solid #4472c4;
+            border-collapse: collapse;
+        }
+        th {
+            color: #ffffff !important;
+            background-color: #4472c4;
+        }
+        tr.odd {
+            background-color: #d9e2f3;
+        }
+    </style>
     <l:layout title="EXAM build">
 
         <l:side-panel>
             <st:include page="sidepanel.jelly" it="${it.run}" optional="true"/>
         </l:side-panel>
+
         <l:main-panel>
             <h3>Launch attributes</h3>
-            <table border="1" cellpadding="5">
-                <tr><td>EXAM name</td><td>${it.examName}</td></tr>
-                <tr><td>Python name</td><td>${it.pythonName}</td></tr>
+            <table cellpadding="5">
+                <tr><th>name</th><th>value</th></tr>
+                <tr class="odd"><td>EXAM name</td><td>${it.examTask.examName}</td></tr>
+                <tr><td>Python name</td><td>${it.examTask.pythonName}</td></tr>
+                <tr class="odd"><td>SystemConfig</td><td>${it.examTask.systemConfiguration}</td></tr>
+
+                <j:if test="${it.isModel()}">
+                    <tr><td>Model name</td><td>${it.examModel}</td></tr>
+                    <tr class="odd"><td>ModelConfiguration</td><td>${it.modelConfiguration}</td></tr>
+                    <tr><td>TestObject</td><td>${it.testObject}</td></tr>
+                </j:if>
             </table>
+
             <h3>Logging</h3>
-            <table border="1" cellpadding="5">
+            <table cellpadding="5">
                 <tr><th>TestControl</th><th>TestLogic</th><th>LibControl</th></tr>
-                <tr><td>${it.loglevelTestCtrl}</td><td>${it.loglevelTestLogic}</td><td>${it.loglevelLibCtrl}</td></tr>
+                <tr><td>${it.examTask.loglevelTestCtrl}</td><td>${it.examTask.loglevelTestLogic}</td><td>${it.examTask.loglevelLibCtrl}</td></tr>
             </table>
+
             <h3>TestrunFilter</h3>
-            <j:if test="${it.testrunFilter.size() == 0}">
+            <j:if test="${it.examTask.testrunFilter.size() == 0}">
                 <p>no filter set</p>
             </j:if>
-            <j:if test="${it.testrunFilter.size() != 0}">
-                <table border="1" cellpadding="5">
+            <j:if test="${it.examTask.testrunFilter.size() != 0}">
+                <table cellpadding="5">
                 <tr>
                     <th>Attribute Name</th>
                     <th>Regular Expression</th>
                     <th>TestCases</th>
                     <th>AdministrativeCase</th>
                 </tr>
-                <j:forEach var="filter" items="${it.testrunFilter}">
-                    <tr>
-                        <td>${filter.name}</td>
-                        <td>${filter.value}</td>
-                        <td>${filter.activateTestcases}</td>
-                        <td>${filter.adminCases}</td>
-                    </tr>
+                <j:forEach var="filter" indexVar="index" items="${it.examTask.testrunFilter}">
+                    <j:if test="${index % 2 == 0}">
+                        <tr class="odd">
+                            <td>${filter.name}</td>
+                            <td>${filter.value}</td>
+                            <td>${filter.activateTestcases}</td>
+                            <td>${filter.adminCases}</td>
+                        </tr>
+                    </j:if>
+                    <j:if test="${index % 2 != 0}">
+                        <tr>
+                            <td>${filter.name}</td>
+                            <td>${filter.value}</td>
+                            <td>${filter.activateTestcases}</td>
+                            <td>${filter.adminCases}</td>
+                        </tr>
+                    </j:if>
                 </j:forEach>
                 </table>
             </j:if>
