@@ -40,7 +40,7 @@ public class ExamPluginConfigTest {
 
     @Before
     public void setUp() {
-        testObject = new ExamPluginConfig(Collections.emptyList(), Collections.emptyList(), 1, 1, "");
+        testObject = new ExamPluginConfig(Collections.emptyList(), Collections.emptyList(), 1, 1, 1, "");
     }
 
     @After
@@ -66,6 +66,26 @@ public class ExamPluginConfigTest {
         int setPort = Whitebox.getInternalState(testObject, "port");
 
         assertEquals(testPort, setPort);
+    }
+
+    @Test
+    @WithoutJenkins
+    public void getTimeout() {
+        int testTimeout = 1234;
+        Whitebox.setInternalState(testObject, "timeout", testTimeout);
+        int setTimeout = testObject.getTimeout();
+
+        assertEquals(testTimeout, setTimeout);
+    }
+
+    @Test
+    @WithoutJenkins
+    public void setTimeout() {
+        int testTimeout = 9876;
+        testObject.setTimeout(testTimeout);
+        int setTimeout = Whitebox.getInternalState(testObject, "timeout");
+
+        assertEquals(testTimeout, setTimeout);
     }
 
     @Test
@@ -193,7 +213,7 @@ public class ExamPluginConfigTest {
 
         // mock it again and return different value
         BDDMockito.given(DbFactory.testModelConnection(anyString(), anyString(), anyInt()))
-                  .willReturn("Wrong WebService!");
+                .willReturn("Wrong WebService!");
         FormValidation expectedErrorResult = testObject.doVerifyModelConnections();
 
         assertTrue(expectedErrorResult.getMessage().contains("Wrong WebService!"));

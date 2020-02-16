@@ -485,7 +485,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     }
 
     private int handleAdditionalArgs(@Nonnull Run<?, ?> run, ArgumentListBuilder args, EnvVars env, ExamPluginConfig examPluginConfig, Launcher launcher) throws AbortException {
-        int timeout = 300;
+        int timeout = examPluginConfig.getTimeout();
         args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
                 "-DRESTAPI_PORT=" + examPluginConfig.getPort());
 
