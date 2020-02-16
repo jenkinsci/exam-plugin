@@ -29,8 +29,8 @@
  */
 package jenkins.internal;
 
-import com.sun.jersey.api.client.Client;
-import hudson.AbortException;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import hudson.Launcher;
 import hudson.model.Executor;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.ExamStatus;
@@ -47,6 +47,8 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.WithoutJenkins;
 import org.mockito.Mock;
 import org.mockito.MockingDetails;
 import org.powermock.reflect.Whitebox;
@@ -54,13 +56,21 @@ import testData.ServerDispatcher;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Random;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ClientRequestTest {
     
-    private static String baseUrl = "http://localhost:8085";
+    @Rule
+    public JenkinsRule jenkinsRule = new JenkinsRule();
+    
+    private Launcher.LocalLauncher launcher;
+    
+    private Random random = new Random();
+    
+    private static int apiPort = 8085;
     @Mock
     private static MockWebServer server;
     @Mock
@@ -73,12 +83,12 @@ public class ClientRequestTest {
     private PrintStream printMock;
     
     @BeforeClass
-    public static void oneTimeSetup() throws IOException {
+    public static void oneTimeSetup() {
         dispatcher = new ServerDispatcher();
     }
     
     @AfterClass
-    public static void oneTimeTearDown() throws IOException {
+    public static void oneTimeTearDown() {
     }
     
     private static void setServer(MockWebServer myServer) {
@@ -87,36 +97,40 @@ public class ClientRequestTest {
     
     @Before
     public void setUp() throws Exception {
+        launcher = jenkinsRule.createLocalLauncher();
         ClientRequestTest.setServer(new MockWebServer());
         dispatcher.setDefaults();
         server.setDispatcher(dispatcher);
-        server.start(8085);
+        server.start(apiPort);
         printMock = mock(PrintStream.class, "PrintMock");
-        testObject = new ClientRequest(printMock, baseUrl);
+        testObject = new ClientRequest(printMock, apiPort, launcher);
         Whitebox.setInternalState(testObject, "waitTime", 100);
-        Whitebox.invokeMethod(testObject, "createClient");
+        Whitebox.setInternalState(testObject, "clientConnected", true);
     }
     
     @After
     public void tearDown() throws Exception {
-        Whitebox.invokeMethod(testObject, "destroyClient");
+        launcher = null;
+        Whitebox.setInternalState(testObject, "clientConnected", false);
         server.shutdown();
     }
     
     @Test
-    public void getBaseUrl() {
-        String testString = "myTestString";
-        Whitebox.setInternalState(testObject, "baseUrl", testString);
-        String testIt = testObject.getBaseUrl();
-        assertEquals(testString, testIt);
+    @WithoutJenkins
+    public void getApiPort() {
+        int testInt = random.nextInt();
+        Whitebox.setInternalState(testObject, "apiPort", testInt);
+        int testIt = testObject.getApiPort();
+        assertEquals(testInt, testIt);
     }
     
     @Test
-    public void setBaseUrl() {
-        String testString = "myTestString";
-        testObject.setBaseUrl(testString);
-        String testIt = Whitebox.getInternalState(testObject, "baseUrl");
-        assertEquals(testString, testIt);
+    @WithoutJenkins
+    public void setApiPort() {
+        int testInt = random.nextInt();
+        testObject.setApiPort(testInt);
+        int testIt = Whitebox.getInternalState(testObject, "apiPort");
+        assertEquals(testInt, testIt);
     }
     
     @Test
@@ -124,7 +138,7 @@ public class ClientRequestTest {
         try {
             ExamStatus examStatus = testObject.getStatus();
             assertEquals("myTestJob", examStatus.getJobName());
-        } catch (AbortException e) {
+        } catch (IOException | InterruptedException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
         }
     }
@@ -137,7 +151,7 @@ public class ClientRequestTest {
         assertFalse(testObject.isApiAvailable());
         dispatcher.setDefaults();
         
-        Whitebox.invokeMethod(testObject, "destroyClient");
+        Whitebox.setInternalState(testObject, "clientConnected", false);
         assertTrue(testObject.isApiAvailable());
     }
     
@@ -146,15 +160,15 @@ public class ClientRequestTest {
         try {
             testObject.startTestrun(null);
             verify(printMock).println("starting testrun");
-        } catch (AbortException e) {
+        } catch (IOException | InterruptedException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
         }
     }
     
     @Test
-    public void startTestrunWithException() throws AbortException {
-        dispatcher.removeResponse("/testrun/start");
-        exception.expect(AbortException.class);
+    public void startTestrunWithException() throws IOException, InterruptedException {
+        dispatcher.removeResponse("/examRest/testrun/start");
+        exception.expect(IOException.class);
         testObject.startTestrun(null);
         verify(printMock).println("starting testrun");
     }
@@ -164,15 +178,15 @@ public class ClientRequestTest {
         try {
             testObject.stopTestrun();
             verify(printMock).println("stopping testrun");
-        } catch (AbortException e) {
+        } catch (IOException | InterruptedException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
         }
     }
     
     @Test
-    public void stopTestrunWithException() throws AbortException {
-        dispatcher.removeResponse("/testrun/stop");
-        exception.expect(AbortException.class);
+    public void stopTestrunWithException() throws IOException, InterruptedException {
+        dispatcher.removeResponse("/examRest/testrun/stop");
+        exception.expect(IOException.class);
         testObject.stopTestrun();
         verify(printMock).println("stopping testrun");
     }
@@ -189,55 +203,49 @@ public class ClientRequestTest {
             testObject.clearWorkspace("myProject");
             verify(printMock).println("deleting project and pcode for project \"myProject\" from EXAM workspace");
             
-        } catch (AbortException e) {
+        } catch (IOException | InterruptedException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
         }
     }
     
     @Test
-    public void clearWorkspaceWithException() throws AbortException {
+    public void clearWorkspaceWithException() throws IOException, InterruptedException {
         dispatcher.clearAllResponse();
-        exception.expect(AbortException.class);
+        exception.expect(IOException.class);
         testObject.clearWorkspace("");
     }
     
     @Test
-    public void shutdown() {
-        testObject.shutdown();
-        verify(printMock).println("closing EXAM");
-    }
-    
-    @Test
-    public void connectClient() throws IOException {
-        assertTrue(testObject.connectClient(1000));
+    public void connectClient() throws IOException, InterruptedException {
+        assertTrue(testObject.connectClient(1));
         verify(printMock, never()).println("ERROR: EXAM does not answer in 1s");
         
         server.shutdown();
         clearInvocations(printMock);
-        assertFalse(testObject.connectClient(1000));
+        assertFalse(testObject.connectClient(1));
         verify(printMock).println("ERROR: EXAM does not answer in 1s");
     }
     
     @Test
     public void disconnectClient() throws Exception {
-        testObject.disconnectClient(1000);
+        testObject.disconnectClient(1);
         verify(printMock).println("disconnect from EXAM");
-        verify(printMock).println("ERROR: EXAM does not shutdown in 1000ms");
+        verify(printMock).println("ERROR: EXAM does not shutdown in 1s");
         
-        Whitebox.invokeMethod(testObject, "createClient");
+        Whitebox.setInternalState(testObject, "clientConnected", true);
         clearInvocations(printMock);
-        dispatcher.removeResponse("/testrun/status");
-        testObject.disconnectClient(1000);
+        dispatcher.removeResponse("/examRest/testrun/status");
+        testObject.disconnectClient(1);
         verify(printMock).println("disconnect from EXAM");
-        verify(printMock, never()).println("ERROR: EXAM does not shutdown in 1000ms");
+        verify(printMock, never()).println("ERROR: EXAM does not shutdown in 1s");
         
-        testObject.disconnectClient(1000);
+        testObject.disconnectClient(1);
         verify(printMock).println("Client is not connected");
         
-        Whitebox.invokeMethod(testObject, "createClient");
+        Whitebox.setInternalState(testObject, "clientConnected", true);
         clearInvocations(printMock);
         server.shutdown();
-        testObject.disconnectClient(1000);
+        testObject.disconnectClient(1);
         
         verify(printMock).println("disconnect from EXAM");
         inOrder(printMock).verify(printMock, calls(2)).println(anyString());
@@ -245,14 +253,15 @@ public class ClientRequestTest {
     
     @Test
     public void waitForTestrunEnds() {
+        int numCalls = 10;
         try {
             Executor executor = mock(Executor.class);
             when(executor.isInterrupted()).thenReturn(false);
-            dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
+            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
                     .addHeader("Content-Type", "application/json; charset=utf-8")
                     .addHeader("Cache-Control", "no-cache")
                     .setBody("{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":1}"));
-            testObject.waitForTestrunEnds(executor);
+            testObject.waitForTestrunEnds(executor, numCalls);
             
             inOrder(executor).verify(executor, calls(2)).isInterrupted();
             int reqCount = server.getRequestCount();
@@ -260,38 +269,150 @@ public class ClientRequestTest {
             
             clearInvocations(executor);
             when(executor.isInterrupted()).thenReturn(true);
-            testObject.waitForTestrunEnds(executor);
+            testObject.waitForTestrunEnds(executor, numCalls);
             inOrder(executor).verify(executor, calls(1)).isInterrupted();
-        } catch (AbortException e) {
+        } catch (IOException | InterruptedException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
         }
     }
     
     @Test
     public void waitForTestrunEnds_noStart() {
+        int numCalls = 10;
         try {
             Executor executor = mock(Executor.class);
             when(executor.isInterrupted()).thenReturn(false);
-            dispatcher.setResponse("/testrun/status", new MockResponse().setResponseCode(200)
+            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
                     .addHeader("Content-Type", "application/json; charset=utf-8")
                     .addHeader("Cache-Control", "no-cache")
                     .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"false\",\"testRunState\":1}"));
-            testObject.waitForTestrunEnds(executor);
+            testObject.waitForTestrunEnds(executor, numCalls);
             
-            inOrder(executor).verify(executor, calls(10)).isInterrupted();
+            inOrder(executor).verify(executor, calls(numCalls)).isInterrupted();
             int reqCount = server.getRequestCount();
-            assertEquals("unexpected count of server calls", 10, reqCount);
+            assertEquals("unexpected count of server calls", numCalls, reqCount);
             
             clearInvocations(executor);
             when(executor.isInterrupted()).thenReturn(true);
-            testObject.waitForTestrunEnds(executor);
+            testObject.waitForTestrunEnds(executor, numCalls);
             inOrder(executor).verify(executor, calls(1)).isInterrupted();
-        } catch (AbortException e) {
+        } catch (IOException | InterruptedException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
         }
     }
     
     @Test
+    public void waitForExamIdle() {
+        int numCalls = 10;
+        try {
+            Executor executor = mock(Executor.class);
+            when(executor.isInterrupted()).thenReturn(false);
+            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":0}"));
+            testObject.waitForExamIdle(executor, numCalls);
+            
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+            int reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", 1, reqCount);
+            
+            clearInvocations(executor);
+            when(executor.isInterrupted()).thenReturn(true);
+            testObject.waitForExamIdle(executor, numCalls);
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+        } catch (IOException | InterruptedException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+    
+    @Test
+    public void waitForExamIdle_isBusy() {
+        int numCalls = 10;
+        try {
+            Executor executor = mock(Executor.class);
+            when(executor.isInterrupted()).thenReturn(false);
+            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"true\",\"testRunState\":0}"));
+            testObject.waitForExamIdle(executor, numCalls);
+            
+            inOrder(executor).verify(executor, calls(numCalls)).isInterrupted();
+            int reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", numCalls, reqCount);
+            
+            clearInvocations(executor);
+            when(executor.isInterrupted()).thenReturn(true);
+            testObject.waitForExamIdle(executor, numCalls);
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+        } catch (IOException | InterruptedException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+    
+    @Test
+    public void waitForExportPDFReportJob() {
+        int numCalls = 10;
+        String jobName = "Export Reports to PDF.";
+        try {
+            Executor executor = mock(Executor.class);
+            when(executor.isInterrupted()).thenReturn(false);
+            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"" + jobName + "\",\"jobRunning\":\"false\",\"testRunState\":0}"));
+            testObject.waitForExportPDFReportJob(executor, numCalls);
+            
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+            int reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", 1, reqCount);
+            
+            clearInvocations(executor);
+            
+            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"true\",\"testRunState\":0}"));
+            testObject.waitForExportPDFReportJob(executor, numCalls);
+            
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+            reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", 2, reqCount);
+            
+        } catch (IOException | InterruptedException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+    
+    @Test
+    public void waitForExportPDFReportJob_isBusy() {
+        int numCalls = 10;
+        String jobName = "Export Reports to PDF.";
+        try {
+            Executor executor = mock(Executor.class);
+            when(executor.isInterrupted()).thenReturn(false);
+            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobName\":\"" + jobName + "\",\"jobRunning\":\"true\",\"testRunState\":0}"));
+            testObject.waitForExportPDFReportJob(executor, numCalls);
+            
+            inOrder(executor).verify(executor, calls(numCalls)).isInterrupted();
+            int reqCount = server.getRequestCount();
+            assertEquals("unexpected count of server calls", numCalls, reqCount);
+            
+            clearInvocations(executor);
+            when(executor.isInterrupted()).thenReturn(true);
+            testObject.waitForExportPDFReportJob(executor, numCalls);
+            inOrder(executor).verify(executor, calls(1)).isInterrupted();
+        } catch (IOException | InterruptedException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+    
+    @Test
+    @WithoutJenkins
     public void getLogger() {
         PrintStream printMock = mock(PrintStream.class, "PrintMock for Test");
         Whitebox.setInternalState(testObject, "logger", printMock);
@@ -305,6 +426,7 @@ public class ClientRequestTest {
     }
     
     @Test
+    @WithoutJenkins
     public void setLogger() {
         PrintStream printMock = mock(PrintStream.class, "PrintMock for Test");
         testObject.setLogger(printMock);
@@ -318,14 +440,9 @@ public class ClientRequestTest {
     }
     
     @Test
-    public void createClient() throws Exception {
-        Whitebox.invokeMethod(testObject, "createClient");
-        verify(printMock).println("Client already connected");
-    }
-    
-    @Test
+    @WithoutJenkins
     public void noClient() throws Exception {
-        Whitebox.invokeMethod(testObject, "destroyClient");
+        Whitebox.setInternalState(testObject, "clientConnected", false);
         
         clearInvocations(printMock);
         testObject.getApiVersion();
@@ -340,19 +457,11 @@ public class ClientRequestTest {
         verify(printMock).println("WARNING: no EXAM connected");
         
         clearInvocations(printMock);
-        testObject.shutdown();
-        verify(printMock).println("WARNING: no EXAM connected");
-        
-        clearInvocations(printMock);
         testObject.clearWorkspace("");
         verify(printMock).println("WARNING: no EXAM connected");
         
         clearInvocations(printMock);
         testObject.stopTestrun();
-        verify(printMock).println("WARNING: no EXAM connected");
-        
-        clearInvocations(printMock);
-        testObject.getStatus();
         verify(printMock).println("WARNING: no EXAM connected");
         
         clearInvocations(printMock);
@@ -370,7 +479,7 @@ public class ClientRequestTest {
         ApiVersion apiVersion = null;
         try {
             apiVersion = testObject.getApiVersion();
-        } catch (AbortException e) {
+        } catch (IOException | InterruptedException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
         }
         assertEquals(toTest.getFix(), apiVersion.getFix());
@@ -380,11 +489,11 @@ public class ClientRequestTest {
     
     // Note:
     // This Test has to run after the "startTestrun" Test because it manipulates the mocked Response
-    @Test(expected = AbortException.class)
+    @Test(expected = UniformInterfaceException.class)
     public void handleResponseError() throws Exception {
         // change Response that handleResponseError gets an Error
-        dispatcher.removeResponse("/testrun/start");
-        dispatcher.setResponse("/testrun/start",
+        dispatcher.removeResponse("/examRest/testrun/start");
+        dispatcher.setResponse("/examRest/testrun/start",
                 new MockResponse().setResponseCode(204).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache").setBody("{}"));
         
@@ -411,21 +520,12 @@ public class ClientRequestTest {
         String filterConfigToTest = om.writeValueAsString(filterConfig);
         
         assertEquals(requestBody, filterConfigToTest);
-        assertEquals(requestRoute, "/testrun/setFilter");
-    }
-    
-    @Test
-    public void destroyClient() throws Exception {
-        Whitebox.invokeMethod(testObject, "destroyClient");
-        
-        Client client = Whitebox.getInternalState(testObject, "client");
-        
-        assertNull(client);
+        assertEquals(requestRoute, "/examRest/testrun/setFilter");
     }
     
     @Test
     public void convert() throws Exception {
-        String path = "/testrun/convertToJunit/";
+        String path = "/examRest/testrun/convertToJunit/";
         String testReportProject = "testProject";
         Whitebox.invokeMethod(testObject, "convert", testReportProject);
         

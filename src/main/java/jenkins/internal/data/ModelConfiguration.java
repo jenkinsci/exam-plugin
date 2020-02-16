@@ -29,13 +29,16 @@
  */
 package jenkins.internal.data;
 
+import java.io.Serializable;
+
 /**
  * Information of the EXAM model configuration
  *
  * @author liu
  */
-public class ModelConfiguration {
+public class ModelConfiguration implements Serializable {
     
+    private static final long serialVersionUID = 4400337933937504311L;
     private String projectName;
     private String modelName;
     private String targetEndpoint;

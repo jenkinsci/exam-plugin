@@ -27,31 +27,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package jenkins;
+package jenkins.internal;
 
-import hudson.model.FreeStyleBuild;
-import hudson.model.FreeStyleProject;
-import hudson.tasks.BatchFile;
-import org.apache.commons.io.FileUtils;
-import org.hamcrest.CoreMatchers;
-import org.junit.Rule;
-import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
+import java.io.Serializable;
 
-import static org.junit.Assert.assertThat;
-
-public class AppTestExample {
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
-
-    @Test
-    public void first() throws Exception {
-        FreeStyleProject project = j.createFreeStyleProject();
-        project.getBuildersList().add(new BatchFile("echo hello"));
-        FreeStyleBuild build = project.scheduleBuild2(0).get();
-        System.out.println(build.getDisplayName() + " completed");
-        // TODO: change this to use HtmlUnit
-        String s = FileUtils.readFileToString(build.getLogFile());
-        assertThat(s, CoreMatchers.containsString("echo hello"));
+/**
+ * Serializable Response from http client
+ */
+public class RemoteServiceResponse implements Serializable {
+    private static final long serialVersionUID = 9023988927320628840L;
+    private int status;
+    private Object entity;
+    private String entityString;
+    
+    /**
+     * Serializable Response from http client
+     *
+     * @param status       int response status
+     * @param entity       Object
+     * @param entityString String
+     */
+    public RemoteServiceResponse(int status, Object entity, String entityString) {
+        this.status = status;
+        this.entity = entity;
+        this.entityString = entityString;
+    }
+    
+    /**
+     * returns status
+     *
+     * @return int response status
+     */
+    public int getStatus() {
+        return status;
+    }
+    
+    /**
+     * returns Entity
+     *
+     * @return Object
+     */
+    public Object getEntity() {
+        return this.entity;
+    }
+    
+    /**
+     * returns Entity as String
+     *
+     * @return String
+     */
+    public String getEntityString() {
+        return this.entityString;
     }
 }

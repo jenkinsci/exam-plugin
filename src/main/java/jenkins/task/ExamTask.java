@@ -33,10 +33,12 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Proc;
 import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.Executor;
 import hudson.model.Node;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
@@ -58,7 +60,6 @@ import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
-import jenkins.report.ExamReportAction;
 import jenkins.task._exam.ExamConsoleAnnotator;
 import jenkins.task._exam.ExamConsoleErrorOut;
 import jenkins.task._exam.Messages;
@@ -73,9 +74,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public abstract class ExamTask extends Builder implements SimpleBuildStep {
-
+    
     /**
      * JAVA_OPTS if not null.
      */
@@ -112,172 +114,174 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     protected String reportPrefix;
     private boolean useExecutionFile;
     private String hash = "";
-
+    
     public ExamTask(String examName, String pythonName, String examReport, String systemConfiguration) {
         this.examName = examName;
         this.pythonName = pythonName;
         this.examReport = examReport;
         this.systemConfiguration = Util.fixEmptyAndTrim(systemConfiguration);
     }
-
+    
     /**
      * Backward compatibility by checking the number of parameters
      */
     private static ArgumentListBuilder toWindowsCommand(ArgumentListBuilder args) {
         List<String> arguments = args.toList();
-
+        
         // branch for core equals or greater than 1.654
         boolean[] masks = args.toMaskArray();
         // don't know why are missing single quotes.
-
+        
         args = new ArgumentListBuilder();
         args.add(arguments.get(0), arguments.get(1)); // "cmd.exe", "/C",
         // ...
-
+        
         int size = arguments.size();
         for (int i = 2; i < size; i++) {
             String arg = arguments.get(i).replaceAll("^(-D[^\" ]+)=$", "$0\"\"");
-
+            
             if (masks[i]) {
                 args.addMasked(arg);
             } else {
                 args.add(arg);
             }
         }
-
+        
         return args;
     }
-
+    
     public boolean getUseExecutionFile() {
         return useExecutionFile;
     }
-
+    
     public void setUseExecutionFile(boolean useExecutionFile) {
         this.useExecutionFile = useExecutionFile;
     }
-
+    
     public String getReportPrefix() {
         return reportPrefix;
     }
-
+    
     @DataBoundSetter
     public void setReportPrefix(String reportPrefix) {
         this.reportPrefix = reportPrefix;
     }
-
+    
     public boolean getPdfReport() {
         return pdfReport;
     }
-
+    
     @DataBoundSetter
     public void setPdfReport(boolean pdfReport) {
         this.pdfReport = pdfReport;
     }
-
+    
     public String getPdfReportTemplate() {
         return pdfReportTemplate;
     }
-
+    
     @DataBoundSetter
     public void setPdfReportTemplate(String pdfReportTemplate) {
         this.pdfReportTemplate = pdfReportTemplate;
     }
-
+    
     public String getPdfSelectFilter() {
         return pdfSelectFilter;
     }
-
+    
     @DataBoundSetter
     public void setPdfSelectFilter(String pdfSelectFilter) {
         this.pdfSelectFilter = pdfSelectFilter;
     }
-
+    
     public boolean getPdfMeasureImages() {
         return pdfMeasureImages;
     }
-
+    
     @DataBoundSetter
     public void setPdfMeasureImages(boolean pdfMeasureImages) {
         this.pdfMeasureImages = pdfMeasureImages;
     }
-
+    
     public boolean getLogging() {
         return logging;
     }
-
+    
     @DataBoundSetter
     public void setLogging(boolean logging) {
         this.logging = logging;
     }
-
+    
     public List<TestrunFilter> getTestrunFilter() {
         return testrunFilter;
     }
-
+    
     @DataBoundSetter
     public void setTestrunFilter(List<TestrunFilter> testrunFilter) {
         this.testrunFilter = testrunFilter;
     }
-
+    
     public String getLoglevelTestCtrl() {
         return loglevelTestCtrl;
     }
-
+    
     @DataBoundSetter
     public void setLoglevelTestCtrl(String loglevelTestCtrl) {
         this.loglevelTestCtrl = loglevelTestCtrl;
     }
-
+    
     public String getLoglevelTestLogic() {
         return loglevelTestLogic;
     }
-
+    
     @DataBoundSetter
     public void setLoglevelTestLogic(String loglevelTestLogic) {
         this.loglevelTestLogic = loglevelTestLogic;
     }
-
+    
     public String getLoglevelLibCtrl() {
         return loglevelLibCtrl;
     }
-
+    
     @DataBoundSetter
     public void setLoglevelLibCtrl(String loglevelLibCtrl) {
         this.loglevelLibCtrl = loglevelLibCtrl;
     }
-
+    
     public String getExamName() {
         return examName;
     }
-
+    
     public String getPythonName() {
         return pythonName;
     }
-
+    
     public String getExamReport() {
         return examReport;
     }
-
+    
     public String getSystemConfiguration() {
         return systemConfiguration;
     }
-
+    
     @DataBoundSetter
     public void setSystemConfiguration(String systemConfiguration) {
         this.systemConfiguration = systemConfiguration;
     }
-
+    
     public boolean isClearWorkspace() {
         return clearWorkspace;
     }
-
+    
     @DataBoundSetter
     public void setClearWorkspace(boolean clearWorkspace) {
         this.clearWorkspace = clearWorkspace;
     }
-
+    
     /**
      * Gets the EXAM to invoke, or null to invoke the default one.
+     *
+     * @return ExamTool
      */
     public ExamTool getExam() {
         for (ExamTool i : getDescriptor().getInstallations()) {
@@ -287,9 +291,11 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         }
         return null;
     }
-
+    
     /**
      * Gets the EXAM to invoke, or null to invoke the default one.
+     *
+     * @return PythonInstallation
      */
     public PythonInstallation getPython() {
         for (PythonInstallation i : getDescriptor().getPythonInstallations()) {
@@ -299,41 +305,44 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         }
         return null;
     }
-
+    
     /**
      * Gets the JAVA_OPTS parameter, or null.
+     *
+     * @return javaOpts
      */
     public String getJavaOpts() {
         return javaOpts;
     }
-
+    
     @DataBoundSetter
     public void setJavaOpts(String javaOpts) {
         this.javaOpts = Util.fixEmptyAndTrim(javaOpts);
     }
-
+    
     public ExamTool.DescriptorImpl getToolDescriptor() {
         return ToolInstallation.all().get(ExamTool.DescriptorImpl.class);
     }
-
+    
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-                        @Nonnull TaskListener listener) throws IOException, InterruptedException {
-
-        run.addAction(new ExamReportAction(this));
+            @Nonnull TaskListener listener) throws IOException, InterruptedException {
+        
         ArgumentListBuilder args = new ArgumentListBuilder();
-
+        
         EnvVars env = run.getEnvironment(listener);
-
+        
         ExamTool examTool = getExam();
         PythonInstallation python = getPython();
         String exe = "EXAM.exe";
         String pythonexe = "";
         Node node = jenkins.internal.Util.workspaceToNode(workspace);
         if (examTool == null || python == null) {
+            run.setResult(Result.FAILURE);
             throw new AbortException("examTool or python is null");
         } else {
             if (node == null) {
+                run.setResult(Result.FAILURE);
                 throw new AbortException(Messages.EXAM_NodeOffline());
             }
             examTool = examTool.forNode(node, listener);
@@ -341,6 +350,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             exe = examTool.getExecutable(launcher);
             pythonexe = python.getHome();
             if (pythonexe == null || pythonexe.trim().isEmpty()) {
+                run.setResult(Result.FAILURE);
                 throw new AbortException("python home not set");
             }
             if (!pythonexe.endsWith("exe")) {
@@ -350,29 +360,30 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 pythonexe += "python.exe";
             }
             if (exe.trim().isEmpty()) {
+                run.setResult(Result.FAILURE);
                 throw new AbortException(Messages.EXAM_ExecutableNotFound(examTool.getName()));
             }
             args.add(exe);
         }
-
+        
         File buildFile = new File(exe);
         FilePath buildFilePath = new FilePath(buildFile);
 
         String dataPath = examTool.getHome();
-        String configurationPath;
-        String examWorkspace;
-        String relativeDataPath = examTool.getRelativeConfigPath();
+        String relativeDataPath = examTool.getRelativeDataPath();
         if (relativeDataPath != null && !relativeDataPath.trim().isEmpty()) {
             dataPath = examTool.getHome() + File.separator + relativeDataPath;
         }
-        configurationPath = dataPath + File.separator + "configuration";
-        examWorkspace = workspace + File.separator + "workspace_exam_restApi";
+        String examWorkspace = workspace + File.separator + "workspace_exam_restApi";
+        examWorkspace = examWorkspace.replaceAll("[\\/]]", File.separator);
         FilePath source = workspace.child("workspace_exam_restApi");
         FilePath target = workspace.child("target");
-        examWorkspace = examWorkspace.replaceAll("[\\/]]", File.separator);
+
+        String configurationPath = dataPath + File.separator + "configuration";
         File configurationFile = new File(
                 dataPath + File.separator + "configuration" + File.separator + "config.ini");
         if (!Remote.fileExists(launcher, configurationFile)) {
+            run.setResult(Result.FAILURE);
             throw new AbortException(Messages.EXAM_NotExamConfigDirectory(configurationFile.getPath()));
         }
 
@@ -381,57 +392,40 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         examTool.buildEnvVars(env);
 
         ExamPluginConfig examPluginConfig = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class);
-        int port = examPluginConfig.getPort();
-        args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
-                 "-DRESTAPI_PORT=" + port);
-
-        if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
-            throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
-        }
-        args.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
-                 "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
-
-        if (javaOpts != null) {
-            env.put("JAVA_OPTS", env.expand(javaOpts));
-            args.add(javaOpts.split(" "));
-        }
-
-        if (!launcher.isUnix()) {
-            args = toWindowsCommand(args);
-        }
+        int timeout = handleAdditionalArgs(run, args, env, examPluginConfig, launcher);
 
         long startTime = System.currentTimeMillis();
+        ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
+        ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger());
         try {
-            ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
-            ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger());
-            String slaveIp = Remote.getIP(launcher);
-            ClientRequest clientRequest = new ClientRequest(listener.getLogger(),
-                                                            "http://" + slaveIp + ":" + port + "/examRest");
+            ClientRequest clientRequest = new ClientRequest(listener.getLogger(), examPluginConfig.getPort(), launcher);
+            Proc proc = null;
             try {
-
+                
                 Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
                 if (clientRequest.isApiAvailable()) {
                     listener.getLogger().println("ERROR: EXAM is already running");
+                    run.setResult(Result.FAILURE);
                     throw new AbortException("ERROR: EXAM is already running");
                 }
                 process.stderr(examErr);
                 process.stdout(eca);
-                process.start();
-
-                boolean ret = clientRequest.connectClient(5 * 60 * 1000);
+                proc = process.start();
+                
+                boolean ret = clientRequest.connectClient(timeout);
                 if (ret) {
                     ApiVersion apiVersion = clientRequest.getApiVersion();
                     listener.getLogger().println("EXAM api version: " + apiVersion.toString());
-                    TestConfiguration tc = createTestConfiguration();
+                    TestConfiguration tc = createTestConfiguration(env);
                     tc.setPythonPath(pythonexe);
                     FilterConfiguration fc = new FilterConfiguration();
-
+                    
                     for (TestrunFilter filter : testrunFilter) {
                         fc.addTestrunFilter(
                                 new jenkins.internal.data.TestrunFilter(filter.name, filter.value, filter.adminCases,
-                                                                        filter.activateTestcases));
+                                        filter.activateTestcases));
                     }
-
+                    
                     if (isClearWorkspace()) {
                         clientRequest.clearWorkspace(tc.getModelProject().getModelName());
                     }
@@ -440,30 +434,40 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                         clientRequest.setTestrunFilter(fc);
                     }
                     clientRequest.startTestrun(tc);
-
+                    
                     Executor runExecutor = run.getExecutor();
                     if (runExecutor != null) {
-                        clientRequest.waitForTestrunEnds(runExecutor);
+                        clientRequest.waitForTestrunEnds(runExecutor, 60);
+                        listener.getLogger().println("waiting until EXAM is idle");
+                        clientRequest.waitForExamIdle(runExecutor, 300);
+                        if (pdfReport) {
+                            listener.getLogger().println("waiting for PDF Report");
+                            clientRequest.waitForExportPDFReportJob(runExecutor, 600);
+                        }
                     }
                     clientRequest.convert(tc.getReportProject().getProjectName());
-
+                    
                     hash = "__" + RandomStringUtils.random(5, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray());
                     source = source.child("reports").child(tc.getReportProject().getProjectName()).child("junit");
-                    target = target.child("test-reports").child(tc.getModelProject().getProjectName() + hash);
+                    target = target.child("test-reports").child(tc.getReportProject().getProjectName() + hash);
                     source.copyRecursiveTo(target);
                 }
             } catch (IOException e) {
+                run.setResult(Result.FAILURE);
                 throw new AbortException("ERROR: " + e.toString());
             } finally {
-                eca.forceEol();
-                examErr.forceEol();
-                eca.close();
-                examErr.close();
-                clientRequest.disconnectClient(60 * 1000);
+                try {
+                    clientRequest.disconnectClient(timeout);
+                } finally {
+                    if (proc != null && proc.isAlive()) {
+                        proc.joinWithTimeout(10, TimeUnit.SECONDS, listener);
+                    }
+                }
             }
+            run.setResult(Result.SUCCESS);
         } catch (IOException e) {
             Util.displayIOException(e, listener);
-
+            
             String errorMessage = Messages.EXAM_ExecFailed();
             if ((System.currentTimeMillis() - startTime) < 1000) {
                 if (getDescriptor().getInstallations() == null)
@@ -478,8 +482,53 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                     errorMessage += Messages.EXAM_ProjectConfigNeeded();
                 }
             }
+            run.setResult(Result.FAILURE);
             throw new AbortException(errorMessage);
+        } finally {
+            Result result = run.getResult();
+            if (result != null) {
+                listener.getLogger().println(result.toString());
+            }
+            eca.forceEol();
+            examErr.forceEol();
         }
+    }
+
+    private int handleAdditionalArgs(@Nonnull Run<?, ?> run, ArgumentListBuilder args, EnvVars env, ExamPluginConfig examPluginConfig, Launcher launcher) throws AbortException {
+        int timeout = 300;
+        args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
+                "-DRESTAPI_PORT=" + examPluginConfig.getPort());
+
+        if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
+            run.setResult(Result.FAILURE);
+            throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
+        }
+        args.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
+                "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
+
+        args.add("-Dfile.encoding=UTF-8");
+        args.add("-Dsun.jnu.encoding=UTF-8");
+
+        if (javaOpts != null) {
+            env.put("JAVA_OPTS", env.expand(javaOpts));
+            String[] splittedJavaOpts = javaOpts.split(" ");
+            args.add(splittedJavaOpts);
+            if(javaOpts.contains("-Dtimeout=")){
+                String sTimeout = "";
+                for(String option : splittedJavaOpts) {
+                    if(option.startsWith("-Dtimeout=")){
+                        sTimeout = option.substring(10);
+                    }
+                }
+                timeout = Integer.valueOf(sTimeout).intValue();
+            }
+        }
+
+        if (!launcher.isUnix()) {
+            args = toWindowsCommand(args);
+        }
+
+        return timeout;
     }
 
     private ExamReportConfig getReport(String name) {
@@ -490,31 +539,31 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         }
         return null;
     }
-
-    abstract TestConfiguration addDataToTestConfiguration(TestConfiguration testConfiguration) throws AbortException;
-
+    
+    abstract TestConfiguration addDataToTestConfiguration(TestConfiguration testConfiguration, EnvVars env)
+            throws AbortException;
+    
     @Override
     public ExamTask.DescriptorExamTask getDescriptor() {
         return (ExamTask.DescriptorExamTask) super.getDescriptor();
     }
-
-    private TestConfiguration createTestConfiguration() throws AbortException {
+    
+    private TestConfiguration createTestConfiguration(EnvVars env) throws AbortException {
         TestConfiguration tc = new TestConfiguration();
-
+        
         tc.setUseExecutionFile(Boolean.valueOf(useExecutionFile));
-        tc.setModelConfig("");
         tc.setSystemConfig(systemConfiguration);
         tc.setTestObject("");
         tc.setReportPrefix(reportPrefix);
-
+        
         addReportToTestConfiguration(tc);
         addPdfReportToTestConfiguration(tc);
         addLogLevelToTestConfiguration(tc);
-
-        tc = addDataToTestConfiguration(tc);
+        
+        tc = addDataToTestConfiguration(tc, env);
         return tc;
     }
-
+    
     private void addPdfReportToTestConfiguration(TestConfiguration tc) {
         if (pdfReport && !pdfReportTemplate.isEmpty()) {
             tc.setPdfReportTemplate(pdfReportTemplate);
@@ -522,13 +571,13 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             tc.setPdfMeasureImages(pdfMeasureImages);
         }
     }
-
+    
     private void addLogLevelToTestConfiguration(TestConfiguration tc) {
         tc.setLogLevelTC(RestAPILogLevelEnum.valueOf(loglevelTestCtrl));
         tc.setLogLevelTL(RestAPILogLevelEnum.valueOf(loglevelTestLogic));
         tc.setLogLevelLC(RestAPILogLevelEnum.valueOf(loglevelLibCtrl));
     }
-
+    
     private void addReportToTestConfiguration(TestConfiguration tc) {
         ReportConfiguration rep = new ReportConfiguration();
         ExamReportConfig r = getReport(examReport);
@@ -542,44 +591,44 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         rep.setDbUser(r.getDbUser());
         tc.setReportProject(rep);
     }
-
+    
     protected static class DescriptorExamTask extends BuildStepDescriptor<Builder>
             implements ExamDescriptor, Serializable {
-
+        
         public DescriptorExamTask() {
             load();
         }
-
+        
         protected DescriptorExamTask(Class<? extends ExamTask> clazz) {
             super(clazz);
             load();
         }
-
+        
         public String getDefaultLogLevel() {
             return RestAPILogLevelEnum.INFO.name();
         }
-
+        
         public RestAPILogLevelEnum[] getLogLevels() {
             return RestAPILogLevelEnum.values();
         }
-
+        
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
             return true;
         }
-
+        
         public ExamTool[] getInstallations() {
             return Jenkins.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations();
         }
-
+        
         public PythonInstallation[] getPythonInstallations() {
             return Jenkins.getInstance().getDescriptorByType(PythonInstallation.DescriptorImpl.class)
-                          .getInstallations();
+                    .getInstallations();
         }
-
+        
         public List<ExamModelConfig> getModelConfigs() {
             return Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
         }
-
+        
         protected List<ExamReportConfig> addNoReport(List<ExamReportConfig> reports) {
             List<ExamReportConfig> lReportConfigs = reports;
             boolean found = false;
@@ -599,50 +648,49 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             }
             return lReportConfigs;
         }
-
+        
         public List<ExamReportConfig> getReportConfigs() {
             List<ExamReportConfig> lReportConfigs = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
-                                                           .getReportConfigs();
+                    .getReportConfigs();
             lReportConfigs = addNoReport(lReportConfigs);
             return lReportConfigs;
         }
-
+        
         public ListBoxModel doFillExamNameItems() {
             ListBoxModel items = new ListBoxModel();
             ExamTool[] examTools = getInstallations();
-
+            
             Arrays.sort(examTools, (ExamTool o1, ExamTool o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
             for (ExamTool tool : examTools) {
                 items.add(tool.getName(), tool.getName());
             }
             return items;
         }
-
+        
         public ListBoxModel doFillPythonNameItems() {
             ListBoxModel items = new ListBoxModel();
             PythonInstallation[] pythonTools = getPythonInstallations();
-
+            
             Arrays.sort(pythonTools,
-                        (PythonInstallation o1, PythonInstallation o2) -> o1.getName()
-                                                                            .compareToIgnoreCase(o2.getName()));
+                    (PythonInstallation o1, PythonInstallation o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
             for (PythonInstallation tool : pythonTools) {
                 items.add(tool.getName(), tool.getName());
             }
             return items;
         }
-
+        
         public ListBoxModel doFillExamReportItems() {
             ListBoxModel items = new ListBoxModel();
             List<ExamReportConfig> reports = getReportConfigs();
             reports.sort(
                     (ExamReportConfig o1, ExamReportConfig o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
-
+            
             for (ExamReportConfig report : reports) {
                 items.add(report.getDisplayName(), report.getName());
             }
             return items;
         }
-
+        
         private ListBoxModel getLoglevelItems() {
             ListBoxModel items = new ListBoxModel();
             for (RestAPILogLevelEnum loglevel : getLogLevels()) {
@@ -650,15 +698,15 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             }
             return items;
         }
-
+        
         public ListBoxModel doFillLoglevelTestCtrlItems() {
             return getLoglevelItems();
         }
-
+        
         public ListBoxModel doFillLoglevelTestLogicItems() {
             return getLoglevelItems();
         }
-
+        
         public ListBoxModel doFillLoglevelLibCtrlItems() {
             return getLoglevelItems();
         }

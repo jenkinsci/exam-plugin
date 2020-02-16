@@ -35,7 +35,7 @@ public class TUtil {
     // exam plugin config
     private static int pluginConfigPort = 8080;
     private static int pluginConfigLicensePort = 8090;
-    private static String pluginConfigLicenseHost = "";
+    private static String pluginConfigLicenseHost = "localhost";
     
     private static char[] chars = "1234567890abcdef".toCharArray();
     
@@ -104,6 +104,15 @@ public class TUtil {
         
         return testrunFilters;
     }
+    public static void createAndRegisterExamPluginConfig(JenkinsRule jenkinsRule){
+        ExamPluginConfig testExamPluginConfig = getTestExamPluginConfig();
+        ExamPluginConfig examPluginConfig = jenkinsRule.getInstance().getDescriptorByType(ExamPluginConfig.class);
+        examPluginConfig.setModelConfigs(testExamPluginConfig.getModelConfigs());
+        examPluginConfig.setReportConfigs(testExamPluginConfig.getReportConfigs());
+        examPluginConfig.setLicenseHost(pluginConfigLicenseHost);
+        examPluginConfig.setLicensePort(pluginConfigLicensePort);
+        examPluginConfig.setPort(pluginConfigPort);
+    }
     
     public static PythonInstallation createAndRegisterPythonInstallation(JenkinsRule jenkinsRule, String name,
             String home) {
@@ -144,7 +153,7 @@ public class TUtil {
             newInstallations[index] = tool;
             index++;
         }
-        newExamTool = new ExamTool(examName, examHome, relativeConfigPath, Collections.emptyList());
+        newExamTool = new ExamTool(examName, examHome, Collections.emptyList(), relativeConfigPath);
         newInstallations[index] = newExamTool;
         
         jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)

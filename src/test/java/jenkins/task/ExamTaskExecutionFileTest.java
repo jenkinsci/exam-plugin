@@ -9,7 +9,7 @@ import org.powermock.reflect.Whitebox;
 import static org.junit.Assert.assertEquals;
 
 public class ExamTaskExecutionFileTest {
-
+    
     private ExamTaskExecutionFile testObject;
     private String examName;
     private String pythonName;
@@ -17,7 +17,7 @@ public class ExamTaskExecutionFileTest {
     private String pCode;
     private String examReport;
     private String examSysConfig;
-
+    
     @Before
     public void setUp() throws Exception {
         examName = "EXAM";
@@ -30,45 +30,45 @@ public class ExamTaskExecutionFileTest {
         testObject.setPathPCode(pCode);
         testObject.setPathExecutionFile(execFile);
     }
-
+    
     @Test
-
+    
     public void getPathExecutionFile() {
         Whitebox.setInternalState(testObject, "pathExecutionFile", execFile);
         String pathExecutionFile = testObject.getPathExecutionFile();
-
+        
         assertEquals(execFile, pathExecutionFile);
     }
-
+    
     @Test
     public void setPathExecutionFile() {
         testObject.setPathExecutionFile(execFile);
         String pathExecutionFile = Whitebox.getInternalState(testObject, "pathExecutionFile");
-
+        
         assertEquals(execFile, pathExecutionFile);
     }
-
+    
     @Test
     public void getPathPCode() {
         Whitebox.setInternalState(testObject, "pathPCode", pCode);
         String pathPCode = testObject.getPathPCode();
-
+        
         assertEquals(pCode, pathPCode);
     }
-
+    
     @Test
     public void setPathPCode() {
         testObject.setPathPCode(pCode);
         String pathPCode = Whitebox.getInternalState(testObject, "pathPCode");
-
+        
         assertEquals(pCode, pathPCode);
     }
-
+    
     @Test
     public void addDataToTestConfiguration() throws AbortException {
         TestConfiguration tc = new TestConfiguration();
-        tc = testObject.addDataToTestConfiguration(tc);
-
+        tc = testObject.addDataToTestConfiguration(tc, null);
+        
         assertEquals(pCode, tc.getPathPCode());
         assertEquals(execFile, tc.getTestObject());
     }

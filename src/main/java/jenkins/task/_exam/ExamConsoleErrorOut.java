@@ -45,6 +45,8 @@ public class ExamConsoleErrorOut extends LineTransformationOutputStream {
     /**
      * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
      * execution.
+     *
+     * @param out OutputStream
      */
     public ExamConsoleErrorOut(OutputStream out) {
         this.out = out;

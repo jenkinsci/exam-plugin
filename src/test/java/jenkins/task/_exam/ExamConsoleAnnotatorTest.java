@@ -41,11 +41,12 @@ import java.nio.charset.StandardCharsets;
 public class ExamConsoleAnnotatorTest {
     
     private ExamConsoleAnnotator testObject;
+    private String pauseString = "-- begin listing genericProperties --";
+    private String resumeString = "-- end listing genericProperties --";
     
     @Before
     public void setUp() {
         testObject = new ExamConsoleAnnotator(null, StandardCharsets.UTF_8);
-        
     }
     
     @Test
@@ -57,6 +58,21 @@ public class ExamConsoleAnnotatorTest {
         obj.eol(testString.getBytes(StandardCharsets.UTF_8), testString.length());
         Mockito.verify(writeMock).write(expected.getBytes(StandardCharsets.UTF_8));
         Mockito.verify(writeMock).write(testString.getBytes(StandardCharsets.UTF_8), 0, testString.length());
+    }
+    
+    @Test
+    public void eol_pause() throws IOException {
+        OutputStream writeMock = Mockito.mock(OutputStream.class);
+        ExamConsoleAnnotator obj = new ExamConsoleAnnotator(writeMock, StandardCharsets.UTF_8);
+        String testString = "dfhkjd f akdf la k dhf sd";
+        String expected = "EXAM: ";
+        obj.eol(pauseString.getBytes(StandardCharsets.UTF_8), pauseString.length());
+        obj.eol(testString.getBytes(StandardCharsets.UTF_8), testString.length());
+        obj.eol(resumeString.getBytes(StandardCharsets.UTF_8), resumeString.length());
+        obj.eol(testString.getBytes(StandardCharsets.UTF_8), testString.length());
+        Mockito.verify(writeMock).write(expected.getBytes(StandardCharsets.UTF_8));
+        Mockito.verify(writeMock).write(testString.getBytes(StandardCharsets.UTF_8), 0, testString.length());
+        Mockito.verifyNoMoreInteractions(writeMock);
     }
     
     @Test

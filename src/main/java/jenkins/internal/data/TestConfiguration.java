@@ -31,18 +31,20 @@ package jenkins.internal.data;
 
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 
+import java.io.Serializable;
+
 /**
  * TestConfiguration
  *
  * @author liu
  */
-public class TestConfiguration {
+public class TestConfiguration implements Serializable {
     
+    private static final long serialVersionUID = 3549855379557053713L;
     private ModelConfiguration modelProject;
     private ReportConfiguration reportProject;
     
     private String systemConfig;
-    private String modelConfig;
     private String testObject;
     
     private RestAPILogLevelEnum logLevelTC;
@@ -127,22 +129,6 @@ public class TestConfiguration {
      */
     public void setSystemConfig(String systemConfig) {
         this.systemConfig = systemConfig;
-    }
-    
-    /**
-     * @return Das modelConfig.
-     */
-    public String getModelConfig() {
-        return this.modelConfig;
-    }
-    
-    /**
-     * Setzt das modelConfig.
-     *
-     * @param modelConfig Das zu setzende modelConfig.
-     */
-    public void setModelConfig(String modelConfig) {
-        this.modelConfig = modelConfig;
     }
     
     /**

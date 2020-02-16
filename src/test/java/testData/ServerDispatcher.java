@@ -30,77 +30,70 @@
 package testData;
 
 import jenkins.internal.data.ApiVersion;
-import jenkins.internal.data.FilterConfiguration;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
-import org.eclipse.jetty.server.Server;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ServerDispatcher extends Dispatcher {
-
+    
     private Map<String, MockResponse> mResponse;
-
+    
     public ServerDispatcher() {
         mResponse = new HashMap<>();
         setDefaults();
     }
-
+    
     public void setDefaults() {
         clearAllResponse();
-
-        setResponse("/testrun/status", new MockResponse().setResponseCode(200)
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .addHeader("Cache-Control", "no-cache")
-                .setBody("{\"jobName\":\"myTestJob\",\"jobRunning\":\"true\",\"testRunState\":-1}"));
-
-        setResponse("/testrun/start", new MockResponse().setResponseCode(200)
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .addHeader("Cache-Control", "no-cache")
-                .setBody("{}"));
-
-        setResponse("/testrun/stop", new MockResponse().setResponseCode(200)
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .addHeader("Cache-Control", "no-cache")
-                .setBody("{}"));
-
-        setResponse("/workspace/apiVersion", new MockResponse().setResponseCode(200)
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .addHeader("Cache-Control", "no-cache")
-                .setBody(this.getApiVersionResponseString()));
-
-        setResponse("/testrun/setFilter", new MockResponse().setResponseCode(200)
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .addHeader("Cache-Control", "no-cache")
-                .setBody("{}"));
-
-        setResponse("/testrun/convertToJunit/testProject", new MockResponse().setResponseCode(200)
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .addHeader("Cache-Control", "no-cache"));
-
-        setResponse("/workspace/delete", new MockResponse().setResponseCode(200));
-        setResponse("/workspace/shutdown", new MockResponse().setResponseCode(200));
+        
+        setResponse("/examRest/testrun/status",
+                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache")
+                        .setBody("{\"jobName\":\"myTestJob\",\"jobRunning\":\"true\",\"testRunState\":-1}"));
+        
+        setResponse("/examRest/testrun/start",
+                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache").setBody("{}"));
+        
+        setResponse("/examRest/testrun/stop",
+                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache").setBody("{}"));
+        
+        setResponse("/examRest/workspace/apiVersion",
+                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache").setBody(this.getApiVersionResponseString()));
+        
+        setResponse("/examRest/testrun/setFilter",
+                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache").setBody("{}"));
+        
+        setResponse("/examRest/testrun/convertToJunit/testProject",
+                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache"));
+        
+        setResponse("/examRest/workspace/delete", new MockResponse().setResponseCode(200));
+        setResponse("/examRest/workspace/shutdown", new MockResponse().setResponseCode(200));
     }
-
+    
     public void setResponse(String path, MockResponse response) {
         mResponse.put(path, response);
     }
-
+    
     public void removeResponse(String path) {
         if (mResponse.containsKey(path)) {
             mResponse.remove(path);
         }
     }
-
+    
     public void clearAllResponse() {
         mResponse.clear();
     }
-
+    
     // Helper Method for ApiVersion Response
     private String getApiVersionResponseString() {
         ApiVersion apiVersion = new ApiVersion();
@@ -115,7 +108,7 @@ public class ServerDispatcher extends Dispatcher {
             return "{ major: \"2\", minor: \"5\", fix: \"7\" }";
         }
     }
-
+    
     @Override
     public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
         String path = request.getPath();

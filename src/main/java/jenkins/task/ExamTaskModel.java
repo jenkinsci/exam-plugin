@@ -30,6 +30,7 @@
 package jenkins.task;
 
 import hudson.AbortException;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Util;
 import hudson.util.FormValidation;
@@ -113,7 +114,7 @@ public class ExamTaskModel extends ExamTask {
         return null;
     }
     
-    TestConfiguration addDataToTestConfiguration(TestConfiguration tc) throws AbortException {
+    TestConfiguration addDataToTestConfiguration(TestConfiguration tc, EnvVars env) throws AbortException {
         ModelConfiguration mod = new ModelConfiguration();
         ExamModelConfig m = getModel(examModel);
         if (m == null) {

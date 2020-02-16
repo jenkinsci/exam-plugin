@@ -29,6 +29,7 @@
  */
 package jenkins.internal.data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,8 +37,9 @@ import java.util.List;
 /**
  * Configuration of EXAM Testrunfilter
  */
-public class FilterConfiguration {
+public class FilterConfiguration implements Serializable {
     
+    private static final long serialVersionUID = 5537490320782977390L;
     private List<TestrunFilter> testrunFilter;
     
     /**
@@ -50,7 +52,7 @@ public class FilterConfiguration {
     /**
      * Constructor of Configuration of EXAM Testrunfilter
      *
-     * @param testrunFilter
+     * @param testrunFilter List&lt;TestrunFilter&gt;
      */
     public FilterConfiguration(List<TestrunFilter> testrunFilter) {
         this.testrunFilter = testrunFilter;
@@ -63,7 +65,7 @@ public class FilterConfiguration {
     /**
      * Sets the Configuration of EXAM Testrunfilter
      *
-     * @param testrunFilter
+     * @param testrunFilter List&lt;TestrunFilter&gt;
      */
     public void setTestrunFilter(List<TestrunFilter> testrunFilter) {
         this.testrunFilter = testrunFilter;
@@ -72,7 +74,7 @@ public class FilterConfiguration {
     /**
      * Sets the Configuration of EXAM Testrunfilter
      *
-     * @param testrunFilter
+     * @param testrunFilter TestrunFilter
      */
     public void setTestrunFilter(TestrunFilter testrunFilter) {
         this.testrunFilter = Collections.singletonList(testrunFilter);
@@ -81,7 +83,7 @@ public class FilterConfiguration {
     /**
      * Add a EXAM Testrunfilter to the configuration list
      *
-     * @param testrunFilter
+     * @param testrunFilter TestrunFilter
      */
     public void addTestrunFilter(TestrunFilter testrunFilter) {
         this.testrunFilter.add(testrunFilter);

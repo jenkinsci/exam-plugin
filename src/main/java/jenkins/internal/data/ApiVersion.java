@@ -29,10 +29,13 @@
  */
 package jenkins.internal.data;
 
+import java.io.Serializable;
+
 /**
  * Version information of this API
  */
-public class ApiVersion {
+public class ApiVersion implements Serializable {
+    private static final long serialVersionUID = 1285636492233484022L;
     private int major;
     private int minor;
     private int fix;

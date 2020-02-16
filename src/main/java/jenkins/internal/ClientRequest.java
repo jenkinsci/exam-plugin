@@ -29,13 +29,8 @@
  */
 package jenkins.internal;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
 import hudson.AbortException;
+import hudson.Launcher;
 import hudson.model.Executor;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.ExamStatus;
@@ -43,8 +38,8 @@ import jenkins.internal.data.FilterConfiguration;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.internal.data.TestrunFilter;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.io.PrintStream;
 
 /**
@@ -53,25 +48,30 @@ import java.io.PrintStream;
 public class ClientRequest {
     
     private final static int OK = Response.ok().build().getStatus();
-    long waitTime = 5000;
-    private String baseUrl = "";
+    long waitTime = 1000;
+    private int apiPort = 8085;
     private PrintStream logger;
-    private Client client = null;
+    private boolean clientConnected = false;
+    private Launcher launcher = null;
     
     /**
      * Constructor for REST Api calls to EXAM
+     *
+     * @param logger  PrintStream
+     * @param apiPort Port
      */
-    public ClientRequest(PrintStream logger, String baseUrl) {
-        this.baseUrl = baseUrl;
+    public ClientRequest(PrintStream logger, int apiPort, Launcher launcher) {
+        this.apiPort = apiPort;
         this.logger = logger;
+        this.launcher = launcher;
     }
     
-    public String getBaseUrl() {
-        return baseUrl;
+    public int getApiPort() {
+        return apiPort;
     }
     
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
+    public void setApiPort(int apiPort) {
+        this.apiPort = apiPort;
     }
     
     public PrintStream getLogger() {
@@ -86,39 +86,36 @@ public class ClientRequest {
      * Request the job xxecution status from EXAM Client
      *
      * @return ExamStatus
+     *
+     * @throws AbortException AbortException
+     * @throws IOException    IOException
      */
-    public ExamStatus getStatus() throws AbortException {
-        if (client == null) {
-            logger.println("WARNING: no EXAM connected");
-            return null;
-        }
-        
-        WebResource service = client.resource(baseUrl + "/testrun/status");
-        ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
-                .get(ClientResponse.class);
-        
+    public ExamStatus getStatus() throws IOException, InterruptedException {
+        RemoteServiceResponse response = RemoteService
+                .getJSON(launcher, apiPort, "/testrun/status", ExamStatus.class);
         handleResponseError(response);
         
-        return response.getEntity(ExamStatus.class);
+        return (ExamStatus) response.getEntity();
     }
     
     /**
      * Request the Api Version from EXAM Client
      *
      * @return ApiVersion
+     *
+     * @throws AbortException AbortException
+     * @throws IOException    IOException
      */
-    public ApiVersion getApiVersion() throws AbortException {
-        if (client == null) {
+    public ApiVersion getApiVersion() throws IOException, InterruptedException {
+        if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return null;
         }
-        WebResource service = client.resource(baseUrl + "/workspace/apiVersion");
-        ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
-                .get(ClientResponse.class);
-        
+        RemoteServiceResponse response = RemoteService
+                .getJSON(launcher, apiPort, "/workspace/apiVersion", ApiVersion.class);
         handleResponseError(response);
         
-        return response.getEntity(ApiVersion.class);
+        return (ApiVersion) response.getEntity();
     }
     
     /**
@@ -126,21 +123,17 @@ public class ClientRequest {
      *
      * @return true, is available
      */
-    public boolean isApiAvailable() {
-        boolean clientCreated = false;
+    public boolean isApiAvailable() throws IOException, InterruptedException {
         boolean isAvailable = true;
-        if (client == null) {
-            clientCreated = true;
-            createClient();
-        }
         try {
             getStatus();
+            clientConnected = true;
         } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                throw e;
+            }
             isAvailable = false;
-        }
-        
-        if (clientCreated) {
-            destroyClient();
+            clientConnected = false;
         }
         return isAvailable;
     }
@@ -149,9 +142,14 @@ public class ClientRequest {
      * Setting the  EXAM Client
      *
      * @param filterConfig FilterConfiguration
+     *
+     * @throws AbortException       AbortException
+     * @throws InterruptedException InterruptedException
+     * @throws IOException          IOException
      */
-    public void setTestrunFilter(FilterConfiguration filterConfig) throws AbortException {
-        if (client == null) {
+    public void setTestrunFilter(FilterConfiguration filterConfig)
+            throws IOException, AbortException, InterruptedException {
+        if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
@@ -165,11 +163,8 @@ public class ClientRequest {
             logger.println(i + ") activ: " + filter.isActivateTestcases());
             logger.println();
         }
-        WebResource service = client.resource(baseUrl + "/testrun/setFilter");
-        
-        ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
-                .post(ClientResponse.class, filterConfig);
-        
+        RemoteServiceResponse response = RemoteService
+                .post(launcher, apiPort, "/testrun/setFilter", filterConfig, null);
         handleResponseError(response);
     }
     
@@ -177,18 +172,18 @@ public class ClientRequest {
      * Request the Api Version from EXAM Client
      *
      * @param reportProject String
+     *
+     * @throws InterruptedException InterruptedException
+     * @throws IOException          IOException
      */
-    public void convert(String reportProject) throws AbortException {
-        if (client == null) {
+    public void convert(String reportProject) throws IOException, InterruptedException {
+        if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("convert to junit");
-        WebResource service = client.resource(baseUrl + "/testrun/convertToJunit/" + reportProject);
-        
-        ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
-                .get(ClientResponse.class);
-        
+        RemoteServiceResponse response = RemoteService
+                .getJSON(launcher, apiPort, "/testrun/convertToJunit/" + reportProject, null);
         handleResponseError(response);
     }
     
@@ -196,26 +191,25 @@ public class ClientRequest {
      * Configure and start testrun at EXAM Client
      *
      * @param testConfig TestConfiguration
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
-    public void startTestrun(TestConfiguration testConfig) throws AbortException {
-        if (client == null) {
+    public void startTestrun(TestConfiguration testConfig) throws IOException, InterruptedException {
+        if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("starting testrun");
-        WebResource service = client.resource(baseUrl + "/testrun/start");
-        
-        ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
-                .post(ClientResponse.class, testConfig);
-        
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/testrun/start", testConfig, null);
         handleResponseError(response);
     }
     
-    private void handleResponseError(ClientResponse response) throws AbortException {
+    private void handleResponseError(RemoteServiceResponse response) throws AbortException {
         if (response.getStatus() != OK) {
             String errorMessage = "Failed : HTTP error code : " + response.getStatus();
             try {
-                String entity = response.getEntity(String.class);
+                String entity = response.getEntityString();
                 errorMessage += "\n" + entity;
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -227,18 +221,18 @@ public class ClientRequest {
     
     /**
      * stops a testrun
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
-    public void stopTestrun() throws AbortException {
-        if (client == null) {
+    public void stopTestrun() throws IOException, InterruptedException {
+        if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("stopping testrun");
-        WebResource service = client.resource(baseUrl + "/testrun/stop?timeout=300");
-        
-        ClientResponse response = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
-                .post(ClientResponse.class);
-        
+        RemoteServiceResponse response = RemoteService
+                .post(launcher, apiPort, "/testrun/stop?timeout=300", null, null);
         handleResponseError(response);
     }
     
@@ -246,37 +240,26 @@ public class ClientRequest {
      * Deletes the project configuration at EXAM and deletes the corresponding report and pcode folders
      *
      * @param projectName String
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
-    public void clearWorkspace(String projectName) throws AbortException {
-        if (client == null) {
+    public void clearWorkspace(String projectName) throws IOException, InterruptedException {
+        if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
-        WebResource service;
+        String postUrl = "";
         if (projectName == null || projectName.isEmpty()) {
             logger.println("deleting all projects and pcode from EXAM workspace");
-            service = client.resource(baseUrl + "/workspace/delete");
+            postUrl = "/workspace/delete";
         } else {
             logger.println("deleting project and pcode for project \"" + projectName + "\" from EXAM workspace");
-            service = client.resource(baseUrl + "/workspace/delete?projectName=" + projectName);
+            postUrl = "/workspace/delete?projectName=" + projectName;
         }
         
-        ClientResponse response = service.get(ClientResponse.class);
-        
+        RemoteServiceResponse response = RemoteService.get(launcher, apiPort, postUrl, null);
         handleResponseError(response);
-    }
-    
-    /**
-     * make EXAM shutting down
-     */
-    public void shutdown() {
-        if (client == null) {
-            logger.println("WARNING: no EXAM connected");
-            return;
-        }
-        logger.println("closing EXAM");
-        client.resource(baseUrl + "/workspace/shutdown");
-        
     }
     
     /**
@@ -286,35 +269,18 @@ public class ClientRequest {
      *
      * @return true, if connected
      */
-    public boolean connectClient(int timeout) {
+    public boolean connectClient(int timeout) throws IOException, InterruptedException {
         logger.println("connecting to EXAM");
-        createClient();
         
-        long timeoutTime = System.currentTimeMillis() + timeout;
+        long timeoutTime = System.currentTimeMillis() + timeout * 1000;
         while (timeoutTime > System.currentTimeMillis()) {
             if (isApiAvailable()) {
+                clientConnected = true;
                 return true;
             }
         }
-        logger.println("ERROR: EXAM does not answer in " + timeout / 1000 + "s");
+        logger.println("ERROR: EXAM does not answer in " + timeout + "s");
         return false;
-    }
-    
-    private void createClient() {
-        if (client == null) {
-            ClientConfig clientConfig = new DefaultClientConfig();
-            clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-            client = Client.create(clientConfig);
-        } else {
-            logger.println("Client already connected");
-        }
-    }
-    
-    private void destroyClient() {
-        if (client != null) {
-            client.destroy();
-        }
-        client = null;
     }
     
     /**
@@ -322,20 +288,19 @@ public class ClientRequest {
      *
      * @param timeout millis
      */
-    public void disconnectClient(int timeout) {
-        if (client == null) {
+    public void disconnectClient(int timeout) throws IOException, InterruptedException {
+        if (!clientConnected) {
             logger.println("Client is not connected");
         } else {
             logger.println("disconnect from EXAM");
             
-            WebResource service = client.resource(baseUrl + "/workspace/shutdown");
             try {
-                service.get(ClientResponse.class);
+                RemoteService.get(launcher, apiPort, "/workspace/shutdown", null);
             } catch (Exception e) {
                 logger.println(e.getMessage());
             }
             
-            long timeoutTime = System.currentTimeMillis() + timeout;
+            long timeoutTime = System.currentTimeMillis() + timeout * 1000;
             boolean shutdownOK = false;
             while (timeoutTime > System.currentTimeMillis()) {
                 if (!isApiAvailable()) {
@@ -344,10 +309,10 @@ public class ClientRequest {
                 }
             }
             if (!shutdownOK) {
-                logger.println("ERROR: EXAM does not shutdown in " + timeout + "ms");
+                logger.println("ERROR: EXAM does not shutdown in " + timeout + "s");
             }
             
-            destroyClient();
+            clientConnected = false;
         }
     }
     
@@ -355,10 +320,14 @@ public class ClientRequest {
      * Waits for the EXAM Testrun ends
      *
      * @param executor Executor
+     * @param wait     time in s
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
-    public void waitForTestrunEnds(Executor executor) throws AbortException {
+    public void waitForTestrunEnds(Executor executor, int wait) throws IOException, InterruptedException {
         boolean testDetected = false;
-        int breakAfter = 10;
+        int breakAfter = wait;
         while (true) {
             if (executor.isInterrupted()) {
                 this.stopTestrun();
@@ -376,6 +345,70 @@ public class ClientRequest {
                 if (!status.getJobRunning()) {
                     break;
                 }
+            }
+            try {
+                Thread.sleep(waitTime);
+            } catch (InterruptedException e) {
+                // nothing to do
+            }
+        }
+    }
+    
+    /**
+     * Waits until EXAM is idle
+     *
+     * @param executor Executor
+     * @param wait     time in s
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
+     */
+    public void waitForExamIdle(Executor executor, int wait) throws IOException, InterruptedException {
+        int breakAfter = wait;
+        while (true) {
+            if (executor.isInterrupted()) {
+                return;
+            }
+            breakAfter--;
+            ExamStatus status = this.getStatus();
+            if (!status.getJobRunning()) {
+                break;
+            }
+            if (breakAfter <= 0) {
+                logger.println("EXAM is not idle after " + wait + "s");
+                break;
+            }
+            try {
+                Thread.sleep(waitTime);
+            } catch (InterruptedException e) {
+                // nothing to do
+            }
+        }
+    }
+    
+    /**
+     * Waits until EXAM is idle
+     *
+     * @param executor Executor
+     * @param wait     time in s
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
+     */
+    public void waitForExportPDFReportJob(Executor executor, int wait) throws IOException, InterruptedException {
+        int breakAfter = wait;
+        while (true) {
+            if (executor.isInterrupted()) {
+                return;
+            }
+            breakAfter--;
+            ExamStatus status = this.getStatus();
+            if (!status.getJobRunning() || !"Export Reports to PDF.".equalsIgnoreCase(status.getJobName())) {
+                break;
+            }
+            if (breakAfter <= 0) {
+                logger.println("EXAM is not idle after " + wait + "s");
+                break;
             }
             try {
                 Thread.sleep(waitTime);

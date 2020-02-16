@@ -28,14 +28,13 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
 
-    <st:include page="/jenkins/task/ExamSubmodules/Modeler/configModel.jelly" />
+    <st:include page="/jenkins/task/ExamSubmodules/Modeler/configModel.jelly" class="jenkins.task.ExamTask"/>
 
-    <st:include page="/jenkins/task/ExamSubmodules/Testrunner/configModel.jelly" />
+    <st:include page="/jenkins/task/ExamSubmodules/Testrunner/configModel.jelly" class="jenkins.task.ExamTask"/>
 
-    <st:include page="/jenkins/task/ExamSubmodules/Report/config.jelly" />
+    <st:include page="/jenkins/task/ExamSubmodules/Report/config.jelly" class="jenkins.task.ExamTask"/>
 
-    <st:include page="/jenkins/task/ExamSubmodules/configAdvanced.jelly" />
+    <st:include page="/jenkins/task/ExamSubmodules/configAdvanced.jelly" class="jenkins.task.ExamTask"/>
 </j:jelly>

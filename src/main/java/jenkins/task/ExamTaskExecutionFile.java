@@ -30,6 +30,7 @@
 package jenkins.task;
 
 import hudson.AbortException;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.util.FormValidation;
 import jenkins.internal.Util;
@@ -39,6 +40,8 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+
+import javax.annotation.Nullable;
 
 /**
  * Ant launcher.
@@ -74,10 +77,10 @@ public class ExamTaskExecutionFile extends ExamTask {
         this.pathPCode = pathPCode;
     }
     
-    TestConfiguration addDataToTestConfiguration(TestConfiguration tc) throws AbortException {
+    TestConfiguration addDataToTestConfiguration(TestConfiguration tc, @Nullable EnvVars env) throws AbortException {
         
-        tc.setPathPCode(pathPCode);
-        tc.setTestObject(pathExecutionFile);
+        tc.setPathPCode(Util.replaceEnvVars(pathPCode, env));
+        tc.setTestObject(Util.replaceEnvVars(pathExecutionFile, env));
         
         return tc;
     }
