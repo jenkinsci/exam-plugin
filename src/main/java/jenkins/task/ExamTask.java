@@ -390,43 +390,43 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         try {
             ClientRequest clientRequest = new ClientRequest(listener.getLogger(), examPluginConfig.getPort(), launcher);
             Proc proc = null;
-            try {
+            Executor runExecutor = run.getExecutor();
+            if (runExecutor != null) {
+                try {
 
-                Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
-                if (clientRequest.isApiAvailable()) {
-                    listener.getLogger().println("ERROR: EXAM is already running");
-                    run.setResult(Result.FAILURE);
-                    throw new AbortException("ERROR: EXAM is already running");
-                }
-                process.stderr(examErr);
-                process.stdout(eca);
-                proc = process.start();
-
-                boolean ret = clientRequest.connectClient(timeout);
-                if (ret) {
-                    ApiVersion apiVersion = clientRequest.getApiVersion();
-                    listener.getLogger().println("EXAM api version: " + apiVersion.toString());
-                    TestConfiguration tc = createTestConfiguration(env);
-                    tc.setPythonPath(pythonexe);
-                    FilterConfiguration fc = new FilterConfiguration();
-
-                    for (TestrunFilter filter : testrunFilter) {
-                        fc.addTestrunFilter(
-                                new jenkins.internal.data.TestrunFilter(filter.name, filter.value, filter.adminCases,
-                                        filter.activateTestcases));
+                    Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
+                    if (clientRequest.isApiAvailable()) {
+                        listener.getLogger().println("ERROR: EXAM is already running");
+                        run.setResult(Result.FAILURE);
+                        throw new AbortException("ERROR: EXAM is already running");
                     }
+                    process.stderr(examErr);
+                    process.stdout(eca);
+                    proc = process.start();
 
-                    if (isClearWorkspace()) {
-                        clientRequest.clearWorkspace(tc.getModelProject().getModelName());
-                    }
-                    clientRequest.clearWorkspace(tc.getReportProject().getProjectName());
-                    if (!testrunFilter.isEmpty()) {
-                        clientRequest.setTestrunFilter(fc);
-                    }
-                    clientRequest.startTestrun(tc);
+                    boolean ret = clientRequest.connectClient(runExecutor, timeout);
+                    if (ret) {
+                        ApiVersion apiVersion = clientRequest.getApiVersion();
+                        listener.getLogger().println("EXAM api version: " + apiVersion.toString());
+                        TestConfiguration tc = createTestConfiguration(env);
+                        tc.setPythonPath(pythonexe);
+                        FilterConfiguration fc = new FilterConfiguration();
 
-                    Executor runExecutor = run.getExecutor();
-                    if (runExecutor != null) {
+                        for (TestrunFilter filter : testrunFilter) {
+                            fc.addTestrunFilter(
+                                    new jenkins.internal.data.TestrunFilter(filter.name, filter.value, filter.adminCases,
+                                            filter.activateTestcases));
+                        }
+
+                        if (isClearWorkspace()) {
+                            clientRequest.clearWorkspace(tc.getModelProject().getModelName());
+                        }
+                        clientRequest.clearWorkspace(tc.getReportProject().getProjectName());
+                        if (!testrunFilter.isEmpty()) {
+                            clientRequest.setTestrunFilter(fc);
+                        }
+                        clientRequest.startTestrun(tc);
+
                         clientRequest.waitForTestrunEnds(runExecutor, 60);
                         listener.getLogger().println("waiting until EXAM is idle");
                         clientRequest.waitForExamIdle(runExecutor, 300);
@@ -434,23 +434,23 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                             listener.getLogger().println("waiting for PDF Report");
                             clientRequest.waitForExportPDFReportJob(runExecutor, 600);
                         }
-                    }
-                    clientRequest.convert(tc.getReportProject().getProjectName());
+                        clientRequest.convert(tc.getReportProject().getProjectName());
 
-                    hash = "__" + RandomStringUtils.random(5, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray());
-                    source = source.child("reports").child(tc.getReportProject().getProjectName()).child("junit");
-                    target = target.child("test-reports").child(tc.getReportProject().getProjectName() + hash);
-                    source.copyRecursiveTo(target);
-                }
-            } catch (IOException e) {
-                run.setResult(Result.FAILURE);
-                throw new AbortException("ERROR: " + e.toString());
-            } finally {
-                try {
-                    clientRequest.disconnectClient(timeout);
+                        hash = "__" + RandomStringUtils.random(5, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray());
+                        source = source.child("reports").child(tc.getReportProject().getProjectName()).child("junit");
+                        target = target.child("test-reports").child(tc.getReportProject().getProjectName() + hash);
+                        source.copyRecursiveTo(target);
+                    }
+                } catch (IOException e) {
+                    run.setResult(Result.FAILURE);
+                    throw new AbortException("ERROR: " + e.toString());
                 } finally {
-                    if (proc != null && proc.isAlive()) {
-                        proc.joinWithTimeout(10, TimeUnit.SECONDS, listener);
+                    try {
+                        clientRequest.disconnectClient(runExecutor, timeout);
+                    } finally {
+                        if (proc != null && proc.isAlive()) {
+                            proc.joinWithTimeout(10, TimeUnit.SECONDS, listener);
+                        }
                     }
                 }
             }
