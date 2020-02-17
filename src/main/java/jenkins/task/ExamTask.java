@@ -72,6 +72,11 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
      * JAVA_OPTS if not null.
      */
     protected String javaOpts;
+
+    /**
+     * timeout if not null.
+     */
+    protected int timeout;
     /**
      * Identifies {@link ExamTool} to be used.
      */
@@ -310,6 +315,20 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         this.javaOpts = Util.fixEmptyAndTrim(javaOpts);
     }
 
+    /**
+     * Gets the timeout parameter, or null.
+     *
+     * @return timeout
+     */
+    public int getTimeout() {
+        return timeout;
+    }
+
+    @DataBoundSetter
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
+
     public ExamTool.DescriptorImpl getToolDescriptor() {
         return ToolInstallation.all().get(ExamTool.DescriptorImpl.class);
     }
@@ -382,7 +401,11 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         examTool.buildEnvVars(env);
 
         ExamPluginConfig examPluginConfig = Jenkins.getInstanceOrNull().getDescriptorByType(ExamPluginConfig.class);
-        int timeout = handleAdditionalArgs(run, args, env, examPluginConfig, launcher);
+        handleAdditionalArgs(run, args, env, examPluginConfig, launcher);
+
+        if (timeout <= 0) {
+            timeout = examPluginConfig.getTimeout();
+        }
 
         long startTime = System.currentTimeMillis();
         ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
@@ -402,6 +425,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 process.stdout(eca);
                 proc = process.start();
 
+                Executor runExecutor = run.getExecutor();
                 boolean ret = clientRequest.connectClient(timeout);
                 if (ret) {
                     ApiVersion apiVersion = clientRequest.getApiVersion();
@@ -425,14 +449,13 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                     }
                     clientRequest.startTestrun(tc);
 
-                    Executor runExecutor = run.getExecutor();
                     if (runExecutor != null) {
                         clientRequest.waitForTestrunEnds(runExecutor, 60);
                         listener.getLogger().println("waiting until EXAM is idle");
-                        clientRequest.waitForExamIdle(runExecutor, 300);
+                        clientRequest.waitForExamIdle(runExecutor, timeout);
                         if (pdfReport) {
                             listener.getLogger().println("waiting for PDF Report");
-                            clientRequest.waitForExportPDFReportJob(runExecutor, 600);
+                            clientRequest.waitForExportPDFReportJob(runExecutor, timeout * 2);
                         }
                     }
                     clientRequest.convert(tc.getReportProject().getProjectName());
@@ -484,8 +507,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         }
     }
 
-    private int handleAdditionalArgs(@Nonnull Run<?, ?> run, ArgumentListBuilder args, EnvVars env, ExamPluginConfig examPluginConfig, Launcher launcher) throws AbortException {
-        int timeout = examPluginConfig.getTimeout();
+    private void handleAdditionalArgs(@Nonnull Run<?, ?> run, ArgumentListBuilder args, EnvVars env, ExamPluginConfig examPluginConfig, Launcher launcher) throws AbortException {
         args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
                 "-DRESTAPI_PORT=" + examPluginConfig.getPort());
 
@@ -503,22 +525,11 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             env.put("JAVA_OPTS", env.expand(javaOpts));
             String[] splittedJavaOpts = javaOpts.split(" ");
             args.add(splittedJavaOpts);
-            if (javaOpts.contains("-Dtimeout=")) {
-                String sTimeout = "";
-                for (String option : splittedJavaOpts) {
-                    if (option.startsWith("-Dtimeout=")) {
-                        sTimeout = option.substring(10);
-                    }
-                }
-                timeout = Integer.valueOf(sTimeout).intValue();
-            }
         }
 
         if (!launcher.isUnix()) {
             args = toWindowsCommand(args);
         }
-
-        return timeout;
     }
 
     private ExamReportConfig getReport(String name) {
