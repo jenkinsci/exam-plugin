@@ -46,6 +46,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -93,7 +94,7 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
-    public ExamTool forNode(Node node, TaskListener log) throws IOException, InterruptedException {
+    public ExamTool forNode(@Nonnull Node node, TaskListener log) throws IOException, InterruptedException {
         return new ExamTool(getName(), translateFor(node, log), Collections.emptyList(), getRelativeDataPath());
     }
 
@@ -103,8 +104,12 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
     }
 
     @Override
+    @Nullable
     public DescriptorImpl getDescriptor() {
         Jenkins jenkinsInstance = Jenkins.getInstanceOrNull();
+        if (jenkinsInstance == null) {
+            return null;
+        }
         return (DescriptorImpl) jenkinsInstance.getDescriptorOrDie(getClass());
     }
 
@@ -116,6 +121,7 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
+    @Nullable
     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
         VirtualChannel channel = launcher.getChannel();
         if (channel == null) {
@@ -127,6 +133,7 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
             /**
              * Gets the executable path of this EXAM on the given target system.
              */
+            @Nullable
             public String call() {
                 File exe = getExeFile();
                 if (exe.exists()) {
@@ -196,10 +203,12 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
         public List<ExamTool.DescriptorImpl> getApplicableDescriptors() {
             List<ExamTool.DescriptorImpl> r = new ArrayList<>();
             Jenkins jenkinsInstance = Jenkins.getInstanceOrNull();
-            for (ToolDescriptor<?> td : jenkinsInstance.<ToolInstallation, ToolDescriptor<?>>getDescriptorList(
-                    ToolInstallation.class)) {
-                if (td instanceof ExamTool.DescriptorImpl) {
-                    r.add((ExamTool.DescriptorImpl) td);
+            if (jenkinsInstance != null) {
+                for (ToolDescriptor<?> td : jenkinsInstance.<ToolInstallation, ToolDescriptor<?>>getDescriptorList(
+                        ToolInstallation.class)) {
+                    if (td instanceof ExamTool.DescriptorImpl) {
+                        r.add((ExamTool.DescriptorImpl) td);
+                    }
                 }
             }
             return r;

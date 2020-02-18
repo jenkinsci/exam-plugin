@@ -40,6 +40,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 @XStreamAlias("exam-model-config")
 public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
@@ -131,6 +132,7 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     @Extension
     public static class DescriptorImpl extends Descriptor<ExamModelConfig> {
 
+        @Nonnull
         @Override
         public String getDisplayName() {
             return "EXAM Model";

@@ -29,43 +29,45 @@
  */
 package jenkins.internal.enumeration;
 
+import javax.annotation.Nullable;
+
 /**
  * EXAM Loglevel
  */
 public enum RestAPILogLevelEnum {
-    
+
     /**
      * No logging
      */
     OFF(0),
-    
+
     /**
      * Level used for errors and exceptions
      */
     ERROR(10),
-    
+
     /**
      * Level used for warnings
      */
     WARNING(15),
-    
+
     /**
      * Default level used for user messages
      */
     INFO(20),
-    
+
     /**
      * Debug level
      */
     DEBUG(25),
-    
+
     /**
      * Finest level for debugging method calls
      */
     INTERNAL(30);
-    
+
     private int value;
-    
+
     /**
      * Constructor for LogLevel
      *
@@ -74,15 +76,15 @@ public enum RestAPILogLevelEnum {
     RestAPILogLevelEnum(int value) {
         this.value = value;
     }
-    
+
     /**
      * Cast the Integer to a LogLevel Possible Values: 0 - OFF 5 - EXECUTION 10 - ERROR 15 - WARNING 20 - INFO 25 -
      * DEBUG 30 - INTERNAL
      *
      * @param i Integer
-     *
      * @return LogLevelEnum RestAPILogLevelEnum
      */
+    @Nullable
     public static RestAPILogLevelEnum fromInt(Integer i) {
         switch (i) {
             case 0:
@@ -101,16 +103,16 @@ public enum RestAPILogLevelEnum {
                 return null;
         }
     }
-    
+
     /**
      * Get the possible names of the enum.
      *
      * @return the names of the enum as String array
      */
     public static String[] getValues() {
-        return new String[] { OFF.name(), ERROR.name(), WARNING.name(), INFO.name(), DEBUG.name(), INTERNAL.name() };
+        return new String[]{OFF.name(), ERROR.name(), WARNING.name(), INFO.name(), DEBUG.name(), INTERNAL.name()};
     }
-    
+
     /**
      * Get the Int-Value of the given LogLevel
      *
@@ -119,12 +121,11 @@ public enum RestAPILogLevelEnum {
     public Integer toInt() {
         return this.value;
     }
-    
+
     /**
      * Checks if the given loglevel is included in the other
      *
      * @param l loglevel that should be included
-     *
      * @return true if the loglevel is included or equal
      */
     public boolean includesLogLevel(RestAPILogLevelEnum l) {

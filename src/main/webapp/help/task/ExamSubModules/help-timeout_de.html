@@ -27,20 +27,7 @@
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-
-    <j:set var="helpPath" value="/plugin/exam/help/task/ExamSubModules"/>
-
-    <f:section title="">
-        <f:advanced>
-            <f:entry title="${%Java Opts}" field="javaOpts" help="${helpPath}/help-javaOpts.html">
-                <f:textbox/>
-            </f:entry>
-            <f:entry title="timeout" field="timeout" help="${helpPath}/help-timeout.html">
-                <f:number/>
-            </f:entry>
-        </f:advanced>
-    </f:section>
-</j:jelly>
+<div>
+    Wenn der Wert größer 0 Sekunden gesetzt wird, wiwrd der timeout-Parameter aus den globalen
+    Einstellungen mit diesem überschrieben.
+</div>

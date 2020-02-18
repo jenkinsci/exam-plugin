@@ -35,6 +35,7 @@ import hudson.Launcher;
 import hudson.remoting.VirtualChannel;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.Serializable;
@@ -43,37 +44,34 @@ import java.io.Serializable;
  * Execute code on remote slave
  */
 public class RemoteService implements Serializable {
-    
+
     private final static String BASEURL = "http://localhost:%s/examRest";
     private static final long serialVersionUID = 1984941733988614781L;
-    
+
     /**
      * @param launcher Launcher
      * @param apiPort  port of REST-API
      * @param postUrl  postfix for api url
-     *
      * @return ClientResponse
-     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
-    public static RemoteServiceResponse get(@Nonnull Launcher launcher, @Nonnull int apiPort, @Nonnull String postUrl,
-            Class clazz) throws IOException, InterruptedException {
+    @Nullable
+    public static RemoteServiceResponse get(@Nonnull Launcher launcher, int apiPort, @Nonnull String postUrl,
+                                            Class clazz) throws IOException, InterruptedException {
         VirtualChannel channel = launcher.getChannel();
         if (channel == null) {
             return null;
         }
-        
-        RemoteServiceResponse answer = channel
+
+        return channel
                 .call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
                     private static final long serialVersionUID = -7246380216097840885L;
-                    
+
                     /**
                      * @return ip address of slave
-                     *
-                     * @throws IOException IOException
                      */
-                    public RemoteServiceResponse call() throws IOException {
+                    public RemoteServiceResponse call() {
                         String url = String.format(BASEURL, apiPort) + postUrl;
                         WebResource service = createClient(url);
                         ClientResponse clientResponse = service.get(ClientResponse.class);
@@ -82,36 +80,31 @@ public class RemoteService implements Serializable {
                         return response;
                     }
                 });
-        
-        return answer;
     }
-    
+
     /**
      * @param launcher Launcher
      * @param apiPort  port of REST-API
      * @param postUrl  postfix for api url
-     *
      * @return ClientResponse
-     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
-    public static RemoteServiceResponse getJSON(@Nonnull Launcher launcher, @Nonnull int apiPort,
-            @Nonnull String postUrl, Class clazz) throws IOException, InterruptedException {
+    @Nullable
+    public static RemoteServiceResponse getJSON(@Nonnull Launcher launcher, int apiPort,
+                                                @Nonnull String postUrl, Class clazz) throws IOException, InterruptedException {
         VirtualChannel channel = launcher.getChannel();
         if (channel == null) {
             return null;
         }
-        RemoteServiceResponse answer = channel
+        return channel
                 .call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
                     private static final long serialVersionUID = -7246380216097840887L;
-                    
+
                     /**
                      * @return ip address of slave
-                     *
-                     * @throws IOException IOException
                      */
-                    public RemoteServiceResponse call() throws IOException {
+                    public RemoteServiceResponse call() {
                         String url = String.format(BASEURL, apiPort) + postUrl;
                         WebResource service = createClient(url);
                         ClientResponse clientResponse = service.accept(MediaType.APPLICATION_JSON)
@@ -119,43 +112,38 @@ public class RemoteService implements Serializable {
                         RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
                         destroyClient();
                         return response;
-                        
+
                     }
                 });
-        
-        return answer;
     }
-    
+
     /**
      * @param launcher Launcher
      * @param apiPort  port of REST-API
      * @param postUrl  postfix for api url
-     *
      * @return ClientResponse
-     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
-    public static RemoteServiceResponse post(@Nonnull Launcher launcher, @Nonnull int apiPort,
-            @Nonnull String postUrl, Object postObject, Class clazz) throws IOException, InterruptedException {
+    @Nullable
+    public static RemoteServiceResponse post(@Nonnull Launcher launcher, int apiPort,
+                                             @Nonnull String postUrl, Object postObject, Class clazz) throws IOException, InterruptedException {
         VirtualChannel channel = launcher.getChannel();
         if (channel == null) {
             return null;
         }
-        RemoteServiceResponse answer = channel
+        return channel
                 .call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
                     private static final long serialVersionUID = 1083377786092322973L;
-                    
+
                     /**
                      * @return ip address of slave
-                     *
-                     * @throws IOException IOException
                      */
-                    public RemoteServiceResponse call() throws IOException {
+                    public RemoteServiceResponse call() {
                         String url = String.format(BASEURL, apiPort) + postUrl;
                         WebResource service = createClient(url);
                         ClientResponse clientResponse = null;
-                        
+
                         if (postObject == null) {
                             clientResponse = service.accept(MediaType.APPLICATION_JSON)
                                     .type(MediaType.APPLICATION_JSON).post(ClientResponse.class);
@@ -168,7 +156,5 @@ public class RemoteService implements Serializable {
                         return response;
                     }
                 });
-        
-        return answer;
     }
 }
