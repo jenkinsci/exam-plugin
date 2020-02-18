@@ -38,10 +38,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TestConfigurationTest {
-    
+
     private TestConfiguration testObject;
     private final static String TESTSTRING = "myTestString";
     private RestAPILogLevelEnum testLevel;
@@ -50,13 +52,13 @@ public class TestConfigurationTest {
         setTargetEndpoint(TESTSTRING);
         setProjectName(TESTSTRING);
     }};
-    
+
     private final static ReportConfiguration REPORTCONFIG = new ReportConfiguration() {{
         setProjectName(TESTSTRING);
         setDbHost(TESTSTRING);
         setDbSchema(TESTSTRING);
     }};
-    
+
     @Before
     public void setUp() throws Exception {
         testObject = new TestConfiguration();
@@ -65,21 +67,21 @@ public class TestConfigurationTest {
         int randomElement = givenList.get(rand.nextInt(givenList.size()));
         testLevel = RestAPILogLevelEnum.fromInt(randomElement);
     }
-    
+
     @Test
     public void getReportPrefix() {
         Whitebox.setInternalState(testObject, "reportPrefix", TESTSTRING);
         String testIt = testObject.getReportPrefix();
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void setReportPrefix() {
         testObject.setReportPrefix(TESTSTRING);
         String testIt = Whitebox.getInternalState(testObject, "reportPrefix");
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void getModelProject() {
         Whitebox.setInternalState(testObject, "modelProject", MODELCONFIG);
@@ -88,7 +90,7 @@ public class TestConfigurationTest {
         assertEquals(MODELCONFIG.getTargetEndpoint(), testIt.getTargetEndpoint());
         assertEquals(MODELCONFIG.getProjectName(), testIt.getProjectName());
     }
-    
+
     @Test
     public void setModelProject() {
         testObject.setModelProject(MODELCONFIG);
@@ -97,7 +99,7 @@ public class TestConfigurationTest {
         assertEquals(MODELCONFIG.getTargetEndpoint(), testIt.getTargetEndpoint());
         assertEquals(MODELCONFIG.getProjectName(), testIt.getProjectName());
     }
-    
+
     @Test
     public void getReportProject() {
         Whitebox.setInternalState(testObject, "reportProject", REPORTCONFIG);
@@ -106,7 +108,7 @@ public class TestConfigurationTest {
         assertEquals(REPORTCONFIG.getDbHost(), testIt.getDbHost());
         assertEquals(REPORTCONFIG.getDbSchema(), testIt.getDbSchema());
     }
-    
+
     @Test
     public void setReportProject() {
         testObject.setReportProject(REPORTCONFIG);
@@ -115,158 +117,158 @@ public class TestConfigurationTest {
         assertEquals(REPORTCONFIG.getDbHost(), testIt.getDbHost());
         assertEquals(REPORTCONFIG.getDbSchema(), testIt.getDbSchema());
     }
-    
+
     @Test
     public void getSystemConfig() {
         Whitebox.setInternalState(testObject, "systemConfig", TESTSTRING);
         String testIt = testObject.getSystemConfig();
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void setSystemConfig() {
         testObject.setSystemConfig(TESTSTRING);
         String testIt = Whitebox.getInternalState(testObject, "systemConfig");
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void getTestObject() {
         Whitebox.setInternalState(testObject, "testObject", TESTSTRING);
         String testIt = testObject.getTestObject();
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void setTestObject() {
         testObject.setTestObject(TESTSTRING);
         String testIt = Whitebox.getInternalState(testObject, "testObject");
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void getlogLevelTC() {
         Whitebox.setInternalState(testObject, "logLevelTC", testLevel);
         RestAPILogLevelEnum testIt = testObject.getLogLevelTC();
         assertEquals(testLevel, testIt);
     }
-    
+
     @Test
     public void setlogLevelTC() {
         testObject.setLogLevelTC(testLevel);
         RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevelTC");
         assertEquals(testLevel, testIt);
     }
-    
+
     @Test
     public void getlogLevelTL() {
         Whitebox.setInternalState(testObject, "logLevelTL", testLevel);
         RestAPILogLevelEnum testIt = testObject.getLogLevelTL();
         assertEquals(testLevel, testIt);
     }
-    
+
     @Test
     public void setlogLevelTL() {
         testObject.setLogLevelTL(testLevel);
         RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevelTL");
         assertEquals(testLevel, testIt);
     }
-    
+
     @Test
     public void getLogLevelLC() {
         Whitebox.setInternalState(testObject, "logLevelLC", testLevel);
         RestAPILogLevelEnum testIt = testObject.getLogLevelLC();
         assertEquals(testLevel, testIt);
     }
-    
+
     @Test
     public void setLogLevelLC() {
         testObject.setLogLevelLC(testLevel);
         RestAPILogLevelEnum testIt = Whitebox.getInternalState(testObject, "logLevelLC");
         assertEquals(testLevel, testIt);
     }
-    
+
     @Test
     public void getPythonPath() {
         Whitebox.setInternalState(testObject, "pythonPath", TESTSTRING);
         String testIt = testObject.getPythonPath();
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void setPythonPath() {
         testObject.setPythonPath(TESTSTRING);
         String testIt = Whitebox.getInternalState(testObject, "pythonPath");
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void getPdfReportTemplate() {
         Whitebox.setInternalState(testObject, "pdfReportTemplate", TESTSTRING);
         String testIt = testObject.getPdfReportTemplate();
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void setPdfReportTemplate() {
         testObject.setPdfReportTemplate(TESTSTRING);
         String testIt = Whitebox.getInternalState(testObject, "pdfReportTemplate");
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void getPdfSelectFilter() {
         Whitebox.setInternalState(testObject, "pdfSelectFilter", TESTSTRING);
         String testIt = testObject.getPdfSelectFilter();
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void setPdfSelectFilter() {
         testObject.setPdfSelectFilter(TESTSTRING);
         String testIt = Whitebox.getInternalState(testObject, "pdfSelectFilter");
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void getPdfMeasureImages() {
         Whitebox.setInternalState(testObject, "pdfMeasureImages", true);
         boolean testIt = testObject.getPdfMeasureImages();
         assertTrue(testIt);
-        
+
         Whitebox.setInternalState(testObject, "pdfMeasureImages", false);
         boolean testIt2 = testObject.getPdfMeasureImages();
         assertFalse(testIt2);
     }
-    
+
     @Test
     public void setPdfMeasureImages() {
         testObject.setPdfMeasureImages(true);
         boolean testIt = Whitebox.getInternalState(testObject, "pdfMeasureImages");
         assertTrue(testIt);
     }
-    
+
     @Test
     public void getUseExecutionFile() {
         Whitebox.setInternalState(testObject, "useExecutionFile", true);
         boolean testIt = testObject.getUseExecutionFile();
         assertTrue(testIt);
     }
-    
+
     @Test
     public void setUseExecutionFile() {
         testObject.setUseExecutionFile(true);
         boolean testIt = Whitebox.getInternalState(testObject, "useExecutionFile");
         assertTrue(testIt);
     }
-    
+
     @Test
     public void getPathPCode() {
         Whitebox.setInternalState(testObject, "pathPCode", TESTSTRING);
         String testIt = testObject.getPathPCode();
         assertEquals(TESTSTRING, testIt);
     }
-    
+
     @Test
     public void setPathPCode() {
         testObject.setPathPCode(TESTSTRING);

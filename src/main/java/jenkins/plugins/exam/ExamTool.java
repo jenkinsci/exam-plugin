@@ -29,7 +29,11 @@
  */
 package jenkins.plugins.exam;
 
-import hudson.*;
+import hudson.CopyOnWrite;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.Launcher;
+import hudson.Util;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Node;
 import hudson.model.TaskListener;

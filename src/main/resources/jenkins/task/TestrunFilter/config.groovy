@@ -29,8 +29,6 @@
  */
 package jenkins.task
 
-import jenkins.internal.enumeration.RestAPILogLevelEnum
-
 f = namespace(lib.FormTagLib)
 
 
