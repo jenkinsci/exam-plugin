@@ -217,6 +217,13 @@ public class Util {
         return FormValidation.error(errorMsg.toString());
     }
 
+    /**
+     * Replaces all variables within the text with the corresponding values at env
+     *
+     * @param text string with variables to replace
+     * @param env  environment variables
+     * @return
+     */
     public static String replaceEnvVars(@Nullable String text, @Nullable EnvVars env) {
         if (text == null || text.isEmpty() || env == null || env.isEmpty()) {
             return text;

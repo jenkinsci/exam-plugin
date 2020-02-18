@@ -73,6 +73,9 @@ public class ExamTaskModel extends ExamTask {
      */
     private String modelConfiguration;
 
+    /**
+     * Constructor of ExamTaskModel
+     */
     @DataBoundConstructor
     public ExamTaskModel(String examName, String pythonName, String examReport, String executionFile,
                          String systemConfiguration) {
@@ -140,34 +143,67 @@ public class ExamTaskModel extends ExamTask {
         return (ExamTaskModel.DescriptorExamTaskModel) super.getDescriptor();
     }
 
+    /**
+     * The Descriptor of DescriptorExamTaskModel
+     */
     @Extension
     @Symbol("examTest_Model")
     public static class DescriptorExamTaskModel extends DescriptorExamTask {
 
         private static final long serialVersionUID = -4147581220669578429L;
 
+        /**
+         * @return the EXAM display name
+         */
         @Nonnull
         public String getDisplayName() {
             return Messages.EXAM_DisplayNameModel();
         }
 
+        /**
+         * @return the default log level
+         */
         public String getDefaultLogLevel() {
             return super.getDefaultLogLevel();
         }
 
+        /**
+         * Validates the parameter SystemConfig. Checks if it is an id, uuid or
+         * exam fullscopename
+         *
+         * @param value String
+         * @return
+         */
         public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
             return jenkins.internal.Util.validateElementForSearch(value);
         }
 
+        /**
+         * Validates the parameter ExecutionFile. Checks if it is an id, uuid or
+         * exam fullscopename
+         *
+         * @param value String
+         * @return
+         */
         public FormValidation doCheckExecutionFile(@QueryParameter String value) {
             return jenkins.internal.Util.validateElementForSearch(value);
         }
 
+        /**
+         * returns all ExamModelConfigs
+         *
+         * @return List<ExamModelConfig>
+         */
         public List<ExamModelConfig> getModelConfigs() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
             return (instanceOrNull == null) ? new ArrayList<>() : instanceOrNull.getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
         }
 
+        /**
+         * fills the ListBoxModel with all ExamModelConfigs
+         *
+         * @return ListBoxModel
+         */
         public ListBoxModel doFillExamModelItems() {
             ListBoxModel items = new ListBoxModel();
             List<ExamModelConfig> models = getModelConfigs();

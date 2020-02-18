@@ -55,6 +55,9 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     private int examVersion;
     private String targetEndpoint = TARGET_ENDPOINT;
 
+    /**
+     * Constructor of ExamModelConfig
+     */
     @DataBoundConstructor
     public ExamModelConfig(String modelName) {
         this.modelName = modelName;
@@ -129,6 +132,9 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
         return Messages.ExamModelConfig_displayName(getName(), getModelName(), getTargetEndpoint());
     }
 
+    /**
+     * The Descriptor of ExamModelConfig
+     */
     @Extension
     public static class DescriptorImpl extends Descriptor<ExamModelConfig> {
 
@@ -140,6 +146,12 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
 
         // TODO Prüfungen für Modellnamen und TargetEndpoint ergänzen
 
+        /**
+         * validate the name parameter
+         *
+         * @param value String to check
+         * @return FormValidation
+         */
         public FormValidation doCheckName(@QueryParameter String value) {
 
             if (value.contains(" ")) {

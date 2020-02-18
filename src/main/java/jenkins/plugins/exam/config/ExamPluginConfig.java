@@ -62,10 +62,16 @@ public class ExamPluginConfig extends GlobalConfiguration {
     private int licensePort = 0;
     private String licenseHost = "";
 
+    /**
+     * Constructor of ExamPluginConfig
+     */
     public ExamPluginConfig() {
         load();
     }
 
+    /**
+     * Constructor of ExamPluginConfig
+     */
     public ExamPluginConfig(List<ExamModelConfig> modelConfigs, List<ExamReportConfig> reportConfigs, int port,
                             int licensePort, int timeout, String licenseHost) {
         this.modelConfigs = modelConfigs;
@@ -156,6 +162,12 @@ public class ExamPluginConfig extends GlobalConfiguration {
         return "EXAM";
     }
 
+    /**
+     * Verify every configured Model Connection.
+     *
+     * @return FormValidation
+     * @throws SOAPException
+     */
     public FormValidation doVerifyModelConnections() throws SOAPException {
 
         Map<String, List<String>> status = new HashMap<>();

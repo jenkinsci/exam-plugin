@@ -61,6 +61,9 @@ public class ExamReportConfig extends AbstractDescribableImpl<ExamReportConfig> 
     private String dbUser = "";
     private String dbPass = "";
 
+    /**
+     * Constructor of ExamReportConfig
+     */
     @DataBoundConstructor
     public ExamReportConfig() {
     }
@@ -166,11 +169,17 @@ public class ExamReportConfig extends AbstractDescribableImpl<ExamReportConfig> 
         return (jenkinsInstance == null) ? null : (ExamReportConfig.DescriptorImpl) jenkinsInstance.getDescriptorOrDie(getClass());
     }
 
+    /**
+     * The Descriptor of ExamReportConfig
+     */
     @Extension
     public static class DescriptorImpl extends Descriptor<ExamReportConfig> {
 
-        private DbKind[] dbTypes = DbKind.values();
+        private final DbKind[] dbTypes = DbKind.values();
 
+        /**
+         * Constructor of this Descriptor
+         */
         public DescriptorImpl() {
             load();
         }

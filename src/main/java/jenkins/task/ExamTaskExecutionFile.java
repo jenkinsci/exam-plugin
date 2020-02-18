@@ -53,6 +53,9 @@ public class ExamTaskExecutionFile extends ExamTask {
     private String pathExecutionFile;
     private String pathPCode;
 
+    /**
+     * Constructor of ExamTaskExecutionFile
+     */
     @DataBoundConstructor
     public ExamTaskExecutionFile(String examName, String pythonName, String examReport, String systemConfiguration) {
         super(examName, pythonName, examReport, systemConfiguration);
@@ -90,17 +93,30 @@ public class ExamTaskExecutionFile extends ExamTask {
         return (ExamTaskExecutionFile.DescriptorExamTaskExecutionFile) super.getDescriptor();
     }
 
+    /**
+     * The Descriptor of DescriptorExamTaskExecutionFile
+     */
     @Extension
     @Symbol("examTest_ExecutionFile")
     public static class DescriptorExamTaskExecutionFile extends DescriptorExamTask {
 
         private static final long serialVersionUID = 8392999844814000476L;
 
+        /**
+         * @return the EXAM display name
+         */
         @Nonnull
         public String getDisplayName() {
             return Messages.EXAM_DisplayNameExecutionFile();
         }
 
+        /**
+         * Validates the parameter SystemConfiguration. Checks if it contains ids, uuids or
+         * exam fullscopenames
+         *
+         * @param value String
+         * @return
+         */
         public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
             String newLine = "\r\n";
             StringBuilder errorMsg = new StringBuilder();
@@ -129,6 +145,9 @@ public class ExamTaskExecutionFile extends ExamTask {
             return FormValidation.ok();
         }
 
+        /**
+         * @return the default log level
+         */
         public String getDefaultLogLevel() {
             return super.getDefaultLogLevel();
         }

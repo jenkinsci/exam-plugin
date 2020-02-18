@@ -39,7 +39,7 @@ public class ApiVersion implements Serializable {
     private int major;
     private int minor;
     private int fix;
-    
+
     /**
      * Constructor of version information of this API
      */
@@ -48,31 +48,66 @@ public class ApiVersion implements Serializable {
         this.minor = 0;
         this.fix = 0;
     }
-    
+
+    /**
+     * get major version
+     *
+     * @return int
+     */
     public int getMajor() {
         return this.major;
     }
-    
+
+    /**
+     * sets major version
+     *
+     * @param major
+     */
     public void setMajor(int major) {
         this.major = major;
     }
-    
+
+    /**
+     * get minor version
+     *
+     * @return int
+     */
     public int getMinor() {
         return this.minor;
     }
-    
+
+    /**
+     * set minor version
+     *
+     * @param minor
+     */
     public void setMinor(int minor) {
         this.minor = minor;
     }
-    
+
+    /**
+     * get fix version
+     *
+     * @return int
+     */
     public int getFix() {
         return this.fix;
     }
-    
+
+    /**
+     * set fix version
+     *
+     * @param fix
+     */
     public void setFix(int fix) {
         this.fix = fix;
     }
-    
+
+    /**
+     * returns the full version as string
+     *
+     * @return version as string
+     */
     public String toString() {
         return String.format("%s.%s.%s", major, minor, fix);
     }
