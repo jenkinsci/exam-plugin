@@ -29,7 +29,6 @@
  */
 package jenkins.task;
 
-import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.util.FormValidation;
@@ -41,6 +40,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -49,55 +49,58 @@ import javax.annotation.Nullable;
  * @author Kohsuke Kawaguchi
  */
 public class ExamTaskExecutionFile extends ExamTask {
-    
+
     private String pathExecutionFile;
     private String pathPCode;
-    
+
     @DataBoundConstructor
     public ExamTaskExecutionFile(String examName, String pythonName, String examReport, String systemConfiguration) {
         super(examName, pythonName, examReport, systemConfiguration);
         setUseExecutionFile(true);
     }
-    
+
     public String getPathExecutionFile() {
         return pathExecutionFile;
     }
-    
+
     @DataBoundSetter
     public void setPathExecutionFile(String pathExecutionFile) {
         this.pathExecutionFile = pathExecutionFile;
     }
-    
+
     public String getPathPCode() {
         return pathPCode;
     }
-    
+
     @DataBoundSetter
     public void setPathPCode(String pathPCode) {
         this.pathPCode = pathPCode;
     }
-    
-    TestConfiguration addDataToTestConfiguration(TestConfiguration tc, @Nullable EnvVars env) throws AbortException {
-        
+
+    TestConfiguration addDataToTestConfiguration(TestConfiguration tc, @Nullable EnvVars env) {
+
         tc.setPathPCode(Util.replaceEnvVars(pathPCode, env));
         tc.setTestObject(Util.replaceEnvVars(pathExecutionFile, env));
-        
+
         return tc;
     }
-    
+
     @Override
     public ExamTaskExecutionFile.DescriptorExamTaskExecutionFile getDescriptor() {
         return (ExamTaskExecutionFile.DescriptorExamTaskExecutionFile) super.getDescriptor();
     }
-    
+
     @Extension
     @Symbol("examTest_ExecutionFile")
     public static class DescriptorExamTaskExecutionFile extends DescriptorExamTask {
-        
+
+        private static final long serialVersionUID = 8392999844814000476L;
+
+        @Nonnull
         public String getDisplayName() {
             return Messages.EXAM_DisplayNameExecutionFile();
         }
-        
+
         public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
             String newLine = "\r\n";
             StringBuilder errorMsg = new StringBuilder();
@@ -125,7 +128,7 @@ public class ExamTaskExecutionFile extends ExamTask {
             }
             return FormValidation.ok();
         }
-        
+
         public String getDefaultLogLevel() {
             return super.getDefaultLogLevel();
         }

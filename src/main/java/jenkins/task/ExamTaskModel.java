@@ -46,6 +46,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -105,6 +108,7 @@ public class ExamTaskModel extends ExamTask {
         this.modelConfiguration = modelConfiguration;
     }
 
+    @Nullable
     private ExamModelConfig getModel(String name) {
         for (ExamModelConfig mConfig : getDescriptor().getModelConfigs()) {
             if (mConfig.getName().equalsIgnoreCase(name)) {
@@ -140,6 +144,9 @@ public class ExamTaskModel extends ExamTask {
     @Symbol("examTest_Model")
     public static class DescriptorExamTaskModel extends DescriptorExamTask {
 
+        private static final long serialVersionUID = -4147581220669578429L;
+
+        @Nonnull
         public String getDisplayName() {
             return Messages.EXAM_DisplayNameModel();
         }
@@ -157,7 +164,8 @@ public class ExamTaskModel extends ExamTask {
         }
 
         public List<ExamModelConfig> getModelConfigs() {
-            return Jenkins.getInstanceOrNull().getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
+            Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
+            return (instanceOrNull == null) ? new ArrayList<>() : instanceOrNull.getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
         }
 
         public ListBoxModel doFillExamModelItems() {

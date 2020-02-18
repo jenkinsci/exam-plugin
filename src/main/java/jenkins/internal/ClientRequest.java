@@ -34,6 +34,7 @@ import hudson.Launcher;
 import hudson.model.Executor;
 import jenkins.internal.data.*;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -85,12 +86,13 @@ public class ClientRequest {
      * @throws AbortException AbortException
      * @throws IOException    IOException
      */
+    @Nullable
     public ExamStatus getStatus() throws IOException, InterruptedException {
         RemoteServiceResponse response = RemoteService
                 .getJSON(launcher, apiPort, "/testrun/status", ExamStatus.class);
         handleResponseError(response);
 
-        return (ExamStatus) response.getEntity();
+        return (response == null) ? null : (ExamStatus) response.getEntity();
     }
 
     /**
@@ -100,6 +102,7 @@ public class ClientRequest {
      * @throws AbortException AbortException
      * @throws IOException    IOException
      */
+    @Nullable
     public ApiVersion getApiVersion() throws IOException, InterruptedException {
         if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
@@ -109,7 +112,7 @@ public class ClientRequest {
                 .getJSON(launcher, apiPort, "/workspace/apiVersion", ApiVersion.class);
         handleResponseError(response);
 
-        return (ApiVersion) response.getEntity();
+        return (response == null) ? null : (ApiVersion) response.getEntity();
     }
 
     /**
@@ -196,7 +199,10 @@ public class ClientRequest {
         handleResponseError(response);
     }
 
-    private void handleResponseError(RemoteServiceResponse response) throws AbortException {
+    private void handleResponseError(@Nullable RemoteServiceResponse response) throws AbortException {
+        if (response == null) {
+            return;
+        }
         if (response.getStatus() != OK) {
             String errorMessage = "Failed : HTTP error code : " + response.getStatus();
             try {
@@ -239,7 +245,7 @@ public class ClientRequest {
             logger.println("WARNING: no EXAM connected");
             return;
         }
-        String postUrl = "";
+        String postUrl;
         if (projectName == null || projectName.isEmpty()) {
             logger.println("deleting all projects and pcode from EXAM workspace");
             postUrl = "/workspace/delete";
