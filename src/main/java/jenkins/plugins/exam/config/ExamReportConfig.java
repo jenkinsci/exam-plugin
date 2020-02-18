@@ -43,6 +43,7 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 @XStreamAlias("exam-report-config")
@@ -158,10 +159,11 @@ public class ExamReportConfig extends AbstractDescribableImpl<ExamReportConfig> 
         return Messages.ExamReportConfig_displayName(getName(), getSchema(), getHost(), getPort());
     }
 
+    @Nullable
     @Override
     public ExamReportConfig.DescriptorImpl getDescriptor() {
         Jenkins jenkinsInstance = Jenkins.getInstanceOrNull();
-        return (ExamReportConfig.DescriptorImpl) jenkinsInstance.getDescriptorOrDie(getClass());
+        return (jenkinsInstance == null) ? null : (ExamReportConfig.DescriptorImpl) jenkinsInstance.getDescriptorOrDie(getClass());
     }
 
     @Extension

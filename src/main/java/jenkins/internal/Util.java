@@ -53,6 +53,7 @@ public class Util {
      */
     public static Node workspaceToNode(FilePath workspace) {
         Jenkins j = Jenkins.getInstanceOrNull();
+        assert j != null;
         if (workspace != null && workspace.isRemote()) {
             for (Computer c : j.getComputers()) {
                 if (c.getChannel() == workspace.getChannel() && c.getNode() != null) {
@@ -92,9 +93,7 @@ public class Util {
         Pattern regexSystemConfig = Pattern.compile("^I[0-9]+");
         Matcher matcher = regexSystemConfig.matcher(id);
         if (matcher.find()) {
-            if (matcher.groupCount() == 0) {
-                return true;
-            }
+            return matcher.groupCount() == 0;
         }
         return false;
     }
@@ -161,7 +160,7 @@ public class Util {
      * @return FormValidation
      */
     public static FormValidation validateElementForSearch(String value) {
-        StringBuilder errorMsg = new StringBuilder("");
+        StringBuilder errorMsg = new StringBuilder();
 
         boolean uuidValid = isUuidValid(value);
         boolean idValid = isIdValid(value);
