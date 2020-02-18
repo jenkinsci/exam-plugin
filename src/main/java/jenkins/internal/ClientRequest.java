@@ -264,11 +264,15 @@ public class ClientRequest {
      * @param timeout millis
      * @return true, if connected
      */
-    public boolean connectClient(int timeout) throws IOException, InterruptedException {
+    public boolean connectClient(Executor executor, int timeout) throws IOException, InterruptedException {
         logger.println("connecting to EXAM");
 
         long timeoutTime = System.currentTimeMillis() + timeout * 1000;
         while (timeoutTime > System.currentTimeMillis()) {
+            if (executor.isInterrupted()) {
+                logger.println("Job interrupted");
+                return false;
+            }
             if (isApiAvailable()) {
                 clientConnected = true;
                 return true;
@@ -283,7 +287,7 @@ public class ClientRequest {
      *
      * @param timeout millis
      */
-    public void disconnectClient(int timeout) throws IOException, InterruptedException {
+    public void disconnectClient(Executor executor, int timeout) throws IOException, InterruptedException {
         if (!clientConnected) {
             logger.println("Client is not connected");
         } else {
@@ -298,6 +302,10 @@ public class ClientRequest {
             long timeoutTime = System.currentTimeMillis() + timeout * 1000;
             boolean shutdownOK = false;
             while (timeoutTime > System.currentTimeMillis()) {
+                if (executor.isInterrupted()) {
+                    logger.println("Job interrupted");
+                    return;
+                }
                 if (!isApiAvailable()) {
                     shutdownOK = true;
                     break;
