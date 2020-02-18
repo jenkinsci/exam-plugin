@@ -40,12 +40,13 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 @XStreamAlias("exam-model-config")
 public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
-    
+
     public static final String TARGET_ENDPOINT = "http://examServer:8080/exam/ExamModelerService";
-    
+
     /**
      * The optional display name of this server.
      */
@@ -53,25 +54,24 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     private String modelName;
     private int examVersion;
     private String targetEndpoint = TARGET_ENDPOINT;
-    
+
     @DataBoundConstructor
     public ExamModelConfig(String modelName) {
         this.modelName = modelName;
     }
-    
+
     /**
      * Gets the optional display name of this server.
      *
      * @return the optional display name of this server, may be empty or
      * {@code null} but best effort is made to ensure that it has some
      * meaningful text.
-     *
      * @since 1.28.0
      */
     public String getName() {
         return name;
     }
-    
+
     /**
      * Sets the optional display name.
      *
@@ -81,11 +81,11 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     public void setName(@CheckForNull String name) {
         this.name = Util.fixEmptyAndTrim(name);
     }
-    
+
     public int getExamVersion() {
         return examVersion;
     }
-    
+
     /**
      * Sets the exam version.
      *
@@ -95,11 +95,11 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     public void setExamVersion(int examVersion) {
         this.examVersion = examVersion;
     }
-    
+
     public String getModelName() {
         return modelName;
     }
-    
+
     /**
      * Sets the model name.
      *
@@ -109,11 +109,11 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     public void setModelName(@CheckForNull String modelName) {
         this.modelName = Util.fixEmptyAndTrim(modelName);
     }
-    
+
     public String getTargetEndpoint() {
         return targetEndpoint;
     }
-    
+
     /**
      * Set the target endpoint.
      *
@@ -124,29 +124,30 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     public void setTargetEndpoint(String targetEndpoint) {
         this.targetEndpoint = targetEndpoint == null || targetEndpoint.isEmpty() ? TARGET_ENDPOINT : targetEndpoint;
     }
-    
+
     public String getDisplayName() {
         return Messages.ExamModelConfig_displayName(getName(), getModelName(), getTargetEndpoint());
     }
-    
+
     @Extension
     public static class DescriptorImpl extends Descriptor<ExamModelConfig> {
-        
+
+        @Nonnull
         @Override
         public String getDisplayName() {
             return "EXAM Model";
         }
-        
+
         // TODO Prüfungen für Modellnamen und TargetEndpoint ergänzen
-        
+
         public FormValidation doCheckName(@QueryParameter String value) {
-            
+
             if (value.contains(" ")) {
                 return FormValidation.error(Messages.ExamPluginConfig_spacesNotAllowed());
             }
-            //ExamModelConfig[] modelConfigs = Jenkins.getInstance().getDescriptorByType(ExamPluginConfig.class)
+            //ExamModelConfig[] modelConfigs = Jenkins.getInstanceOrNull().getDescriptorByType(ExamPluginConfig.class)
             //                                       .getModelConfigs().toArray(new ExamModelConfig[0]);
-            
+
             // TODO prüfung einbauen
             return FormValidation.ok();
         }

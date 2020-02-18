@@ -45,6 +45,10 @@ f.section(title: descriptor.displayName) {
         f.number()
     }
 
+    f.entry(title: _("timeout"), field: "timeout") {
+        f.number()
+    }
+
     f.entry(title: _("EXAM Model Connections")) {
         f.repeatableProperty(
                 field: "modelConfigs",

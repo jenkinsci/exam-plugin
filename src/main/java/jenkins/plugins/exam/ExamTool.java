@@ -29,11 +29,7 @@
  */
 package jenkins.plugins.exam;
 
-import hudson.CopyOnWrite;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.Launcher;
-import hudson.Util;
+import hudson.*;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Node;
 import hudson.model.TaskListener;
@@ -50,6 +46,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,12 +61,12 @@ import java.util.logging.Logger;
  * @author Thomas Reinicke
  */
 public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>, EnvironmentSpecific<ExamTool> {
-    
+
     @SuppressWarnings("unused")
     private static final Logger LOGGER = Logger.getLogger(ExamTool.class.getName());
     private static final long serialVersionUID = 1;
     private final String relativeDataPath;
-    
+
     /**
      * Constructor for ExamTool.
      *
@@ -83,47 +80,48 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
         super(name, home, properties);
         this.relativeDataPath = Util.fixEmptyAndTrim(relativeDataPath);
     }
-    
+
     public String getRelativeDataPath() {
         return relativeDataPath;
     }
-    
+
     /**
      * Get the EXAM Tool for a specific node
      *
      * @param node Node
      * @param log  TaskListener
-     *
      * @return ExamTool
-     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
-    public ExamTool forNode(Node node, TaskListener log) throws IOException, InterruptedException {
+    public ExamTool forNode(@Nonnull Node node, TaskListener log) throws IOException, InterruptedException {
         return new ExamTool(getName(), translateFor(node, log), Collections.emptyList(), getRelativeDataPath());
     }
-    
+
     @Override
     public ExamTool forEnvironment(EnvVars environment) {
         return new ExamTool(getName(), environment.expand(getHome()), Collections.emptyList(), getRelativeDataPath());
     }
-    
+
     @Override
+    @Nullable
     public DescriptorImpl getDescriptor() {
-        Jenkins jenkinsInstance = Jenkins.getInstance();
+        Jenkins jenkinsInstance = Jenkins.getInstanceOrNull();
+        if (jenkinsInstance == null) {
+            return null;
+        }
         return (DescriptorImpl) jenkinsInstance.getDescriptorOrDie(getClass());
     }
-    
+
     /**
      * Gets the executable path of this EXAM on the given target system.
      *
      * @param launcher Launcher
-     *
      * @return answer
-     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
+    @Nullable
     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
         VirtualChannel channel = launcher.getChannel();
         if (channel == null) {
@@ -131,10 +129,11 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
         }
         String answer = channel.call(new MasterToSlaveCallable<String, IOException>() {
             private static final long serialVersionUID = 906341330603832653L;
-            
+
             /**
              * Gets the executable path of this EXAM on the given target system.
              */
+            @Nullable
             public String call() {
                 File exe = getExeFile();
                 if (exe.exists()) {
@@ -145,14 +144,14 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
         });
         return answer == null ? "" : answer;
     }
-    
+
     private File getExeFile() {
         String execName = "EXAM.exe";
         String home = Util.replaceMacro(getHome(), EnvVars.masterEnvVars);
-        
+
         return new File(home, execName);
     }
-    
+
     /**
      * Descriptor for ExamTool
      */
@@ -161,7 +160,7 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
     public static class DescriptorImpl extends ToolDescriptor<ExamTool> {
         @CopyOnWrite
         private volatile ExamTool[] installations = new ExamTool[0];
-        
+
         /**
          * Descriptor for ExamTool
          */
@@ -169,13 +168,13 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
             super();
             load();
         }
-        
+
         @Override
         @Nonnull
         public String getDisplayName() {
             return "EXAM";
         }
-        
+
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) {
             installations = req.bindJSONToList(clazz, json.get("tool")).toArray(new ExamTool[0]);
@@ -183,19 +182,19 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
             save();
             return true;
         }
-        
+
         // for compatibility reasons, the persistence is done by
         // ExamTaskModel.DescriptorImpl
         @Override
         public ExamTool[] getInstallations() {
             return installations.clone();
         }
-        
+
         @Override
         public void setInstallations(ExamTool... installations) {
             this.installations = installations;
         }
-        
+
         /**
          * Return list of applicable ExamTool descriptors.
          *
@@ -203,15 +202,17 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
          */
         public List<ExamTool.DescriptorImpl> getApplicableDescriptors() {
             List<ExamTool.DescriptorImpl> r = new ArrayList<>();
-            Jenkins jenkinsInstance = Jenkins.getInstance();
-            for (ToolDescriptor<?> td : jenkinsInstance.<ToolInstallation, ToolDescriptor<?>>getDescriptorList(
-                    ToolInstallation.class)) {
-                if (td instanceof ExamTool.DescriptorImpl) {
-                    r.add((ExamTool.DescriptorImpl) td);
+            Jenkins jenkinsInstance = Jenkins.getInstanceOrNull();
+            if (jenkinsInstance != null) {
+                for (ToolDescriptor<?> td : jenkinsInstance.<ToolInstallation, ToolDescriptor<?>>getDescriptorList(
+                        ToolInstallation.class)) {
+                    if (td instanceof ExamTool.DescriptorImpl) {
+                        r.add((ExamTool.DescriptorImpl) td);
+                    }
                 }
             }
             return r;
         }
     }
-    
+
 }

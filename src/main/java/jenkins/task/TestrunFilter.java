@@ -36,17 +36,18 @@ import hudson.model.Descriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 @XStreamAlias("testrun-filter")
 public class TestrunFilter extends AbstractDescribableImpl<TestrunFilter> {
-    
+
     @CheckForNull
     protected String name;
     @CheckForNull
     protected String value;
     protected boolean adminCases;
     protected boolean activateTestcases = false;
-    
+
     /**
      * Constructor of the TestrunFilter Part
      *
@@ -62,50 +63,51 @@ public class TestrunFilter extends AbstractDescribableImpl<TestrunFilter> {
         this.adminCases = adminCases;
         this.activateTestcases = activateTestcases;
     }
-    
+
     public String getName() {
         return name;
     }
-    
+
     public String getValue() {
         return value;
     }
-    
+
     public boolean getAdminCases() {
         return adminCases;
     }
-    
+
     public boolean getActivateTestcases() {
         return activateTestcases;
     }
-    
+
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
     }
-    
+
     /**
      * Descriptor of the TestrunFilter Part
      */
     @Extension
     public static class DescriptorImpl extends Descriptor<TestrunFilter> {
-        
+
         /**
          * Descriptor of the TestrunFilter Part
          */
         public DescriptorImpl() {
             load();
         }
-        
+
         protected DescriptorImpl(Class<? extends TestrunFilter> clazz) {
             super(clazz);
             load();
         }
-        
+
+        @Nonnull
         @Override
         public String getDisplayName() {
             return "Testrun Filter";
         }
-        
+
     }
 }
