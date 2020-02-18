@@ -45,38 +45,41 @@ import org.powermock.reflect.Whitebox;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class UtilTest {
-    
+
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
-    
+
     @Test
     public void workspaceToNode() throws Exception {
         DumbSlave slave = jenkinsRule.createOnlineSlave();
         slave.setLabelString("exam");
         slave.save();
         FilePath rootPath = slave.getWorkspaceRoot();
-        
+
         Node node = Util.workspaceToNode(rootPath);
         assertEquals(slave, node);
     }
-    
+
     @Test
     @WithoutJenkins
     public void isUuidValid() {
         String uuid = TUtil.generateValidUuid(false);
         assertTrue("TestUuid: " + uuid, Util.isUuidValid(uuid));
     }
-    
+
     @Test
     @WithoutJenkins
     public void isUuidValidMinus() {
         String uuid = TUtil.generateValidUuid(true);
         assertTrue("TestUuid: " + uuid, Util.isUuidValid(uuid));
     }
-    
+
     @Test
     @WithoutJenkins
     public void isUuidValidFalse() {
@@ -87,21 +90,21 @@ public class UtilTest {
         uuid = TUtil.generateValidUuid(false).substring(1) + "g";
         assertFalse("TestUuid: " + uuid, Util.isUuidValid(uuid));
     }
-    
+
     @Test
     @WithoutJenkins
     public void validateUuid() {
         FormValidation ret = Util.validateUuid(TUtil.generateValidUuid(false));
         assertEquals(FormValidation.Kind.OK, ret.kind);
     }
-    
+
     @Test
     @WithoutJenkins
     public void validateUuidFalse() {
         FormValidation ret = Util.validateUuid(TUtil.generateValidUuid(false) + "g");
         assertEquals(FormValidation.Kind.ERROR, ret.kind);
     }
-    
+
     @Test
     @WithoutJenkins
     public void isIdValid() throws Exception {
@@ -109,18 +112,18 @@ public class UtilTest {
         String id2 = TUtil.generateValidId();
         String id3 = "blablablallslsjkdf";
         String id4 = "3" + TUtil.generateValidId();
-        
+
         Boolean result1 = Whitebox.invokeMethod(Util.class, "isIdValid", id1);
         Boolean result2 = Whitebox.invokeMethod(Util.class, "isIdValid", id2);
         Boolean result3 = Whitebox.invokeMethod(Util.class, "isIdValid", id3);
         Boolean result4 = Whitebox.invokeMethod(Util.class, "isIdValid", id4);
-        
+
         assertTrue(result1);
         assertTrue(result2);
         assertFalse(result3);
         assertFalse(result4);
     }
-    
+
     @Test
     @WithoutJenkins
     public void isPythonConformFSN() {
@@ -136,7 +139,7 @@ public class UtilTest {
             put("AmAlsoNo.34huhu", false);
             put(null, false);
         }};
-        
+
         testsAndExpectedResults.forEach((name, expectedValue) -> {
             try {
                 Boolean result = Whitebox.invokeMethod(Util.class, "isPythonConformFSN", name);
@@ -150,7 +153,7 @@ public class UtilTest {
             }
         });
     }
-    
+
     @Test
     @WithoutJenkins
     public void validateElementForSearch() throws Exception {
@@ -158,18 +161,18 @@ public class UtilTest {
         String expectedErrorMsg =
                 Messages.EXAM_RegExUuid() + newLine + Messages.EXAM_RegExId() + newLine + Messages.EXAM_RegExFsn()
                         + newLine;
-        
+
         String invalidString = "#IAmAlsoNoPythonConformName";
         String validString = TUtil.generateValidId();
-        
+
         FormValidation fv_invalidResult = Whitebox
                 .invokeMethod(Util.class, "validateElementForSearch", invalidString);
         FormValidation fv_validResult = Whitebox.invokeMethod(Util.class, "validateElementForSearch", validString);
-        
+
         assertEquals(FormValidation.error(expectedErrorMsg).getMessage(), fv_invalidResult.getMessage());
         assertEquals(FormValidation.ok(), fv_validResult);
     }
-    
+
     @Test
     @WithoutJenkins
     public void validateSystemConfig() throws Exception {
@@ -180,13 +183,13 @@ public class UtilTest {
         String expectedErrorMsg_4 =
                 Messages.EXAM_RegExSysConf() + newLine + Messages.EXAM_RegExUuid() + newLine + Messages
                         .EXAM_RegExFsn() + newLine;
-        
+
         String invalidString_1 = "IAmNotValid";
         String invalidString_2 = TUtil.generateValidUuid(false) + "3 This_is_my_Sysconfig";
         String invalidString_3 = TUtil.generateValidUuid(false) + " 1This_is_my_Sysconfig";
         String invalidString_4 = TUtil.generateValidUuid(false) + "3 1This_is_my_Sysconfig";
         String validString = TUtil.generateValidUuid(false) + " This_is_my_Sysconfig";
-        
+
         FormValidation fv_invalidResult_1 = Whitebox
                 .invokeMethod(Util.class, "validateSystemConfig", invalidString_1);
         FormValidation fv_invalidResult_2 = Whitebox
@@ -196,46 +199,46 @@ public class UtilTest {
         FormValidation fv_invalidResult_4 = Whitebox
                 .invokeMethod(Util.class, "validateSystemConfig", invalidString_4);
         FormValidation fv_validResult = Whitebox.invokeMethod(Util.class, "validateSystemConfig", validString);
-        
+
         assertEquals(FormValidation.error(expectedErrorMsg_1).getMessage(), fv_invalidResult_1.getMessage());
         assertEquals(FormValidation.error(expectedErrorMsg_2).getMessage(), fv_invalidResult_2.getMessage());
         assertEquals(FormValidation.error(expectedErrorMsg_3).getMessage(), fv_invalidResult_3.getMessage());
         assertEquals(FormValidation.error(expectedErrorMsg_4).getMessage(), fv_invalidResult_4.getMessage());
         assertEquals(FormValidation.ok(), fv_validResult);
     }
-    
+
     @Test
     @WithoutJenkins
     public void replaceEnvVars() throws Exception {
         String workspace = "C:\\my\\work\\dir";
         String actual = "";
         String expected = "";
-        
+
         EnvVars env = new EnvVars();
         env.put("path", "c:\\this\\is\\my\\path;C:\\and\\another\\one");
         env.put("WORKSPACE", workspace);
         env.put("something", "unknown");
-        
+
         actual = "%WORKSPACE%\\to\\my\\file.xml";
         expected = workspace + "\\to\\my\\file.xml";
         actual = Util.replaceEnvVars(actual, env);
         assertEquals(expected, actual);
-        
+
         actual = "%WORKSPACE%";
         expected = workspace;
         actual = Util.replaceEnvVars(actual, env);
         assertEquals(expected, actual);
-        
+
         actual = "${WORKSPACE}\\to\\my\\file.xml";
         expected = workspace + "\\to\\my\\file.xml";
         actual = Util.replaceEnvVars(actual, env);
         assertEquals(expected, actual);
-        
+
         actual = "this is something ${something}";
         expected = "this is something unknown";
         actual = Util.replaceEnvVars(actual, env);
         assertEquals(expected, actual);
-        
+
         actual = "%nothing% to ${replace}";
         expected = actual;
         actual = Util.replaceEnvVars(actual, env);

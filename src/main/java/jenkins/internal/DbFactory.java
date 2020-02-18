@@ -38,7 +38,14 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import javax.annotation.Nullable;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
-import javax.xml.soap.*;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPFault;
+import javax.xml.soap.SOAPMessage;
+import javax.xml.soap.SOAPPart;
 
 public class DbFactory {
 

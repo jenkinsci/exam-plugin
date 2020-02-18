@@ -29,16 +29,11 @@
  */
 package jenkins.internal.data;
 
-import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import org.junit.Before;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class ModelConfigurationTest {
 

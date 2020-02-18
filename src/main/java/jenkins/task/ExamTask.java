@@ -29,8 +29,18 @@
  */
 package jenkins.task;
 
-import hudson.*;
-import hudson.model.*;
+import hudson.AbortException;
+import hudson.EnvVars;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Proc;
+import hudson.Util;
+import hudson.model.AbstractProject;
+import hudson.model.Executor;
+import hudson.model.Node;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
@@ -110,8 +120,10 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
      */
     protected String reportPrefix;
     private boolean useExecutionFile;
-    private String hash = "";
 
+    /**
+     * Constructor of ExamTask
+     */
     public ExamTask(String examName, String pythonName, String examReport, String systemConfiguration) {
         this.examName = examName;
         this.pythonName = pythonName;
@@ -129,8 +141,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         boolean[] masks = args.toMaskArray();
         // don't know why are missing single quotes.
 
-        ArgumentListBuilder args_new = new ArgumentListBuilder();
-        args_new.add(arguments.get(0), arguments.get(1)); // "cmd.exe", "/C",
+        ArgumentListBuilder argsNew = new ArgumentListBuilder();
+        argsNew.add(arguments.get(0), arguments.get(1)); // "cmd.exe", "/C",
         // ...
 
         int size = arguments.size();
@@ -138,13 +150,13 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             String arg = arguments.get(i).replaceAll("^(-D[^\" ]+)=$", "$0\"\"");
 
             if (masks[i]) {
-                args_new.addMasked(arg);
+                argsNew.addMasked(arg);
             } else {
-                args_new.add(arg);
+                argsNew.add(arg);
             }
         }
 
-        return args_new;
+        return argsNew;
     }
 
     public boolean getUseExecutionFile() {
@@ -318,7 +330,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     public void setJavaOpts(String javaOpts) {
         this.javaOpts = Util.fixEmptyAndTrim(javaOpts);
     }
-/**
+
+    /**
      * Gets the timeout parameter, or null.
      *
      * @return timeout
@@ -331,6 +344,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
+
     public ExamTool.DescriptorImpl getToolDescriptor() {
         return ToolInstallation.all().get(ExamTool.DescriptorImpl.class);
     }
@@ -346,8 +360,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
 
         ExamTool examTool = getExam();
         PythonInstallation python = getPython();
-        String exe = "EXAM.exe";
-        String pythonexe = "";
+        String exe;
+        String pythonExe;
         Node node = jenkins.internal.Util.workspaceToNode(workspace);
         if (examTool == null || python == null) {
             run.setResult(Result.FAILURE);
@@ -360,16 +374,16 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             examTool = examTool.forNode(node, listener);
             python = python.forNode(node, listener);
             exe = examTool.getExecutable(launcher);
-            pythonexe = python.getHome();
-            if (pythonexe == null || pythonexe.trim().isEmpty()) {
+            pythonExe = python.getHome();
+            if (pythonExe == null || pythonExe.trim().isEmpty()) {
                 run.setResult(Result.FAILURE);
                 throw new AbortException("python home not set");
             }
-            if (!pythonexe.endsWith("exe")) {
-                if (!pythonexe.endsWith("\\") && !pythonexe.endsWith("/")) {
-                    pythonexe += File.separator;
+            if (!pythonExe.endsWith("exe")) {
+                if (!pythonExe.endsWith("\\") && !pythonExe.endsWith("/")) {
+                    pythonExe += File.separator;
                 }
-                pythonexe += "python.exe";
+                pythonExe += "python.exe";
             }
             assert exe != null;
             if (exe.trim().isEmpty()) {
@@ -388,7 +402,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             dataPath = examTool.getHome() + File.separator + relativeDataPath;
         }
         String examWorkspace = workspace + File.separator + "workspace_exam_restApi";
-        examWorkspace = examWorkspace.replaceAll("[\\/]]", File.separator);
+        examWorkspace = examWorkspace.replaceAll("[/\\]]", File.separator);
         FilePath source = workspace.child("workspace_exam_restApi");
         FilePath target = workspace.child("target");
 
@@ -420,41 +434,42 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             ClientRequest clientRequest = new ClientRequest(listener.getLogger(), examPluginConfig.getPort(), launcher);
             Proc proc = null;
             Executor runExecutor = run.getExecutor();
-            if (runExecutor != null) {try {
+            if (runExecutor != null) {
+                try {
 
-                Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
-                if (clientRequest.isApiAvailable()) {
-                    listener.getLogger().println("ERROR: EXAM is already running");
-                    run.setResult(Result.FAILURE);
-                    throw new AbortException("ERROR: EXAM is already running");
-                }
-                process.stderr(examErr);
-                process.stdout(eca);
-                proc = process.start();
-
-                boolean ret = clientRequest.connectClient(runExecutor,timeout);
-                if (ret) {
-                    ApiVersion apiVersion = clientRequest.getApiVersion();
-                    listener.getLogger().println("EXAM api version: " + apiVersion.toString());
-                    TestConfiguration tc = createTestConfiguration(env);
-                    tc.setPythonPath(pythonexe);
-                    FilterConfiguration fc = new FilterConfiguration();
-
-                    for (TestrunFilter filter : testrunFilter) {
-                        fc.addTestrunFilter(
-                                new jenkins.internal.data.TestrunFilter(filter.name, filter.value, filter.adminCases,
-                                        filter.activateTestcases));
+                    Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
+                    if (clientRequest.isApiAvailable()) {
+                        listener.getLogger().println("ERROR: EXAM is already running");
+                        run.setResult(Result.FAILURE);
+                        throw new AbortException("ERROR: EXAM is already running");
                     }
+                    process.stderr(examErr);
+                    process.stdout(eca);
+                    proc = process.start();
 
-                    if (isClearWorkspace()) {
-                        clientRequest.clearWorkspace(tc.getModelProject().getModelName());
-                    }
-                    clientRequest.clearWorkspace(tc.getReportProject().getProjectName());
-                    if (!testrunFilter.isEmpty()) {
-                        clientRequest.setTestrunFilter(fc);
-                    }
-                    clientRequest.startTestrun(tc);
+                    boolean ret = clientRequest.connectClient(runExecutor, timeout);
+                    if (ret) {
+                        ApiVersion apiVersion = clientRequest.getApiVersion();
+                        String sApiVersion = (apiVersion == null) ? "unknown" : apiVersion.toString();
+                        listener.getLogger().println("EXAM api version: " + sApiVersion);
+                        TestConfiguration tc = createTestConfiguration(env);
+                        tc.setPythonPath(pythonExe);
+                        FilterConfiguration fc = new FilterConfiguration();
 
+                        for (TestrunFilter filter : testrunFilter) {
+                            fc.addTestrunFilter(
+                                    new jenkins.internal.data.TestrunFilter(filter.name, filter.value, filter.adminCases,
+                                            filter.activateTestcases));
+                        }
+
+                        if (isClearWorkspace()) {
+                            clientRequest.clearWorkspace(tc.getModelProject().getModelName());
+                        }
+                        clientRequest.clearWorkspace(tc.getReportProject().getProjectName());
+                        if (!testrunFilter.isEmpty()) {
+                            clientRequest.setTestrunFilter(fc);
+                        }
+                        clientRequest.startTestrun(tc);
 
                         clientRequest.waitForTestrunEnds(runExecutor, 60);
                         listener.getLogger().println("waiting until EXAM is idle");
@@ -514,31 +529,31 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     }
 
     private ArgumentListBuilder handleAdditionalArgs(@Nonnull Run<?, ?> run, ArgumentListBuilder args, EnvVars env, ExamPluginConfig examPluginConfig, Launcher launcher) throws AbortException {
-        ArgumentListBuilder args_new = args;
-        args_new.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
+        ArgumentListBuilder argsNew = args;
+        argsNew.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
                 "-DRESTAPI_PORT=" + examPluginConfig.getPort());
 
         if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
             run.setResult(Result.FAILURE);
             throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
         }
-        args_new.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
+        argsNew.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
                 "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
 
-        args_new.add("-Dfile.encoding=UTF-8");
-        args_new.add("-Dsun.jnu.encoding=UTF-8");
+        argsNew.add("-Dfile.encoding=UTF-8");
+        argsNew.add("-Dsun.jnu.encoding=UTF-8");
 
         if (javaOpts != null) {
             env.put("JAVA_OPTS", env.expand(javaOpts));
             String[] splittedJavaOpts = javaOpts.split(" ");
-            args_new.add(splittedJavaOpts);
+            argsNew.add(splittedJavaOpts);
         }
 
         if (!launcher.isUnix()) {
-            args_new = toWindowsCommand(args_new);
+            argsNew = toWindowsCommand(argsNew);
         }
 
-        return args_new;
+        return argsNew;
     }
 
     @Nullable
@@ -604,42 +619,73 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         tc.setReportProject(rep);
     }
 
+    /**
+     * The Descriptor of DescriptorExamTask
+     */
     protected static class DescriptorExamTask extends BuildStepDescriptor<Builder>
             implements ExamDescriptor, Serializable {
-private static final long serialVersionUID = 7068994149846799797L;
+
+        private static final long serialVersionUID = 7068994149846799797L;
+
+        /**
+         * Constructor of this Descriptor
+         */
         public DescriptorExamTask() {
             load();
         }
 
+        /**
+         * Constructor of this Descriptor
+         */
         protected DescriptorExamTask(Class<? extends ExamTask> clazz) {
             super(clazz);
             load();
         }
 
+        /**
+         * @return the default log level
+         */
         public String getDefaultLogLevel() {
             return RestAPILogLevelEnum.INFO.name();
         }
 
+        /**
+         * @return all log level
+         */
         public RestAPILogLevelEnum[] getLogLevels() {
             return RestAPILogLevelEnum.values();
         }
 
+        /**
+         * is applicaple for all job types
+         *
+         * @return true
+         */
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
             return true;
         }
 
+        /**
+         * @return all EXAM tools
+         */
         public ExamTool[] getInstallations() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
             return (instanceOrNull == null) ? new ExamTool[0] : instanceOrNull.getDescriptorByType(ExamTool.DescriptorImpl.class)
                     .getInstallations();
         }
 
+        /**
+         * @return all Python installations
+         */
         public PythonInstallation[] getPythonInstallations() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
             return (instanceOrNull == null) ? new PythonInstallation[0] : instanceOrNull.getDescriptorByType(PythonInstallation.DescriptorImpl.class)
                     .getInstallations();
         }
 
+        /**
+         * @return all ExamModelConfigs
+         */
         public List<ExamModelConfig> getModelConfigs() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
             if (instanceOrNull == null) {
@@ -648,6 +694,11 @@ private static final long serialVersionUID = 7068994149846799797L;
             return instanceOrNull.getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
         }
 
+        /**
+         * adds a NoReport entry to the ReportConfigs
+         *
+         * @return all ExamReportConfig
+         */
         protected List<ExamReportConfig> addNoReport(List<ExamReportConfig> reports) {
             boolean found = false;
             for (ExamReportConfig config : reports) {
@@ -667,6 +718,9 @@ private static final long serialVersionUID = 7068994149846799797L;
             return reports;
         }
 
+        /**
+         * @return all ExamReportConfig
+         */
         public List<ExamReportConfig> getReportConfigs() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
             if (instanceOrNull == null) {
@@ -689,6 +743,11 @@ private static final long serialVersionUID = 7068994149846799797L;
             return items;
         }
 
+        /**
+         * fills the ListBoxModel with all PythonInstallations
+         *
+         * @return ListBoxModel
+         */
         public ListBoxModel doFillPythonNameItems() {
             ListBoxModel items = new ListBoxModel();
             PythonInstallation[] pythonTools = getPythonInstallations();
@@ -701,6 +760,11 @@ private static final long serialVersionUID = 7068994149846799797L;
             return items;
         }
 
+        /**
+         * fills the ListBoxModel with all ExamReportConfig
+         *
+         * @return ListBoxModel
+         */
         public ListBoxModel doFillExamReportItems() {
             ListBoxModel items = new ListBoxModel();
             List<ExamReportConfig> reports = getReportConfigs();
@@ -713,6 +777,11 @@ private static final long serialVersionUID = 7068994149846799797L;
             return items;
         }
 
+        /**
+         * fills the ListBoxModel with all LogLevels
+         *
+         * @return ListBoxModel
+         */
         private ListBoxModel getLoglevelItems() {
             ListBoxModel items = new ListBoxModel();
             for (RestAPILogLevelEnum loglevel : getLogLevels()) {
@@ -721,14 +790,29 @@ private static final long serialVersionUID = 7068994149846799797L;
             return items;
         }
 
+        /**
+         * fills the ListBoxModel TestCtrl with all LogLevels
+         *
+         * @return ListBoxModel
+         */
         public ListBoxModel doFillLoglevelTestCtrlItems() {
             return getLoglevelItems();
         }
 
+        /**
+         * fills the ListBoxModel TestLogic with all LogLevels
+         *
+         * @return ListBoxModel
+         */
         public ListBoxModel doFillLoglevelTestLogicItems() {
             return getLoglevelItems();
         }
 
+        /**
+         * fills the ListBoxModel LibCtrl with all LogLevels
+         *
+         * @return ListBoxModel
+         */
         public ListBoxModel doFillLoglevelLibCtrlItems() {
             return getLoglevelItems();
         }

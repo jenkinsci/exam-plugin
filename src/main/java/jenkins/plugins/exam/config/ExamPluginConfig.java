@@ -38,7 +38,12 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.Nonnull;
 import javax.xml.soap.SOAPException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Global configuration to store all EXAM Models
@@ -57,10 +62,16 @@ public class ExamPluginConfig extends GlobalConfiguration {
     private int licensePort = 0;
     private String licenseHost = "";
 
+    /**
+     * Constructor of ExamPluginConfig
+     */
     public ExamPluginConfig() {
         load();
     }
 
+    /**
+     * Constructor of ExamPluginConfig
+     */
     public ExamPluginConfig(List<ExamModelConfig> modelConfigs, List<ExamReportConfig> reportConfigs, int port,
                             int licensePort, int timeout, String licenseHost) {
         this.modelConfigs = modelConfigs;
@@ -151,6 +162,12 @@ public class ExamPluginConfig extends GlobalConfiguration {
         return "EXAM";
     }
 
+    /**
+     * Verify every configured Model Connection.
+     *
+     * @return FormValidation
+     * @throws SOAPException
+     */
     public FormValidation doVerifyModelConnections() throws SOAPException {
 
         Map<String, List<String>> status = new HashMap<>();
