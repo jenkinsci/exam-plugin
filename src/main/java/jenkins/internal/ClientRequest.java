@@ -199,7 +199,8 @@ public class ClientRequest {
             return;
         }
         logger.println("starting testrun");
-        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/testrun/start", testConfig, null);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/testrun/start",
+                testConfig, null);
         handleResponseError(response);
     }
 
@@ -209,12 +210,8 @@ public class ClientRequest {
         }
         if (response.getStatus() != OK) {
             String errorMessage = "Failed : HTTP error code : " + response.getStatus();
-            try {
-                String entity = response.getEntityString();
-                errorMessage += "\n" + entity;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
+            String entity = response.getEntityString();
+            errorMessage += "\n" + entity;
             logger.println("ERROR: " + errorMessage);
             throw new AbortException(errorMessage);
         }
@@ -254,7 +251,8 @@ public class ClientRequest {
             logger.println("deleting all projects and pcode from EXAM workspace");
             postUrl = "/workspace/delete";
         } else {
-            logger.println("deleting project and pcode for project \"" + projectName + "\" from EXAM workspace");
+            logger.println(
+                    "deleting project and pcode for project \"" + projectName + "\" from EXAM workspace");
             postUrl = "/workspace/delete?projectName=" + projectName;
         }
 
@@ -407,7 +405,8 @@ public class ClientRequest {
             }
             breakAfter--;
             ExamStatus status = this.getStatus();
-            if (!status.getJobRunning() || !"Export Reports to PDF.".equalsIgnoreCase(status.getJobName())) {
+            if (!status.getJobRunning() || !"Export Reports to PDF.".equalsIgnoreCase(
+                    status.getJobName())) {
                 break;
             }
             if (breakAfter <= 0) {

@@ -60,13 +60,16 @@ public class ExamTaskHelper {
 
     public ArgumentListBuilder handleAdditionalArgs(String javaOpts, ArgumentListBuilder args, ExamPluginConfig examPluginConfig, Launcher launcher) throws AbortException {
         ArgumentListBuilder argsNew = args;
-        argsNew.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
-                "-DRESTAPI_PORT=" + examPluginConfig.getPort());
 
         if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
             run.setResult(Result.FAILURE);
-            throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
+            throw new AbortException(
+                    Messages.EXAM_LicenseServerNotConfigured());
         }
+        argsNew.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true",
+                "-DRESTAPI=true",
+                "-DRESTAPI_PORT=" + examPluginConfig.getPort());
+
         argsNew.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
                 "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
 
@@ -103,7 +106,8 @@ public class ExamTaskHelper {
 
         int size = arguments.size();
         for (int i = 2; i < size; i++) {
-            String arg = arguments.get(i).replaceAll("^(-D[^\" ]+)=$", "$0\"\"");
+            String arg = arguments.get(i).replaceAll("^(-D[^\" ]+)=$",
+                    "$0\"\"");
 
             if (masks[i]) {
                 argsNew.addMasked(arg);
@@ -126,9 +130,12 @@ public class ExamTaskHelper {
     public void copyArtifactsToTarget(@Nonnull FilePath workspace, TestConfiguration tc) throws IOException, InterruptedException {
         FilePath source = workspace.child("workspace_exam_restApi");
         FilePath target = workspace.child("target");
-        String hash = "__" + RandomStringUtils.random(5, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray());
-        source = source.child("reports").child(tc.getReportProject().getProjectName()).child("junit");
-        target = target.child("test-reports").child(tc.getReportProject().getProjectName() + hash);
+        String hash = "__" + RandomStringUtils.random(5,
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray());
+        source = source.child("reports").child(
+                tc.getReportProject().getProjectName()).child("junit");
+        target = target.child("test-reports").child(
+                tc.getReportProject().getProjectName() + hash);
         source.copyRecursiveTo(target);
     }
 
@@ -144,7 +151,8 @@ public class ExamTaskHelper {
                 dataPath + File.separator + "configuration" + File.separator + "config.ini");
         if (!Remote.fileExists(launcher, configurationFile)) {
             run.setResult(Result.FAILURE);
-            throw new AbortException(Messages.EXAM_NotExamConfigDirectory(configurationFile.getPath()));
+            throw new AbortException(Messages.EXAM_NotExamConfigDirectory(
+                    configurationFile.getPath()));
         }
         return configurationPath;
     }

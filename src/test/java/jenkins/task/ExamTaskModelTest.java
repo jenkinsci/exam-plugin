@@ -10,7 +10,6 @@ import jenkins.model.Jenkins;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.task.TestUtil.TUtil;
 import jenkins.task._exam.Messages;
-import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
@@ -70,7 +69,8 @@ public class ExamTaskModelTest {
 
         Jenkins instance = jenkinsRule.getInstance();
         examHome = instance == null ? "examHome" : instance.getRootPath().getRemote();
-        testObject = new ExamTaskModel(examName, pythonName, examReport, examExecFile, examSysConfig);
+        testObject = new ExamTaskModel(examName, pythonName, examReport, examExecFile,
+                examSysConfig);
     }
 
     @After
@@ -167,8 +167,11 @@ public class ExamTaskModelTest {
         Result buildResult = build.getResult();
         assertEquals("FAILURE", buildResult.toString());
 
-        String log = FileUtils.readFileToString(build.getLogFile());
-        assertThat(log, CoreMatchers.containsString(Messages.EXAM_NotExamConfigDirectory("")));
+        List<String> log = build.getLog(1000);
+        String workspacePath = jenkinsRule.getInstance().getRootPath().getRemote();
+        assertThat(log,
+                CoreMatchers.hasItem("ERROR: " + Messages.EXAM_NotExamConfigDirectory(
+                        workspacePath + "\\examRelativePath\\configuration\\config.ini")));
     }
 
     @Test
@@ -180,8 +183,9 @@ public class ExamTaskModelTest {
         boolean fileCreated = file.createNewFile();
         assertTrue("File not created", fileCreated);
         createdFiles.add(file);
-        File file2 = new File(examHome + File.separator + "data" + File.separator + "configuration" + File.separator
-                + "config.ini");
+        File file2 = new File(
+                examHome + File.separator + "data" + File.separator + "configuration" + File.separator
+                        + "config.ini");
         fileCreated = file2.getParentFile().mkdirs();
         assertTrue("Folder not created", fileCreated);
         fileCreated = file2.createNewFile();
@@ -194,33 +198,34 @@ public class ExamTaskModelTest {
         Result buildResult = build.getResult();
         assertEquals("FAILURE", buildResult.toString());
 
-        String log = FileUtils.readFileToString(build.getLogFile());
-        assertThat(log, CoreMatchers.containsString(Messages.EXAM_LicenseServerNotConfigured()));
+        List<String> log = build.getLog(1000);
+        assertThat(log,
+                CoreMatchers.hasItem("ERROR: " + Messages.EXAM_LicenseServerNotConfigured()));
     }
 
     @Test
     public void perform_noTool() throws Exception {
         examTestProject = jenkinsRule.createFreeStyleProject();
         examTestProject.getBuildersList().add(testObject);
-        runProjectWithoutTools("examTool or python is null");
+        runProjectWithoutTools("ERROR: examTool or python is null");
 
         TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
-        runProjectWithoutTools("examTool or python is null");
+        runProjectWithoutTools("ERROR: examTool or python is null");
         TUtil.cleanUpExamTools(jenkinsRule);
 
         TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName, pythonHome);
-        runProjectWithoutTools("examTool or python is null");
+        runProjectWithoutTools("ERROR: examTool or python is null");
         TUtil.cleanUpPythonInstallations(jenkinsRule);
 
         TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
         TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName, "");
-        runProjectWithoutTools("python home not set");
+        runProjectWithoutTools("ERROR: python home not set");
         TUtil.cleanUpExamTools(jenkinsRule);
         TUtil.cleanUpPythonInstallations(jenkinsRule);
 
         TUtil.createAndRegisterExamTool(jenkinsRule, examName, "", examRelativePath);
         TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName, pythonHome);
-        runProjectWithoutTools(Messages.EXAM_ExecutableNotFound(examName));
+        runProjectWithoutTools("ERROR: " + Messages.EXAM_ExecutableNotFound(examName));
 
     }
 
@@ -228,8 +233,8 @@ public class ExamTaskModelTest {
         FreeStyleBuild build = examTestProject.scheduleBuild2(0).get();
         Result buildResult = build.getResult();
         assertEquals("FAILURE", buildResult.toString());
-        String log = FileUtils.readFileToString(build.getLogFile());
-        assertThat(log, CoreMatchers.containsString(logContains));
+        List<String> log = build.getLog(1000);
+        assertThat(log, CoreMatchers.hasItem(logContains));
 
     }
 
