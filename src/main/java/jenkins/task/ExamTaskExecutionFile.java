@@ -80,7 +80,7 @@ public class ExamTaskExecutionFile extends ExamTask {
         this.pathPCode = pathPCode;
     }
 
-    TestConfiguration addDataToTestConfiguration(TestConfiguration tc, @Nullable EnvVars env) {
+    protected TestConfiguration addDataToTestConfiguration(TestConfiguration tc, @Nullable EnvVars env) {
 
         tc.setPathPCode(Util.replaceEnvVars(pathPCode, env));
         tc.setTestObject(Util.replaceEnvVars(pathExecutionFile, env));

@@ -13,6 +13,7 @@ import jenkins.internal.data.TestConfiguration;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
+import jenkins.task.TestUtil.FakeTaskListener;
 import jenkins.task._exam.Messages;
 import org.junit.After;
 import org.junit.Before;
@@ -28,10 +29,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -174,11 +173,7 @@ public class ExamTaskHelperTest {
     @Test()
     public void getConfigurationPath() throws IOException, InterruptedException {
         String examHome = "c:\\my\\examHome";
-        Launcher launcher = new Launcher.DummyLauncher(new TaskListener() {
-            @Nonnull @Override public PrintStream getLogger() {
-                return null;
-            }
-        });
+        Launcher launcher = new Launcher.DummyLauncher(new FakeTaskListener());
         PowerMockito.mockStatic(Remote.class);
         PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(true);
 
@@ -187,15 +182,17 @@ public class ExamTaskHelperTest {
 
         when(examMock.getRelativeDataPath()).thenReturn("..\\examData");
         String returnedConfig = testObject.getConfigurationPath(launcher, examMock);
-        assertEquals(examHome + "\\..\\examData\\configuration", returnedConfig);
+        assertEquals(examHome + File.separator + "..\\examData" + File.separator + "configuration",
+                returnedConfig);
 
         when(examMock.getRelativeDataPath()).thenReturn("");
         returnedConfig = testObject.getConfigurationPath(launcher, examMock);
-        assertEquals(examHome + "\\configuration", returnedConfig);
+        assertEquals(examHome + File.separator + "configuration", returnedConfig);
 
         thrown.expect(AbortException.class);
         thrown.expectMessage(
-                Messages.EXAM_NotExamConfigDirectory(examHome + "\\configuration\\config.ini"));
+                Messages.EXAM_NotExamConfigDirectory(
+                        examHome + File.separator + "configuration" + File.separator + "config.ini"));
         PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(false);
         returnedConfig = testObject.getConfigurationPath(launcher, examMock);
     }
@@ -203,18 +200,14 @@ public class ExamTaskHelperTest {
     @Test()
     public void getPythonExePath() throws IOException, InterruptedException {
         String pythonHome = "c:\\my\\pythonHome";
-        TaskListener listener = new TaskListener() {
-            @Nonnull @Override public PrintStream getLogger() {
-                return null;
-            }
-        };
+        TaskListener listener = new FakeTaskListener();
 
         PythonInstallation pyMock = mock(PythonInstallation.class);
         when(pyMock.forNode(Mockito.any(), Mockito.any())).thenReturn(pyMock);
         when(pyMock.getHome()).thenReturn(pythonHome);
 
         String pythonPath = testObject.getPythonExePath(listener, pyMock, null);
-        assertEquals("c:\\my\\pythonHome\\python.exe", pythonPath);
+        assertEquals("c:\\my\\pythonHome" + File.separator + "python.exe", pythonPath);
         when(pyMock.getHome()).thenReturn(pythonHome + "\\");
         pythonPath = testObject.getPythonExePath(listener, pyMock, null);
         assertEquals("c:\\my\\pythonHome\\python.exe", pythonPath);

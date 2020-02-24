@@ -1,9 +1,10 @@
-package jenkins.task;
+package jenkins.task.TestUtil;
 
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import jenkins.internal.data.TestConfiguration;
+import jenkins.task.ExamTask;
 
 public class FakeTask extends ExamTask {
 
@@ -11,7 +12,7 @@ public class FakeTask extends ExamTask {
         super(examName, pythonName, examReport, systemConfiguration);
     }
 
-    TestConfiguration addDataToTestConfiguration(TestConfiguration tc, EnvVars env) throws AbortException {
+    protected TestConfiguration addDataToTestConfiguration(TestConfiguration tc, EnvVars env) throws AbortException {
         return tc;
     }
 

@@ -78,7 +78,7 @@ public class ExamTaskModel extends ExamTask {
      */
     @DataBoundConstructor
     public ExamTaskModel(String examName, String pythonName, String examReport, String executionFile,
-                         String systemConfiguration) {
+            String systemConfiguration) {
         super(examName, pythonName, examReport, systemConfiguration);
         this.executionFile = Util.fixEmptyAndTrim(executionFile);
         setUseExecutionFile(false);
@@ -121,7 +121,7 @@ public class ExamTaskModel extends ExamTask {
         return null;
     }
 
-    TestConfiguration addDataToTestConfiguration(TestConfiguration tc, EnvVars env) throws AbortException {
+    protected TestConfiguration addDataToTestConfiguration(TestConfiguration tc, EnvVars env) throws AbortException {
         ModelConfiguration mod = new ModelConfiguration();
         ExamModelConfig m = getModel(examModel);
         if (m == null) {
@@ -196,7 +196,8 @@ public class ExamTaskModel extends ExamTask {
          */
         public List<ExamModelConfig> getModelConfigs() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
-            return (instanceOrNull == null) ? new ArrayList<>() : instanceOrNull.getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
+            return (instanceOrNull == null) ? new ArrayList<>() : instanceOrNull.getDescriptorByType(
+                    ExamPluginConfig.class).getModelConfigs();
         }
 
         /**
@@ -207,7 +208,9 @@ public class ExamTaskModel extends ExamTask {
         public ListBoxModel doFillExamModelItems() {
             ListBoxModel items = new ListBoxModel();
             List<ExamModelConfig> models = getModelConfigs();
-            models.sort((ExamModelConfig o1, ExamModelConfig o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
+            models.sort(
+                    (ExamModelConfig o1, ExamModelConfig o2) -> o1.getName().compareToIgnoreCase(
+                            o2.getName()));
 
             for (ExamModelConfig model : models) {
                 items.add(model.getDisplayName(), model.getName());

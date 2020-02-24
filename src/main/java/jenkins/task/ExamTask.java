@@ -321,7 +321,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
 
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-                        @Nonnull TaskListener listener) throws IOException, InterruptedException {
+            @Nonnull TaskListener listener) throws IOException, InterruptedException {
 
         run.addAction(new ExamReportAction(this));
         ArgumentListBuilder args = new ArgumentListBuilder();
@@ -366,7 +366,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
 
         Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
         assert instanceOrNull != null;
-        ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(ExamPluginConfig.class);
+        ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(
+                ExamPluginConfig.class);
         args = etHelper.handleAdditionalArgs(javaOpts, args, examPluginConfig, launcher);
 
         if (timeout <= 0) {
@@ -377,7 +378,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
         ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger());
         try {
-            ClientRequest clientRequest = new ClientRequest(listener.getLogger(), examPluginConfig.getPort(), launcher);
+            ClientRequest clientRequest = new ClientRequest(listener.getLogger(),
+                    examPluginConfig.getPort(), launcher);
             Proc proc = null;
             Executor runExecutor = run.getExecutor();
             if (runExecutor != null) {
@@ -387,11 +389,13 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                     throw new AbortException("ERROR: EXAM is already running");
                 }
                 try {
-                    Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
+                    Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(
+                            buildFilePath.getParent());
                     process.stderr(examErr).stdout(eca);
                     proc = process.start();
 
-                    doExecuteExamTestrun(workspace, listener, env, etHelper, pythonExe, clientRequest, runExecutor);
+                    doExecuteExamTestrun(workspace, listener, env, etHelper, pythonExe,
+                            clientRequest, runExecutor);
                 } catch (IOException e) {
                     run.setResult(Result.FAILURE);
                     throw new AbortException("ERROR: " + e.toString());
@@ -447,7 +451,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
 
             for (TestrunFilter filter : testrunFilter) {
                 fc.addTestrunFilter(
-                        new jenkins.internal.data.TestrunFilter(filter.name, filter.value, filter.adminCases,
+                        new jenkins.internal.data.TestrunFilter(filter.name, filter.value,
+                                filter.adminCases,
                                 filter.activateTestcases));
             }
 
@@ -482,7 +487,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         return null;
     }
 
-    abstract TestConfiguration addDataToTestConfiguration(TestConfiguration testConfiguration, EnvVars env)
+    abstract protected TestConfiguration addDataToTestConfiguration(TestConfiguration testConfiguration, EnvVars env)
             throws AbortException;
 
     @Override
@@ -586,7 +591,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
          */
         public ExamTool[] getInstallations() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
-            return (instanceOrNull == null) ? new ExamTool[0] : instanceOrNull.getDescriptorByType(ExamTool.DescriptorImpl.class)
+            return (instanceOrNull == null) ? new ExamTool[0] : instanceOrNull.getDescriptorByType(
+                    ExamTool.DescriptorImpl.class)
                     .getInstallations();
         }
 
@@ -595,7 +601,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
          */
         public PythonInstallation[] getPythonInstallations() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
-            return (instanceOrNull == null) ? new PythonInstallation[0] : instanceOrNull.getDescriptorByType(PythonInstallation.DescriptorImpl.class)
+            return (instanceOrNull == null) ? new PythonInstallation[0] : instanceOrNull.getDescriptorByType(
+                    PythonInstallation.DescriptorImpl.class)
                     .getInstallations();
         }
 
@@ -642,7 +649,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             if (instanceOrNull == null) {
                 return new ArrayList<>();
             }
-            List<ExamReportConfig> lReportConfigs = instanceOrNull.getDescriptorByType(ExamPluginConfig.class)
+            List<ExamReportConfig> lReportConfigs = instanceOrNull.getDescriptorByType(
+                    ExamPluginConfig.class)
                     .getReportConfigs();
             lReportConfigs = addNoReport(lReportConfigs);
             return lReportConfigs;
@@ -652,7 +660,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             ListBoxModel items = new ListBoxModel();
             ExamTool[] examTools = getInstallations();
 
-            Arrays.sort(examTools, (ExamTool o1, ExamTool o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
+            Arrays.sort(examTools,
+                    (ExamTool o1, ExamTool o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
             for (ExamTool tool : examTools) {
                 items.add(tool.getName(), tool.getName());
             }
@@ -669,7 +678,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             PythonInstallation[] pythonTools = getPythonInstallations();
 
             Arrays.sort(pythonTools,
-                    (PythonInstallation o1, PythonInstallation o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
+                    (PythonInstallation o1, PythonInstallation o2) -> o1.getName().compareToIgnoreCase(
+                            o2.getName()));
             for (PythonInstallation tool : pythonTools) {
                 items.add(tool.getName(), tool.getName());
             }
@@ -685,7 +695,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             ListBoxModel items = new ListBoxModel();
             List<ExamReportConfig> reports = getReportConfigs();
             reports.sort(
-                    (ExamReportConfig o1, ExamReportConfig o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
+                    (ExamReportConfig o1, ExamReportConfig o2) -> o1.getName().compareToIgnoreCase(
+                            o2.getName()));
 
             for (ExamReportConfig report : reports) {
                 items.add(report.getDisplayName(), report.getName());
