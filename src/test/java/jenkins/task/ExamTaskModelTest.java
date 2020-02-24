@@ -171,7 +171,8 @@ public class ExamTaskModelTest {
         String workspacePath = jenkinsRule.getInstance().getRootPath().getRemote();
         assertThat(log,
                 CoreMatchers.hasItem("ERROR: " + Messages.EXAM_NotExamConfigDirectory(
-                        workspacePath + "\\examRelativePath\\configuration\\config.ini")));
+                        workspacePath + File.separator + "examRelativePath" + File.separator +
+                                "configuration" + File.separator + "config.ini")));
     }
 
     @Test

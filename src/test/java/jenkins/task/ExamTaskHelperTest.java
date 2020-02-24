@@ -182,15 +182,17 @@ public class ExamTaskHelperTest {
 
         when(examMock.getRelativeDataPath()).thenReturn("..\\examData");
         String returnedConfig = testObject.getConfigurationPath(launcher, examMock);
-        assertEquals(examHome + "\\..\\examData\\configuration", returnedConfig);
+        assertEquals(examHome + File.separator + "..\\examData" + File.separator + "configuration",
+                returnedConfig);
 
         when(examMock.getRelativeDataPath()).thenReturn("");
         returnedConfig = testObject.getConfigurationPath(launcher, examMock);
-        assertEquals(examHome + "\\configuration", returnedConfig);
+        assertEquals(examHome + File.separator + "configuration", returnedConfig);
 
         thrown.expect(AbortException.class);
         thrown.expectMessage(
-                Messages.EXAM_NotExamConfigDirectory(examHome + "\\configuration\\config.ini"));
+                Messages.EXAM_NotExamConfigDirectory(
+                        examHome + File.separator + "configuration\\config.ini"));
         PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(false);
         returnedConfig = testObject.getConfigurationPath(launcher, examMock);
     }
@@ -205,10 +207,10 @@ public class ExamTaskHelperTest {
         when(pyMock.getHome()).thenReturn(pythonHome);
 
         String pythonPath = testObject.getPythonExePath(listener, pyMock, null);
-        assertEquals("c:\\my\\pythonHome\\python.exe", pythonPath);
+        assertEquals("c:\\my\\pythonHome" + File.separator + "python.exe", pythonPath);
         when(pyMock.getHome()).thenReturn(pythonHome + "\\");
         pythonPath = testObject.getPythonExePath(listener, pyMock, null);
-        assertEquals("c:\\my\\pythonHome\\python.exe", pythonPath);
+        assertEquals("c:\\my\\pythonHome" + File.separator + "python.exe", pythonPath);
 
         when(pyMock.getHome()).thenReturn("");
         thrown.expect(AbortException.class);
