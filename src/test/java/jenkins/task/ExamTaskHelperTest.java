@@ -192,7 +192,7 @@ public class ExamTaskHelperTest {
         thrown.expect(AbortException.class);
         thrown.expectMessage(
                 Messages.EXAM_NotExamConfigDirectory(
-                        examHome + File.separator + "configuration\\config.ini"));
+                        examHome + File.separator + "configuration" + File.separator + "config.ini"));
         PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(false);
         returnedConfig = testObject.getConfigurationPath(launcher, examMock);
     }
@@ -210,7 +210,7 @@ public class ExamTaskHelperTest {
         assertEquals("c:\\my\\pythonHome" + File.separator + "python.exe", pythonPath);
         when(pyMock.getHome()).thenReturn(pythonHome + "\\");
         pythonPath = testObject.getPythonExePath(listener, pyMock, null);
-        assertEquals("c:\\my\\pythonHome" + File.separator + "python.exe", pythonPath);
+        assertEquals("c:\\my\\pythonHome\\python.exe", pythonPath);
 
         when(pyMock.getHome()).thenReturn("");
         thrown.expect(AbortException.class);
