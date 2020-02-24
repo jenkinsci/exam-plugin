@@ -5,6 +5,7 @@ import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
+import jenkins.task.TestUtil.FakeTask;
 import jenkins.task.TestUtil.TUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -438,11 +439,13 @@ public class ExamTaskTest {
 
     @Test
     public void getPython() {
-        assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(PythonInstallation.DescriptorImpl.class)
+        assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(
+                PythonInstallation.DescriptorImpl.class)
                 .getInstallations().length);
         PythonInstallation newInstallation = TUtil
                 .createAndRegisterPythonInstallation(jenkinsRule, pythonName, "testHome");
-        assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(PythonInstallation.DescriptorImpl.class)
+        assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(
+                PythonInstallation.DescriptorImpl.class)
                 .getInstallations().length);
 
         PythonInstallation setInstallation = testObject.getPython();
@@ -458,7 +461,8 @@ public class ExamTaskTest {
     public void getExam() {
         assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
                 .getInstallations().length);
-        ExamTool newExamTool = TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
+        ExamTool newExamTool = TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome,
+                examRelativePath);
         assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
                 .getInstallations().length);
 

@@ -13,6 +13,7 @@ import jenkins.internal.data.TestConfiguration;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
+import jenkins.task.TestUtil.FakeTaskListener;
 import jenkins.task._exam.Messages;
 import org.junit.After;
 import org.junit.Before;
@@ -28,10 +29,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -174,11 +173,7 @@ public class ExamTaskHelperTest {
     @Test()
     public void getConfigurationPath() throws IOException, InterruptedException {
         String examHome = "c:\\my\\examHome";
-        Launcher launcher = new Launcher.DummyLauncher(new TaskListener() {
-            @Nonnull @Override public PrintStream getLogger() {
-                return null;
-            }
-        });
+        Launcher launcher = new Launcher.DummyLauncher(new FakeTaskListener());
         PowerMockito.mockStatic(Remote.class);
         PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(true);
 
@@ -203,11 +198,7 @@ public class ExamTaskHelperTest {
     @Test()
     public void getPythonExePath() throws IOException, InterruptedException {
         String pythonHome = "c:\\my\\pythonHome";
-        TaskListener listener = new TaskListener() {
-            @Nonnull @Override public PrintStream getLogger() {
-                return null;
-            }
-        };
+        TaskListener listener = new FakeTaskListener();
 
         PythonInstallation pyMock = mock(PythonInstallation.class);
         when(pyMock.forNode(Mockito.any(), Mockito.any())).thenReturn(pyMock);

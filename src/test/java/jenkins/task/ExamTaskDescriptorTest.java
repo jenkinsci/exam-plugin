@@ -9,6 +9,7 @@ import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
+import jenkins.task.TestUtil.FakeTask;
 import jenkins.task.TestUtil.TUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -112,7 +113,8 @@ public class ExamTaskDescriptorTest {
         String[] expected = new String[num];
         for (int i = 0; i < num; i++) {
             expected[i] = pythonName + "_" + i;
-            TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName + "_" + i, "testHome");
+            TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName + "_" + i,
+                    "testHome");
         }
 
         ListBoxModel items = testObjectDescriptor.doFillPythonNameItems();
@@ -137,7 +139,8 @@ public class ExamTaskDescriptorTest {
         String[] expected = new String[num];
         for (int i = 0; i < num; i++) {
             expected[i] = examName + "_" + i;
-            TUtil.createAndRegisterExamTool(jenkinsRule, examName + "_" + i, examHome, examRelativePath);
+            TUtil.createAndRegisterExamTool(jenkinsRule, examName + "_" + i, examHome,
+                    examRelativePath);
         }
 
         ListBoxModel items = testObjectDescriptor.doFillExamNameItems();
@@ -157,7 +160,8 @@ public class ExamTaskDescriptorTest {
         ExamTool[] expected = new ExamTool[num];
         for (int i = 0; i < num; i++) {
             expected[i] = TUtil
-                    .createAndRegisterExamTool(jenkinsRule, examName + "_" + i, examHome, examRelativePath);
+                    .createAndRegisterExamTool(jenkinsRule, examName + "_" + i, examHome,
+                            examRelativePath);
         }
 
         ExamTool[] actual = testObjectDescriptor.getInstallations();
@@ -193,7 +197,8 @@ public class ExamTaskDescriptorTest {
         int num = 5;
         PythonInstallation[] expected = new PythonInstallation[num];
         for (int i = 0; i < num; i++) {
-            expected[i] = TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName + "_" + i, "testHome");
+            expected[i] = TUtil.createAndRegisterPythonInstallation(jenkinsRule,
+                    pythonName + "_" + i, "testHome");
         }
 
         PythonInstallation[] actual = testObjectDescriptor.getPythonInstallations();
