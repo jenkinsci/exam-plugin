@@ -167,6 +167,7 @@ public class ClientRequestTest {
     }
 
     @Test
+    @WithoutJenkins
     public void startTestrun() {
         try {
             testObject.startTestrun(null);
@@ -185,6 +186,7 @@ public class ClientRequestTest {
     }
 
     @Test
+    @WithoutJenkins
     public void stopTestrun() {
         try {
             testObject.stopTestrun();
@@ -203,6 +205,7 @@ public class ClientRequestTest {
     }
 
     @Test
+    @WithoutJenkins
     public void clearWorkspace() {
         try {
             String strAll = "deleting all projects and pcode from EXAM workspace";
@@ -212,7 +215,8 @@ public class ClientRequestTest {
             testObject.clearWorkspace("");
             verify(printMock).println(strAll);
             testObject.clearWorkspace("myProject");
-            verify(printMock).println("deleting project and pcode for project \"myProject\" from EXAM workspace");
+            verify(printMock).println(
+                    "deleting project and pcode for project \"myProject\" from EXAM workspace");
 
         } catch (IOException | InterruptedException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
@@ -285,10 +289,12 @@ public class ClientRequestTest {
         try {
             Executor executor = mock(Executor.class);
             when(executor.isInterrupted()).thenReturn(false);
-            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
-                    .addHeader("Content-Type", "application/json; charset=utf-8")
-                    .addHeader("Cache-Control", "no-cache")
-                    .setBody("{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":1}"));
+            dispatcher.setResponse("/examRest/testrun/status",
+                    new MockResponse().setResponseCode(200)
+                            .addHeader("Content-Type", "application/json; charset=utf-8")
+                            .addHeader("Cache-Control", "no-cache")
+                            .setBody(
+                                    "{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":1}"));
             testObject.waitForTestrunEnds(executor, numCalls);
 
             inOrder(executor).verify(executor, calls(2)).isInterrupted();
@@ -310,10 +316,12 @@ public class ClientRequestTest {
         try {
             Executor executor = mock(Executor.class);
             when(executor.isInterrupted()).thenReturn(false);
-            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
-                    .addHeader("Content-Type", "application/json; charset=utf-8")
-                    .addHeader("Cache-Control", "no-cache")
-                    .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"false\",\"testRunState\":1}"));
+            dispatcher.setResponse("/examRest/testrun/status",
+                    new MockResponse().setResponseCode(200)
+                            .addHeader("Content-Type", "application/json; charset=utf-8")
+                            .addHeader("Cache-Control", "no-cache")
+                            .setBody(
+                                    "{\"jobName\":\"nothing\",\"jobRunning\":\"false\",\"testRunState\":1}"));
             testObject.waitForTestrunEnds(executor, numCalls);
 
             inOrder(executor).verify(executor, calls(numCalls)).isInterrupted();
@@ -335,10 +343,12 @@ public class ClientRequestTest {
         try {
             Executor executor = mock(Executor.class);
             when(executor.isInterrupted()).thenReturn(false);
-            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
-                    .addHeader("Content-Type", "application/json; charset=utf-8")
-                    .addHeader("Cache-Control", "no-cache")
-                    .setBody("{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":0}"));
+            dispatcher.setResponse("/examRest/testrun/status",
+                    new MockResponse().setResponseCode(200)
+                            .addHeader("Content-Type", "application/json; charset=utf-8")
+                            .addHeader("Cache-Control", "no-cache")
+                            .setBody(
+                                    "{\"jobName\":\"TestRun\",\"jobRunning\":\"false\",\"testRunState\":0}"));
             testObject.waitForExamIdle(executor, numCalls);
 
             inOrder(executor).verify(executor, calls(1)).isInterrupted();
@@ -360,10 +370,12 @@ public class ClientRequestTest {
         try {
             Executor executor = mock(Executor.class);
             when(executor.isInterrupted()).thenReturn(false);
-            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
-                    .addHeader("Content-Type", "application/json; charset=utf-8")
-                    .addHeader("Cache-Control", "no-cache")
-                    .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"true\",\"testRunState\":0}"));
+            dispatcher.setResponse("/examRest/testrun/status",
+                    new MockResponse().setResponseCode(200)
+                            .addHeader("Content-Type", "application/json; charset=utf-8")
+                            .addHeader("Cache-Control", "no-cache")
+                            .setBody(
+                                    "{\"jobName\":\"nothing\",\"jobRunning\":\"true\",\"testRunState\":0}"));
             testObject.waitForExamIdle(executor, numCalls);
 
             inOrder(executor).verify(executor, calls(numCalls)).isInterrupted();
@@ -386,10 +398,12 @@ public class ClientRequestTest {
         try {
             Executor executor = mock(Executor.class);
             when(executor.isInterrupted()).thenReturn(false);
-            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
-                    .addHeader("Content-Type", "application/json; charset=utf-8")
-                    .addHeader("Cache-Control", "no-cache")
-                    .setBody("{\"jobName\":\"" + jobName + "\",\"jobRunning\":\"false\",\"testRunState\":0}"));
+            dispatcher.setResponse("/examRest/testrun/status",
+                    new MockResponse().setResponseCode(200)
+                            .addHeader("Content-Type", "application/json; charset=utf-8")
+                            .addHeader("Cache-Control", "no-cache")
+                            .setBody(
+                                    "{\"jobName\":\"" + jobName + "\",\"jobRunning\":\"false\",\"testRunState\":0}"));
             testObject.waitForExportPDFReportJob(executor, numCalls);
 
             inOrder(executor).verify(executor, calls(1)).isInterrupted();
@@ -398,10 +412,12 @@ public class ClientRequestTest {
 
             clearInvocations(executor);
 
-            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
-                    .addHeader("Content-Type", "application/json; charset=utf-8")
-                    .addHeader("Cache-Control", "no-cache")
-                    .setBody("{\"jobName\":\"nothing\",\"jobRunning\":\"true\",\"testRunState\":0}"));
+            dispatcher.setResponse("/examRest/testrun/status",
+                    new MockResponse().setResponseCode(200)
+                            .addHeader("Content-Type", "application/json; charset=utf-8")
+                            .addHeader("Cache-Control", "no-cache")
+                            .setBody(
+                                    "{\"jobName\":\"nothing\",\"jobRunning\":\"true\",\"testRunState\":0}"));
             testObject.waitForExportPDFReportJob(executor, numCalls);
 
             inOrder(executor).verify(executor, calls(1)).isInterrupted();
@@ -420,10 +436,12 @@ public class ClientRequestTest {
         try {
             Executor executor = mock(Executor.class);
             when(executor.isInterrupted()).thenReturn(false);
-            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
-                    .addHeader("Content-Type", "application/json; charset=utf-8")
-                    .addHeader("Cache-Control", "no-cache")
-                    .setBody("{\"jobName\":\"" + jobName + "\",\"jobRunning\":\"true\",\"testRunState\":0}"));
+            dispatcher.setResponse("/examRest/testrun/status",
+                    new MockResponse().setResponseCode(200)
+                            .addHeader("Content-Type", "application/json; charset=utf-8")
+                            .addHeader("Cache-Control", "no-cache")
+                            .setBody(
+                                    "{\"jobName\":\"" + jobName + "\",\"jobRunning\":\"true\",\"testRunState\":0}"));
             testObject.waitForExportPDFReportJob(executor, numCalls);
 
             inOrder(executor).verify(executor, calls(numCalls)).isInterrupted();
@@ -498,6 +516,7 @@ public class ClientRequestTest {
     }
 
     @Test
+    @WithoutJenkins
     public void getApiVersion() {
         ApiVersion toTest = new ApiVersion();
         toTest.setMajor(2);
@@ -518,11 +537,13 @@ public class ClientRequestTest {
     // Note:
     // This Test has to run after the "startTestrun" Test because it manipulates the mocked Response
     @Test(expected = UniformInterfaceException.class)
+    @WithoutJenkins
     public void handleResponseError() throws Exception {
         // change Response that handleResponseError gets an Error
         dispatcher.removeResponse("/examRest/testrun/start");
         dispatcher.setResponse("/examRest/testrun/start",
-                new MockResponse().setResponseCode(204).addHeader("Content-Type", "application/json; charset=utf-8")
+                new MockResponse().setResponseCode(204).addHeader("Content-Type",
+                        "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache").setBody("{}"));
 
         // start Testrun with error Response => handleResponseError gets called
@@ -530,6 +551,13 @@ public class ClientRequestTest {
     }
 
     @Test
+    @WithoutJenkins
+    public void handleResponseErrorException() throws Exception {
+        Whitebox.invokeMethod(testObject, "handleResponseError", null);
+    }
+
+    @Test
+    @WithoutJenkins
     public void setTestrunFilter() throws Exception {
         TestrunFilter testrunFilter1 = new TestrunFilter("trf1", "val1", true, false);
         TestrunFilter testrunFilter2 = new TestrunFilter("trf2", "val2", false, true);
@@ -552,6 +580,7 @@ public class ClientRequestTest {
     }
 
     @Test
+    @WithoutJenkins
     public void convert() throws Exception {
         String path = "/examRest/testrun/convertToJunit/";
         String testReportProject = "testProject";

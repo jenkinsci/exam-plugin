@@ -47,7 +47,6 @@ import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
-import jenkins.internal.Remote;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.FilterConfiguration;
 import jenkins.internal.data.ReportConfiguration;
@@ -65,7 +64,6 @@ import jenkins.task._exam.ExamConsoleAnnotator;
 import jenkins.task._exam.ExamConsoleErrorOut;
 import jenkins.task._exam.Messages;
 import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.lang.RandomStringUtils;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
@@ -129,34 +127,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         this.pythonName = pythonName;
         this.examReport = examReport;
         this.systemConfiguration = Util.fixEmptyAndTrim(systemConfiguration);
-    }
-
-    /**
-     * Backward compatibility by checking the number of parameters
-     */
-    private static ArgumentListBuilder toWindowsCommand(ArgumentListBuilder args) {
-        List<String> arguments = args.toList();
-
-        // branch for core equals or greater than 1.654
-        boolean[] masks = args.toMaskArray();
-        // don't know why are missing single quotes.
-
-        ArgumentListBuilder argsNew = new ArgumentListBuilder();
-        argsNew.add(arguments.get(0), arguments.get(1)); // "cmd.exe", "/C",
-        // ...
-
-        int size = arguments.size();
-        for (int i = 2; i < size; i++) {
-            String arg = arguments.get(i).replaceAll("^(-D[^\" ]+)=$", "$0\"\"");
-
-            if (masks[i]) {
-                argsNew.addMasked(arg);
-            } else {
-                argsNew.add(arg);
-            }
-        }
-
-        return argsNew;
     }
 
     public boolean getUseExecutionFile() {
@@ -355,8 +325,9 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
 
         run.addAction(new ExamReportAction(this));
         ArgumentListBuilder args = new ArgumentListBuilder();
-
         EnvVars env = run.getEnvironment(listener);
+
+        ExamTaskHelper etHelper = new ExamTaskHelper(run, env);
 
         ExamTool examTool = getExam();
         PythonInstallation python = getPython();
@@ -371,20 +342,9 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 run.setResult(Result.FAILURE);
                 throw new AbortException(Messages.EXAM_NodeOffline());
             }
+            pythonExe = etHelper.getPythonExePath(listener, python, node);
             examTool = examTool.forNode(node, listener);
-            python = python.forNode(node, listener);
             exe = examTool.getExecutable(launcher);
-            pythonExe = python.getHome();
-            if (pythonExe == null || pythonExe.trim().isEmpty()) {
-                run.setResult(Result.FAILURE);
-                throw new AbortException("python home not set");
-            }
-            if (!pythonExe.endsWith("exe")) {
-                if (!pythonExe.endsWith("\\") && !pythonExe.endsWith("/")) {
-                    pythonExe += File.separator;
-                }
-                pythonExe += "python.exe";
-            }
             assert exe != null;
             if (exe.trim().isEmpty()) {
                 run.setResult(Result.FAILURE);
@@ -396,23 +356,9 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         File buildFile = new File(exe);
         FilePath buildFilePath = new FilePath(buildFile);
 
-        String dataPath = examTool.getHome();
-        String relativeDataPath = examTool.getRelativeDataPath();
-        if (relativeDataPath != null && !relativeDataPath.trim().isEmpty()) {
-            dataPath = examTool.getHome() + File.separator + relativeDataPath;
-        }
+        String configurationPath = etHelper.getConfigurationPath(launcher, examTool);
         String examWorkspace = workspace + File.separator + "workspace_exam_restApi";
         examWorkspace = examWorkspace.replaceAll("[/\\]]", File.separator);
-        FilePath source = workspace.child("workspace_exam_restApi");
-        FilePath target = workspace.child("target");
-
-        String configurationPath = dataPath + File.separator + "configuration";
-        File configurationFile = new File(
-                dataPath + File.separator + "configuration" + File.separator + "config.ini");
-        if (!Remote.fileExists(launcher, configurationFile)) {
-            run.setResult(Result.FAILURE);
-            throw new AbortException(Messages.EXAM_NotExamConfigDirectory(configurationFile.getPath()));
-        }
 
         args.add("-data", examWorkspace);
         args.add("-configuration", configurationPath);
@@ -421,7 +367,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
         assert instanceOrNull != null;
         ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(ExamPluginConfig.class);
-        args = handleAdditionalArgs(run, args, env, examPluginConfig, launcher);
+        args = etHelper.handleAdditionalArgs(javaOpts, args, examPluginConfig, launcher);
 
         if (timeout <= 0) {
             timeout = examPluginConfig.getTimeout();
@@ -435,56 +381,17 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             Proc proc = null;
             Executor runExecutor = run.getExecutor();
             if (runExecutor != null) {
+                if (clientRequest.isApiAvailable()) {
+                    listener.getLogger().println("ERROR: EXAM is already running");
+                    run.setResult(Result.FAILURE);
+                    throw new AbortException("ERROR: EXAM is already running");
+                }
                 try {
-
                     Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(buildFilePath.getParent());
-                    if (clientRequest.isApiAvailable()) {
-                        listener.getLogger().println("ERROR: EXAM is already running");
-                        run.setResult(Result.FAILURE);
-                        throw new AbortException("ERROR: EXAM is already running");
-                    }
-                    process.stderr(examErr);
-                    process.stdout(eca);
+                    process.stderr(examErr).stdout(eca);
                     proc = process.start();
 
-                    boolean ret = clientRequest.connectClient(runExecutor, timeout);
-                    if (ret) {
-                        ApiVersion apiVersion = clientRequest.getApiVersion();
-                        String sApiVersion = (apiVersion == null) ? "unknown" : apiVersion.toString();
-                        listener.getLogger().println("EXAM api version: " + sApiVersion);
-                        TestConfiguration tc = createTestConfiguration(env);
-                        tc.setPythonPath(pythonExe);
-                        FilterConfiguration fc = new FilterConfiguration();
-
-                        for (TestrunFilter filter : testrunFilter) {
-                            fc.addTestrunFilter(
-                                    new jenkins.internal.data.TestrunFilter(filter.name, filter.value, filter.adminCases,
-                                            filter.activateTestcases));
-                        }
-
-                        if (isClearWorkspace()) {
-                            clientRequest.clearWorkspace(tc.getModelProject().getModelName());
-                        }
-                        clientRequest.clearWorkspace(tc.getReportProject().getProjectName());
-                        if (!testrunFilter.isEmpty()) {
-                            clientRequest.setTestrunFilter(fc);
-                        }
-                        clientRequest.startTestrun(tc);
-
-                        clientRequest.waitForTestrunEnds(runExecutor, 60);
-                        listener.getLogger().println("waiting until EXAM is idle");
-                        clientRequest.waitForExamIdle(runExecutor, timeout);
-                        if (pdfReport) {
-                            listener.getLogger().println("waiting for PDF Report");
-                            clientRequest.waitForExportPDFReportJob(runExecutor, timeout * 2);
-                        }
-                        clientRequest.convert(tc.getReportProject().getProjectName());
-
-                        String hash = "__" + RandomStringUtils.random(5, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray());
-                        source = source.child("reports").child(tc.getReportProject().getProjectName()).child("junit");
-                        target = target.child("test-reports").child(tc.getReportProject().getProjectName() + hash);
-                        source.copyRecursiveTo(target);
-                    }
+                    doExecuteExamTestrun(workspace, listener, env, etHelper, pythonExe, clientRequest, runExecutor);
                 } catch (IOException e) {
                     run.setResult(Result.FAILURE);
                     throw new AbortException("ERROR: " + e.toString());
@@ -528,32 +435,41 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         }
     }
 
-    private ArgumentListBuilder handleAdditionalArgs(@Nonnull Run<?, ?> run, ArgumentListBuilder args, EnvVars env, ExamPluginConfig examPluginConfig, Launcher launcher) throws AbortException {
-        ArgumentListBuilder argsNew = args;
-        argsNew.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
-                "-DRESTAPI_PORT=" + examPluginConfig.getPort());
+    public void doExecuteExamTestrun(@Nonnull FilePath workspace, @Nonnull TaskListener listener, EnvVars env, ExamTaskHelper etHelper, String pythonExe, ClientRequest clientRequest, Executor runExecutor) throws IOException, InterruptedException {
+        boolean ret = clientRequest.connectClient(runExecutor, timeout);
+        if (ret) {
+            ApiVersion apiVersion = clientRequest.getApiVersion();
+            String sApiVersion = (apiVersion == null) ? "unknown" : apiVersion.toString();
+            listener.getLogger().println("EXAM api version: " + sApiVersion);
+            TestConfiguration tc = createTestConfiguration(env);
+            tc.setPythonPath(pythonExe);
+            FilterConfiguration fc = new FilterConfiguration();
 
-        if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
-            run.setResult(Result.FAILURE);
-            throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
+            for (TestrunFilter filter : testrunFilter) {
+                fc.addTestrunFilter(
+                        new jenkins.internal.data.TestrunFilter(filter.name, filter.value, filter.adminCases,
+                                filter.activateTestcases));
+            }
+
+            if (isClearWorkspace()) {
+                clientRequest.clearWorkspace(tc.getModelProject().getModelName());
+            }
+            clientRequest.clearWorkspace(tc.getReportProject().getProjectName());
+            if (!testrunFilter.isEmpty()) {
+                clientRequest.setTestrunFilter(fc);
+            }
+            clientRequest.startTestrun(tc);
+
+            clientRequest.waitForTestrunEnds(runExecutor, 60);
+            listener.getLogger().println("waiting until EXAM is idle");
+            clientRequest.waitForExamIdle(runExecutor, timeout);
+            if (pdfReport) {
+                listener.getLogger().println("waiting for PDF Report");
+                clientRequest.waitForExportPDFReportJob(runExecutor, timeout * 2);
+            }
+            clientRequest.convert(tc.getReportProject().getProjectName());
+            etHelper.copyArtifactsToTarget(workspace, tc);
         }
-        argsNew.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
-                "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
-
-        argsNew.add("-Dfile.encoding=UTF-8");
-        argsNew.add("-Dsun.jnu.encoding=UTF-8");
-
-        if (javaOpts != null) {
-            env.put("JAVA_OPTS", env.expand(javaOpts));
-            String[] splittedJavaOpts = javaOpts.split(" ");
-            argsNew.add(splittedJavaOpts);
-        }
-
-        if (!launcher.isUnix()) {
-            argsNew = toWindowsCommand(argsNew);
-        }
-
-        return argsNew;
     }
 
     @Nullable

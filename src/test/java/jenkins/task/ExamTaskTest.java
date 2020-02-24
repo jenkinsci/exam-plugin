@@ -1,6 +1,5 @@
 package jenkins.task;
 
-import hudson.util.ArgumentListBuilder;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.plugins.exam.ExamTool;
@@ -470,43 +469,6 @@ public class ExamTaskTest {
     @Test
     public void getExam_noExamRegisterd() {
         assertNull(testObject.getExam());
-    }
-
-    @Test
-    @WithoutJenkins
-    public void toWindowsCommand() throws Exception {
-        int port = 8085;
-
-        ArgumentListBuilder args = new ArgumentListBuilder();
-        args.add("cmd.exe", "/C");
-        ArgumentListBuilder converted = Whitebox.invokeMethod(testObject, "toWindowsCommand", args);
-        assertEquals(args.toList(), converted.toList());
-
-        args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
-                "-DRESTAPI_PORT=" + port);
-        converted = Whitebox.invokeMethod(testObject, "toWindowsCommand", args);
-        assertEquals(args.toList(), converted.toList());
-
-        args.add("-DPath=\"C:\\this\\is\\my\\path\"");
-        converted = Whitebox.invokeMethod(testObject, "toWindowsCommand", args);
-        assertEquals(args.toList(), converted.toList());
-
-        args.add("-Dnothing=");
-        List<String> expected = args.toList();
-        expected.remove("-Dnothing=");
-        expected.add("-Dnothing=\"\"");
-        converted = Whitebox.invokeMethod(testObject, "toWindowsCommand", args);
-        assertEquals(expected, converted.toList());
-
-        args.add("password", true);
-        converted = Whitebox.invokeMethod(testObject, "toWindowsCommand", args);
-        expected.remove("password");
-        expected.add("******");
-        String sExpected = expected.toString().replaceAll(",", "");
-        sExpected = sExpected.replaceAll("\\]", "");
-        sExpected = sExpected.replaceAll("\\[", "");
-        String sConverted = converted.toString();
-        assertEquals(sExpected, sConverted);
     }
 
     private void assertPdfReport(TestConfiguration tc) {
