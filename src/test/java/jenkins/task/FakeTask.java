@@ -7,7 +7,7 @@ import jenkins.internal.data.TestConfiguration;
 
 public class FakeTask extends ExamTask {
 
-    FakeTask(String examName, String pythonName, String examReport, String systemConfiguration) {
+    public FakeTask(String examName, String pythonName, String examReport, String systemConfiguration) {
         super(examName, pythonName, examReport, systemConfiguration);
     }
 
