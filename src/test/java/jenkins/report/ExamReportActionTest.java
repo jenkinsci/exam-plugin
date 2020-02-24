@@ -2,7 +2,7 @@ package jenkins.report;
 
 import hudson.model.Run;
 import jenkins.task.ExamTaskModel;
-import jenkins.task.FakeTask;
+import jenkins.task.TestUtil.FakeTask;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
