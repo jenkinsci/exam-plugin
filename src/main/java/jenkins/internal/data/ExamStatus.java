@@ -42,7 +42,8 @@ public class ExamStatus implements Serializable {
     private Boolean jobRunning;
     private String jobName;
     private Integer testRunState;
-    
+    private TestRunStatus status;
+
     /**
      * @return Das jobRunning.
      */
@@ -89,5 +90,21 @@ public class ExamStatus implements Serializable {
      */
     public void setTestRunState(Integer testRunState) {
         this.testRunState = testRunState;
+    }
+
+    /**
+     * @return der {@link TestRunStatus}.
+     */
+    public TestRunStatus getStatus() {
+        return this.status;
+    }
+
+    /**
+     * Setzt den {@link TestRunStatus}.
+     * @param status
+     *            der Status.
+     */
+    public void setStatus(TestRunStatus status) {
+        this.status = status;
     }
 }

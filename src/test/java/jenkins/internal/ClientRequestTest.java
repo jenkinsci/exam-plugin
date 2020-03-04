@@ -32,10 +32,7 @@ package jenkins.internal;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import hudson.Launcher;
 import hudson.model.Executor;
-import jenkins.internal.data.ApiVersion;
-import jenkins.internal.data.ExamStatus;
-import jenkins.internal.data.FilterConfiguration;
-import jenkins.internal.data.TestrunFilter;
+import jenkins.internal.data.*;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -58,10 +55,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.calls;
 import static org.mockito.Mockito.clearInvocations;
@@ -148,6 +142,50 @@ public class ClientRequestTest {
     public void getStatus() {
         try {
             ExamStatus examStatus = testObject.getStatus();
+            assertEquals("myTestJob", examStatus.getJobName());
+        } catch (IOException | InterruptedException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+
+    @Test
+    public void getTestRunStatus() {
+        try {
+            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobRunning\": true,\"jobName\": \"myTestJob\",\"testRunState\": -1,\"status\": {\"testCaseCount\": 4,\"currentTestCaseIdx\": " +
+                            "2,\"expectedRuntime\": \"00:00:01:00\",\"currentRuntime\": \"00:00:00:20\",\"remainingRuntime\": \"00:00:00:40\",\"name\": \"testName\",\"fullScopedName\": \"test.testName\"}}"));
+
+            ExamStatus examStatus = testObject.getStatus();
+            TestRunStatus testRunStatus = examStatus.getStatus();
+
+            assertEquals(2, testRunStatus.getCurrentTestCaseIdx());
+            assertEquals(4, testRunStatus.getTestCaseCount());
+            assertEquals("00:00:01:00", testRunStatus.getExpectedRuntime());
+            assertEquals("00:00:00:20", testRunStatus.getCurrentRuntime());
+            assertEquals("00:00:00:40", testRunStatus.getRemainingRuntime());
+            assertEquals("testName", testRunStatus.getName());
+            assertEquals("test.testName", testRunStatus.getFullScopedName());
+
+            assertEquals("myTestJob", examStatus.getJobName());
+        } catch (IOException | InterruptedException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+    }
+
+    @Test
+    public void getTestRunStatusNull() {
+        try {
+            dispatcher.setResponse("/examRest/testrun/status", new MockResponse().setResponseCode(200)
+                    .addHeader("Content-Type", "application/json; charset=utf-8")
+                    .addHeader("Cache-Control", "no-cache")
+                    .setBody("{\"jobRunning\": true,\"jobName\": \"myTestJob\",\"testRunState\": -1}"));
+
+            ExamStatus examStatus = testObject.getStatus();
+            TestRunStatus testRunStatus = examStatus.getStatus();
+
+            assertNull(testRunStatus);
             assertEquals("myTestJob", examStatus.getJobName());
         } catch (IOException | InterruptedException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
