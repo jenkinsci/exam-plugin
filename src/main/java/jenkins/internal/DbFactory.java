@@ -34,25 +34,19 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import jenkins.internal.provider.Soap12Provider;
+import jenkins.internal.provider.Soap11Provider;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPFault;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
+import javax.xml.soap.*;
 
 public class DbFactory {
 
     private final static int OK = Response.ok().build().getStatus();
 
-    private static SOAPMessage getSoapMessage(String modelName, int examVersion) throws SOAPException {
-        MessageFactory messageFactory = MessageFactory.newInstance();
+    private static SOAPMessage getSoapMessage(String modelName, int examVersion, MessageFactory messageFactory) throws SOAPException {
         SOAPMessage message = messageFactory.createMessage();
         SOAPPart soapPart = message.getSOAPPart();
         SOAPEnvelope envelope = soapPart.getEnvelope();
@@ -82,14 +76,7 @@ public class DbFactory {
      */
     public static String testModelConnection(String modelName, String targetEndpoint, int examVersion)
             throws SOAPException {
-        ClientConfig clientConfig = new DefaultClientConfig();
-        clientConfig.getClasses().add(SoapProvider.class);
-        Client client = Client.create(clientConfig);
-
-        SOAPMessage message = getSoapMessage(modelName, examVersion);
-
-        WebResource service = client.resource(targetEndpoint);
-        ClientResponse response = service.header("SOAPAction", "sessionLogin").post(ClientResponse.class, message);
+        ClientResponse response = callExamModeler(modelName, targetEndpoint, examVersion);
 
         SOAPMessage retMessage = response.getEntity(SOAPMessage.class);
         SOAPEnvelope retEnvelope = retMessage.getSOAPPart().getEnvelope();
@@ -108,6 +95,32 @@ public class DbFactory {
                     response.getStatus());
         }
         return "OK";
+    }
+
+    /**
+     * Calls the ExamModelerService depending on the examVersion. If 4.8+ is used SOAP 1.2 is active.
+     *
+     * @param modelName      String
+     * @param targetEndpoint String
+     * @param examVersion    int
+     * @return String
+     * @throws SOAPException SOAPException
+     */
+    private static ClientResponse callExamModeler(String modelName, String targetEndpoint, int examVersion) throws SOAPException {
+        ClientConfig clientConfig = new DefaultClientConfig();
+        MessageFactory messageFactory;
+        if (examVersion >= 48) {
+            clientConfig.getClasses().add(Soap12Provider.class);
+            messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
+        } else {
+            clientConfig.getClasses().add(Soap11Provider.class);
+            messageFactory = MessageFactory.newInstance();
+        }
+        Client client = Client.create(clientConfig);
+        SOAPMessage message = getSoapMessage(modelName, examVersion, messageFactory);
+
+        WebResource service = client.resource(targetEndpoint);
+        return service.header("SOAPAction", "sessionLogin").post(ClientResponse.class, message);
     }
 
     @Nullable
