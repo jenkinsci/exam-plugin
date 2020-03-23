@@ -36,10 +36,13 @@ import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 
 import java.util.List;
 
-public interface ExamDescriptor extends ExamModelDescriptor {
+public interface ExamDescriptor {
 
     PythonInstallation[] getPythonInstallations();
 
     List<ExamReportConfig> getReportConfigs();
 
+    ExamTool[] getInstallations();
+
+    List<ExamModelConfig> getModelConfigs();
 }

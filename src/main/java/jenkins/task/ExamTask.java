@@ -320,7 +320,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
 
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-            @Nonnull TaskListener listener) throws IOException, InterruptedException {
+                        @Nonnull TaskListener listener) throws IOException, InterruptedException {
 
         ArgumentListBuilder args = new ArgumentListBuilder();
         EnvVars env = run.getEnvironment(listener);
@@ -413,7 +413,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
 
             String errorMessage = Messages.EXAM_ExecFailed();
             if ((System.currentTimeMillis() - startTime) < 1000) {
-                if (getDescriptor().getInstallations() == null)
+                if (getDescriptor().getInstallations().length == 0)
                 // looks like the user didn't configure any EXAM
                 // installation
                 {

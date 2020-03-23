@@ -296,7 +296,8 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
 
             String errorMessage = Messages.EXAM_ExecFailed();
             if ((System.currentTimeMillis() - startTime) < 1000) {
-                if (getDescriptor().getInstallations() == null)
+
+                if (getDescriptor().getInstallations().length == 0)
                 // looks like the user didn't configure any EXAM
                 // installation
                 {
@@ -397,7 +398,6 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
         private static final long serialVersionUID = 4277406576918447167L;
 
         @Nonnull
-        @Override
         public String getDisplayName() {
             return Messages.EXAM_RunGroovyTask();
         }
@@ -411,7 +411,6 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
             return true;
         }
 
-        @Override
         public ExamTool[] getInstallations() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
             return (instanceOrNull == null) ? new ExamTool[0] : instanceOrNull.getDescriptorByType(
@@ -419,7 +418,6 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
                     .getInstallations();
         }
 
-        @Override
         public List<ExamModelConfig> getModelConfigs() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
             if (instanceOrNull == null) {
