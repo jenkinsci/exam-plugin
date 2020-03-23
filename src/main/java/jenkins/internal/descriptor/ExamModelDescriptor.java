@@ -31,15 +31,12 @@ package jenkins.internal.descriptor;
 
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
-import jenkins.plugins.exam.config.ExamReportConfig;
-import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 
 import java.util.List;
 
-public interface ExamDescriptor extends ExamModelDescriptor {
+public interface ExamModelDescriptor {
 
-    PythonInstallation[] getPythonInstallations();
+    ExamTool[] getInstallations();
 
-    List<ExamReportConfig> getReportConfigs();
-
+    List<ExamModelConfig> getModelConfigs();
 }

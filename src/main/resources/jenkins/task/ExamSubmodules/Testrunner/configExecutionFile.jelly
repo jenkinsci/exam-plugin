@@ -33,7 +33,6 @@
 
     <j:set var="helpPath" value="/plugin/exam/help/task/ExamSubModules/Testrunner"/>
 
-    <f:section title="${%Testrun}">
         <f:entry title="Python Version" field="pythonName" help="${helpPath}/help-pythonName.html">
             <f:select/>
         </f:entry>
@@ -49,5 +48,4 @@
         </f:entry>
         <st:include page="/jenkins/task/ExamSubmodules/Testrunner/configLoggingFilter.jelly"
                     class="jenkins.task.ExamTask"/>
-    </f:section>
 </j:jelly>

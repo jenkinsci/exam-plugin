@@ -29,5 +29,8 @@
 -->
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
-    <st:include page="config.jelly" class="jenkins.reporter.ExamReport"/>
+
+    <st:include page="/jenkins/task/ExamSubmodules/Modeler/configGroovyModel.jelly" class="jenkins.task.GroovyTask"/>
+    <st:include page="/jenkins/task/ExamSubmodules/Groovy/config.jelly" class="jenkins.task.GroovyTask"/>
+
 </j:jelly>

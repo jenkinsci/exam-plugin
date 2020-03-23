@@ -27,19 +27,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package jenkins.internal.descriptor;
+package jenkins.internal.data;
 
-import jenkins.plugins.exam.ExamTool;
-import jenkins.plugins.exam.config.ExamModelConfig;
-import jenkins.plugins.exam.config.ExamReportConfig;
-import jenkins.plugins.shiningpanda.tools.PythonInstallation;
+import org.junit.Before;
+import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
 
-public interface ExamDescriptor extends ExamModelDescriptor {
+public class GroovyConfigurationTest {
 
-    PythonInstallation[] getPythonInstallations();
+    private GroovyConfiguration testObject;
+    private final static String TEST_STRING = "myTestString";
 
-    List<ExamReportConfig> getReportConfigs();
+    @Before
+    public void setUp() {
+        this.testObject = new GroovyConfiguration();
+    }
 
+    @Test
+    public void testGetStartElement() {
+        Whitebox.setInternalState(testObject, "startElement", TEST_STRING);
+        String testIt = testObject.getStartElement();
+        assertEquals(TEST_STRING, testIt);
+    }
+
+    @Test
+    public void testSetStartElement() {
+        testObject.setStartElement(TEST_STRING);
+        String testIt = testObject.getStartElement();
+        assertEquals(TEST_STRING, testIt);
+    }
+
+    @Test
+    public void testGetScript() {
+        Whitebox.setInternalState(testObject, "script", TEST_STRING);
+        String testIt = testObject.getScript();
+        assertEquals(TEST_STRING, testIt);
+    }
+
+    @Test
+    public void testSetScript() {
+        testObject.setScript(TEST_STRING);
+        String testIt = testObject.getScript();
+        assertEquals(TEST_STRING, testIt);
+    }
 }
