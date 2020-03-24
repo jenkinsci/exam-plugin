@@ -32,7 +32,7 @@
 
     <j:set var="helpPath" value="/plugin/exam/help/task/ExamSubModules/Groovy"/>
 
-    <f:section title="${%Groovy Configuratin}">
+    <f:section title="${%Groovy Configuration}">
         <f:entry title="Script" field="script" help="${helpPath}/help-script.html">
             <f:textbox/>
         </f:entry>
