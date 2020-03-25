@@ -76,6 +76,14 @@ public class ServerDispatcher extends Dispatcher {
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache"));
 
+        setResponse("/examRest/workspace/createProject",
+                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache"));
+
+        setResponse("/examRest/groovy/executeGroovyScript",
+                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache"));
+
         setResponse("/examRest/workspace/delete", new MockResponse().setResponseCode(200));
         setResponse("/examRest/workspace/shutdown", new MockResponse().setResponseCode(200));
     }

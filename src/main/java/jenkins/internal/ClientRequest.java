@@ -32,11 +32,7 @@ package jenkins.internal;
 import hudson.AbortException;
 import hudson.Launcher;
 import hudson.model.Executor;
-import jenkins.internal.data.ApiVersion;
-import jenkins.internal.data.ExamStatus;
-import jenkins.internal.data.FilterConfiguration;
-import jenkins.internal.data.TestConfiguration;
-import jenkins.internal.data.TestrunFilter;
+import jenkins.internal.data.*;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.Response;
@@ -140,6 +136,24 @@ public class ClientRequest {
     }
 
     /**
+     * Creates a Exam Project on the Client.
+     *
+     * @param modelConfiguration ModelConfiguration
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
+     */
+    public void createExamProject(ModelConfiguration modelConfiguration) throws IOException, InterruptedException {
+        if (!clientConnected) {
+            logger.println("WARNING: no EXAM connected");
+            return;
+        }
+        logger.println("creating Exam Project");
+
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/workspace/createProject", modelConfiguration, null);
+        handleResponseError(response);
+    }
+
+    /**
      * Setting the  EXAM Client
      *
      * @param filterConfig FilterConfiguration
@@ -201,6 +215,24 @@ public class ClientRequest {
         logger.println("starting testrun");
         RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/testrun/start",
                 testConfig, null);
+        handleResponseError(response);
+    }
+
+    /**
+     * Executes a Groovy Script at the Exam Client.
+     *
+     * @param groovyConfiguration GroovyConfiguration
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
+     */
+    public void executeGoovyScript(GroovyConfiguration groovyConfiguration) throws IOException, InterruptedException {
+        if (!clientConnected) {
+            logger.println("WARNING: no EXAM connected");
+            return;
+        }
+        logger.println("executing Groovy Script");
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/groovy/executeGroovyScript",
+                groovyConfiguration, null);
         handleResponseError(response);
     }
 

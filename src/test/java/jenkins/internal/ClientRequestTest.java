@@ -225,6 +225,44 @@ public class ClientRequestTest {
 
     @Test
     @WithoutJenkins
+    public void createExamProject() {
+        try {
+            testObject.createExamProject(null);
+            verify(printMock).println("creating Exam Project");
+        } catch (IOException | InterruptedException e) {
+            assertTrue("Exception was thronw: " + e.toString(), false);
+        }
+    }
+
+    @Test
+    public void createExamProjectWithException() throws IOException, InterruptedException {
+        dispatcher.removeResponse("/examRest/workspace/createProject");
+        exception.expect(IOException.class);
+        testObject.createExamProject(null);
+        verify(printMock).println("ecreating Exam Project");
+    }
+
+    @Test
+    @WithoutJenkins
+    public void executeGoovyScript() {
+        try {
+            testObject.executeGoovyScript(null);
+            verify(printMock).println("executing Groovy Script");
+        } catch (IOException | InterruptedException e) {
+            assertTrue("Exception was thronw: " + e.toString(), false);
+        }
+    }
+
+    @Test
+    public void executeGoovyScriptWithException() throws IOException, InterruptedException {
+        dispatcher.removeResponse("/examRest/groovy/executeGroovyScript");
+        exception.expect(IOException.class);
+        testObject.executeGoovyScript(null);
+        verify(printMock).println("executing Groovy Script");
+    }
+
+    @Test
+    @WithoutJenkins
     public void stopTestrun() {
         try {
             testObject.stopTestrun();
@@ -550,6 +588,14 @@ public class ClientRequestTest {
 
         clearInvocations(printMock);
         testObject.startTestrun(null);
+        verify(printMock).println("WARNING: no EXAM connected");
+
+        clearInvocations(printMock);
+        testObject.createExamProject(null);
+        verify(printMock).println("WARNING: no EXAM connected");
+
+        clearInvocations(printMock);
+        testObject.executeGoovyScript(null);
         verify(printMock).println("WARNING: no EXAM connected");
     }
 

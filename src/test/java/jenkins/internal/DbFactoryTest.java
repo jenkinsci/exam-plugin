@@ -146,6 +146,21 @@ public class DbFactoryTest {
         assertEquals(expectedResponseText, result);
     }
 
+    @Test
+    public void testModelConnection48() {
+        // Ok response Exam 4.8 (for coverage of SoapProviders)
+        try {
+            String expectedResponseText = "OK";
+            dispatcher.setExpectedResponseValues(expectedResponseText, 200, true);
+            dispatcher.setExamVersion(48);
+            String result = DbFactory.testModelConnection("test", "http://localhost:8085", 48);
+            assertEquals(expectedResponseText, result);
+        } catch (Exception e) {
+            // set dispatcher version back to initial to not influence other Tests.
+            dispatcher.setExamVersion(-1);
+        }
+    }
+
     @Test(expected = RuntimeException.class)
     public void testModelConnectionEmptyBody() throws Exception {
         String expectedResponseText = "";

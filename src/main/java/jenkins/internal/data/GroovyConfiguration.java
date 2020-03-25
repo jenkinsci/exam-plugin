@@ -27,22 +27,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package jenkins.internal.descriptor;
+package jenkins.internal.data;
 
-import jenkins.plugins.exam.ExamTool;
-import jenkins.plugins.exam.config.ExamModelConfig;
-import jenkins.plugins.exam.config.ExamReportConfig;
-import jenkins.plugins.shiningpanda.tools.PythonInstallation;
+import hudson.Extension;
 
-import java.util.List;
+import java.io.Serializable;
 
-public interface ExamDescriptor {
+/**
+ * Configuration for running a EXAM Groovy Script.
+ */
+@Extension
+public class GroovyConfiguration implements Serializable {
 
-    PythonInstallation[] getPythonInstallations();
+    private static final long serialVersionUID = 2841740036359425177L;
 
-    List<ExamReportConfig> getReportConfigs();
+    /**
+     * the script identifier (can be ID, UUID or FullScopedName).
+     * Example: "I30032" or "8d2208a2-7d92-48a3-bc83-9a9ac8009280" or "Sandbox.test.Script".
+     */
+    private String script;
 
-    ExamTool[] getInstallations();
+    /**
+     * the startElement (can also be ID, UUID or FullScopedName).
+     */
+    private String startElement = "";
 
-    List<ExamModelConfig> getModelConfigs();
+    /**
+     * Constructor.
+     */
+    public GroovyConfiguration() {
+    }
+
+    /**
+     * Gets the startElement.
+     *
+     * @return the startElement.
+     */
+    public String getStartElement() {
+        return startElement;
+    }
+
+    /**
+     * Sets the startElement.
+     *
+     * @param startElement the startElement.
+     */
+    public void setStartElement(String startElement) {
+        this.startElement = startElement;
+    }
+
+    /**
+     * Gets the script.
+     *
+     * @return the script.
+     */
+    public String getScript() {
+        return script;
+    }
+
+    /**
+     * Sets the script.
+     *
+     * @param script the script.
+     */
+    public void setScript(String script) {
+        this.script = script;
+    }
 }

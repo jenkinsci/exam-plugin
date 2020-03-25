@@ -28,7 +28,6 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
     <st:include page="config.jelly" class="jenkins.task.ExamTaskModel"/>
 </j:jelly>

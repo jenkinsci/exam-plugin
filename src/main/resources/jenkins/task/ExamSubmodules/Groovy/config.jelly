@@ -28,6 +28,19 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
-    <st:include page="config.jelly" class="jenkins.reporter.ExamReport"/>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form">
+
+    <j:set var="helpPath" value="/plugin/exam/help/task/ExamSubModules/Groovy"/>
+
+    <f:section title="${%Groovy Configuration}">
+        <f:entry title="Script" field="script" help="${helpPath}/help-script.html">
+            <f:textbox/>
+        </f:entry>
+
+        <f:optionalBlock title="${%execute on element}" inline="true" field="useStartElement">
+            <f:entry title="${%Element}" field="startElement" help="${helpPath}/help-startElement.html">
+                <f:textbox/>
+            </f:entry>
+        </f:optionalBlock>
+    </f:section>
 </j:jelly>
