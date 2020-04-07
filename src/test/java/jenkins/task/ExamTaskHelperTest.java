@@ -25,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.SimpleCommandLauncher;
 import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -211,7 +212,7 @@ public class ExamTaskHelperTest {
 
         mockStatic(Util.class);
 
-        DumbSlave slave = new DumbSlave("", "", null);
+        DumbSlave slave = new DumbSlave("TestSlave", "", new SimpleCommandLauncher("echo hallo"));
         BDDMockito.given(Util.workspaceToNode(workspace)).willReturn(
                 slave);
         PythonInstallation pyMock = mock(PythonInstallation.class);
@@ -247,7 +248,7 @@ public class ExamTaskHelperTest {
     public void getNode() throws Exception {
         mockStatic(Util.class);
 
-        DumbSlave slave = new DumbSlave("", "", null);
+        DumbSlave slave = new DumbSlave("TestSlave", "", new SimpleCommandLauncher("echo hallo"));
         BDDMockito.given(Util.workspaceToNode(workspace)).willReturn(
                 slave);
 
