@@ -4,10 +4,14 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.model.Descriptor;
+import hudson.model.Node;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.slaves.DumbSlave;
 import hudson.util.ArgumentListBuilder;
 import jenkins.internal.Remote;
+import jenkins.internal.Util;
 import jenkins.internal.data.ReportConfiguration;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.plugins.exam.ExamTool;
@@ -21,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -32,18 +37,19 @@ import org.powermock.reflect.Whitebox;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(Remote.class)
+@PrepareForTest({Remote.class, Util.class, hudson.Util.class})
 public class ExamTaskHelperTest {
-
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -52,11 +58,17 @@ public class ExamTaskHelperTest {
     Run runMock;
 
     private ExamTaskHelper testObject;
+    private FilePath workspace;
+    private TaskListener listener;
 
     @Before
-    public void setUp() throws ExecutionException, InterruptedException {
+    public void setUp() throws InterruptedException, IOException {
         MockitoAnnotations.initMocks(this);
-        testObject = new ExamTaskHelper(runMock, null);
+        workspace = new FilePath(
+                new File("c:\\my\\path\\to\\workspace"));
+        Launcher launcher = new Launcher.DummyLauncher(new FakeTaskListener());
+        listener = new FakeTaskListener();
+        testObject = new ExamTaskHelper(runMock, workspace, launcher, listener);
     }
 
     @After
@@ -66,15 +78,12 @@ public class ExamTaskHelperTest {
 
     @Test
     public void copyArtifactsToTarget() throws Exception {
-        FilePath workspace = new FilePath(
-                new File("c:\\my\\path\\to\\workspace"));
-
         TestConfiguration tc = new TestConfiguration();
         prepareExamReportConfig(tc);
         ArgumentListBuilder args = new ArgumentListBuilder();
         args.add("cmd.exe", "/C");
 
-        testObject.copyArtifactsToTarget(workspace, tc);
+        testObject.copyArtifactsToTarget(tc);
     }
 
     @Test
@@ -116,7 +125,7 @@ public class ExamTaskHelperTest {
         assertEquals(sExpected, sConverted);
     }
 
-    @Test()
+    @Test
     public void handleAdditionalArgs_noLicenseConfig() throws Exception {
 
         ExamPluginConfig pluginConfigMock = mock(ExamPluginConfig.class);
@@ -127,7 +136,7 @@ public class ExamTaskHelperTest {
         thrown.expectMessage(Messages.EXAM_LicenseServerNotConfigured());
 
         testObject.handleAdditionalArgs("", new ArgumentListBuilder(),
-                pluginConfigMock, null);
+                pluginConfigMock);
     }
 
     @Test
@@ -145,7 +154,7 @@ public class ExamTaskHelperTest {
         when(pluginConfigMock.getLicensePort()).thenReturn(8090);
 
         ArgumentListBuilder argsNew = testObject.handleAdditionalArgs(null,
-                new ArgumentListBuilder(), pluginConfigMock, launcherMock);
+                new ArgumentListBuilder(), pluginConfigMock);
         List<String> argList = argsNew.toList();
         assertTrue(argList.contains("-Dsun.jnu.encoding=UTF-8"));
         assertFalse(envar.containsKey("JAVA_OPTS"));
@@ -153,7 +162,7 @@ public class ExamTaskHelperTest {
 
         String javaOpts = "-Dtest1 -Dtest2=hallo";
         argsNew = testObject.handleAdditionalArgs(javaOpts,
-                new ArgumentListBuilder(), pluginConfigMock, launcherMock);
+                new ArgumentListBuilder(), pluginConfigMock);
         argList = argsNew.toList();
         assertTrue(argList.contains("-Dsun.jnu.encoding=UTF-8"));
         assertTrue(argList.contains("-Dtest1"));
@@ -162,7 +171,7 @@ public class ExamTaskHelperTest {
 
         when(launcherMock.isUnix()).thenReturn(true);
         argsNew = testObject.handleAdditionalArgs(javaOpts,
-                new ArgumentListBuilder(), pluginConfigMock, launcherMock);
+                new ArgumentListBuilder(), pluginConfigMock);
         argList = argsNew.toList();
         assertTrue(argList.contains("-Dsun.jnu.encoding=UTF-8"));
         assertTrue(argList.contains("-Dtest1"));
@@ -170,10 +179,9 @@ public class ExamTaskHelperTest {
         assertEquals("JavaOpts not extended", javaOpts, envar.get("JAVA_OPTS"));
     }
 
-    @Test()
+    @Test
     public void getConfigurationPath() throws IOException, InterruptedException {
         String examHome = "c:\\my\\examHome";
-        Launcher launcher = new Launcher.DummyLauncher(new FakeTaskListener());
         PowerMockito.mockStatic(Remote.class);
         PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(true);
 
@@ -181,12 +189,12 @@ public class ExamTaskHelperTest {
         when(examMock.getHome()).thenReturn(examHome);
 
         when(examMock.getRelativeDataPath()).thenReturn("..\\examData");
-        String returnedConfig = testObject.getConfigurationPath(launcher, examMock);
+        String returnedConfig = testObject.getConfigurationPath(examMock);
         assertEquals(examHome + File.separator + "..\\examData" + File.separator + "configuration",
                 returnedConfig);
 
         when(examMock.getRelativeDataPath()).thenReturn("");
-        returnedConfig = testObject.getConfigurationPath(launcher, examMock);
+        returnedConfig = testObject.getConfigurationPath(examMock);
         assertEquals(examHome + File.separator + "configuration", returnedConfig);
 
         thrown.expect(AbortException.class);
@@ -194,28 +202,32 @@ public class ExamTaskHelperTest {
                 Messages.EXAM_NotExamConfigDirectory(
                         examHome + File.separator + "configuration" + File.separator + "config.ini"));
         PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(false);
-        returnedConfig = testObject.getConfigurationPath(launcher, examMock);
+        testObject.getConfigurationPath(examMock);
     }
 
-    @Test()
-    public void getPythonExePath() throws IOException, InterruptedException {
+    @Test
+    public void getPythonExePath() throws IOException, InterruptedException, Descriptor.FormException {
         String pythonHome = "c:\\my\\pythonHome";
-        TaskListener listener = new FakeTaskListener();
 
+        mockStatic(Util.class);
+
+        DumbSlave slave = new DumbSlave("", "", null);
+        BDDMockito.given(Util.workspaceToNode(workspace)).willReturn(
+                slave);
         PythonInstallation pyMock = mock(PythonInstallation.class);
         when(pyMock.forNode(Mockito.any(), Mockito.any())).thenReturn(pyMock);
         when(pyMock.getHome()).thenReturn(pythonHome);
 
-        String pythonPath = testObject.getPythonExePath(listener, pyMock, null);
+        String pythonPath = testObject.getPythonExePath(pyMock);
         assertEquals("c:\\my\\pythonHome" + File.separator + "python.exe", pythonPath);
         when(pyMock.getHome()).thenReturn(pythonHome + "\\");
-        pythonPath = testObject.getPythonExePath(listener, pyMock, null);
+        pythonPath = testObject.getPythonExePath(pyMock);
         assertEquals("c:\\my\\pythonHome\\python.exe", pythonPath);
 
         when(pyMock.getHome()).thenReturn("");
         thrown.expect(AbortException.class);
         thrown.expectMessage("python home not set");
-        testObject.getPythonExePath(listener, pyMock, null);
+        testObject.getPythonExePath(pyMock);
     }
 
     private void prepareExamReportConfig(TestConfiguration config) {
@@ -229,6 +241,42 @@ public class ExamTaskHelperTest {
         rep.setDbUser("user");
         rep.setDbService("service");
         config.setReportProject(rep);
+    }
+
+    @Test
+    public void getNode() throws Exception {
+        mockStatic(Util.class);
+
+        DumbSlave slave = new DumbSlave("", "", null);
+        BDDMockito.given(Util.workspaceToNode(workspace)).willReturn(
+                slave);
+
+        Node node = testObject.getNode();
+        assertEquals(slave, node);
+
+        BDDMockito.given(Util.workspaceToNode(workspace)).willReturn(
+                null);
+        thrown.expect(AbortException.class);
+        thrown.expectMessage(Messages.EXAM_NodeOffline());
+
+        testObject.getNode();
+    }
+
+    @Test
+    public void handleIOException() throws AbortException {
+        mockStatic(hudson.Util.class);
+        doNothing().when(hudson.Util.class);
+
+        thrown.expect(AbortException.class);
+        testObject.handleIOException(System.currentTimeMillis() - 2000, null, new ExamTool[]{});
+
+        thrown.expect(AbortException.class);
+        testObject.handleIOException(System.currentTimeMillis() + 100000, null,
+                new ExamTool[]{});
+
+        thrown.expect(AbortException.class);
+        testObject.handleIOException(System.currentTimeMillis() + 100000, null,
+                new ExamTool[]{null});
     }
 
 }

@@ -30,14 +30,12 @@
 package jenkins.task;
 
 import hudson.AbortException;
-import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
 import hudson.model.AbstractProject;
 import hudson.model.Executor;
-import hudson.model.Node;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -67,7 +65,6 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -185,93 +182,28 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
         return examName;
     }
 
-    private ExamTool getTool(@Nonnull FilePath workspace, @Nonnull TaskListener taskListener) throws IOException, InterruptedException {
-        ExamTool tool = getExam();
-        String exe;
-        Node node = jenkins.internal.Util.workspaceToNode(workspace);
-        // check for installations
-        if (tool == null) {
-            throw new AbortException("examTool is null");
-        } else {
-            if (node == null) {
-                throw new AbortException(Messages.EXAM_NodeOffline());
-            }
-            tool = tool.forNode(node, taskListener);
-        }
-        return tool;
-    }
-
-    private String getExe(@Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener taskListener, ArgumentListBuilder args) throws IOException, InterruptedException {
-        ExamTool tool = getExam();
-        String exe;
-        Node node = jenkins.internal.Util.workspaceToNode(workspace);
-        // check for installations
-        if (tool == null) {
-            throw new AbortException("examTool is null");
-        } else {
-            if (node == null) {
-                throw new AbortException(Messages.EXAM_NodeOffline());
-            }
-            tool = tool.forNode(node, taskListener);
-            exe = tool.getExecutable(launcher);
-            assert exe != null;
-            if (exe.trim().isEmpty()) {
-                throw new AbortException(Messages.EXAM_ExecutableNotFound(tool.getName()));
-            }
-            args.add(exe);
-        }
-        return exe;
-    }
-
-    private FilePath prepareWorkspace(String exe, ExamTool tool, ExamTaskHelper taskHelper, FilePath workspace, Launcher launcher, ArgumentListBuilder args) throws IOException, InterruptedException {
-        File buildFile = new File(exe);
-        FilePath buildFilePath = new FilePath(buildFile);
-
-        String configurationPath = taskHelper.getConfigurationPath(launcher, tool);
-        String examWorkspace = workspace + File.separator + "workspace_exam_restApi";
-        examWorkspace = examWorkspace.replaceAll("[/\\]]", File.separator);
-
-        args.add("-data", examWorkspace);
-        args.add("-configuration", configurationPath);
-
-        return buildFilePath;
-    }
-
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener taskListener) throws InterruptedException, IOException {
         // prepare environment
         ArgumentListBuilder args = new ArgumentListBuilder();
-        EnvVars envVars = run.getEnvironment(taskListener);
 
-        ExamTaskHelper taskHelper = new ExamTaskHelper(run, envVars);
-        ExamTool tool;
-        String exe;
-        try {
-            tool = getTool(workspace, taskListener);
-            exe = getExe(workspace, launcher, taskListener, args);
-        } catch (AbortException e) {
-            run.setResult(Result.FAILURE);
-            throw e;
-        }
+        ExamTaskHelper taskHelper = new ExamTaskHelper(run, workspace, launcher, taskListener);
+        ExamTool tool = taskHelper.getTool(getExam());
 
         // prepare workspace
-        FilePath buildFilePath = prepareWorkspace(exe, tool, taskHelper, workspace, launcher, args);
-        tool.buildEnvVars(envVars);
+        FilePath buildFilePath = taskHelper.prepareWorkspace(tool, args);
 
         Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
         assert instanceOrNull != null;
         ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(
                 ExamPluginConfig.class);
-        args = taskHelper.handleAdditionalArgs(javaOpts, args, examPluginConfig, launcher);
+        args = taskHelper.handleAdditionalArgs(javaOpts, args, examPluginConfig);
 
         if (timeout <= 0) {
             timeout = examPluginConfig.getTimeout();
         }
 
         long startTime = System.currentTimeMillis();
-        ExamConsoleAnnotator eca = new ExamConsoleAnnotator(taskListener.getLogger(),
-                run.getCharset());
-        ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(taskListener.getLogger());
         try {
             ClientRequest clientRequest = new ClientRequest(taskListener.getLogger(),
                     examPluginConfig.getPort(), launcher);
@@ -283,10 +215,13 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
                     run.setResult(Result.FAILURE);
                     throw new AbortException("ERROR: EXAM is already running");
                 }
-                try {
+                try (ExamConsoleAnnotator eca = new ExamConsoleAnnotator(taskListener.getLogger(),
+                        run.getCharset());
+                     ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(
+                             taskListener.getLogger())) {
                     Util.checkMinRestApiVersion(new ApiVersion(1, 1, 0), clientRequest);
                     Launcher.ProcStarter process = launcher.launch().cmds(args).envs(
-                            envVars).pwd(
+                            taskHelper.getEnv()).pwd(
                             buildFilePath.getParent());
                     process.stderr(examErr).stdout(eca);
                     proc = process.start();
@@ -307,32 +242,12 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
             }
             run.setResult(Result.SUCCESS);
         } catch (IOException e) {
-            hudson.Util.displayIOException(e, taskListener);
-
-            String errorMessage = Messages.EXAM_ExecFailed();
-            if ((System.currentTimeMillis() - startTime) < 1000) {
-
-                if (getDescriptor().getInstallations().length == 0)
-                // looks like the user didn't configure any EXAM
-                // installation
-                {
-                    errorMessage += Messages.EXAM_GlobalConfigNeeded();
-                } else
-                // There are EXAM installations configured but the project
-                // didn't pick it
-                {
-                    errorMessage += Messages.EXAM_ProjectConfigNeeded();
-                }
-            }
-            run.setResult(Result.FAILURE);
-            throw new AbortException(errorMessage);
+            taskHelper.handleIOException(startTime, e, getDescriptor().getInstallations());
         } finally {
             Result result = run.getResult();
             if (result != null) {
                 taskListener.getLogger().println(result.toString());
             }
-            eca.forceEol();
-            examErr.forceEol();
         }
     }
 

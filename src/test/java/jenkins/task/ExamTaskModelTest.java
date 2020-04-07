@@ -208,14 +208,14 @@ public class ExamTaskModelTest {
     public void perform_noTool() throws Exception {
         examTestProject = jenkinsRule.createFreeStyleProject();
         examTestProject.getBuildersList().add(testObject);
-        runProjectWithoutTools("ERROR: examTool or python is null");
+        runProjectWithoutTools("ERROR: examTool is null");
 
         TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
-        runProjectWithoutTools("ERROR: examTool or python is null");
+        runProjectWithoutTools("ERROR: python is null");
         TUtil.cleanUpExamTools(jenkinsRule);
 
         TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName, pythonHome);
-        runProjectWithoutTools("ERROR: examTool or python is null");
+        runProjectWithoutTools("ERROR: examTool is null");
         TUtil.cleanUpPythonInstallations(jenkinsRule);
 
         TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);

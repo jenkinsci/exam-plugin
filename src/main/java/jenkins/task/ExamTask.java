@@ -62,13 +62,11 @@ import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 import jenkins.report.ExamReportAction;
 import jenkins.task._exam.ExamConsoleAnnotator;
 import jenkins.task._exam.ExamConsoleErrorOut;
-import jenkins.task._exam.Messages;
 import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -321,62 +319,35 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
 
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-                        @Nonnull TaskListener listener) throws IOException, InterruptedException {
+            @Nonnull TaskListener listener) throws IOException, InterruptedException {
+
+        ExamTaskHelper etHelper = new ExamTaskHelper(run, workspace, launcher, listener);
 
         run.addAction(new ExamReportAction(this));
-        ArgumentListBuilder args = new ArgumentListBuilder();
-        EnvVars env = run.getEnvironment(listener);
-
-        ExamTaskHelper etHelper = new ExamTaskHelper(run, env);
-
-        ExamTool examTool = getExam();
+        ExamTool examTool = etHelper.getTool(getExam());
         PythonInstallation python = getPython();
-        String exe;
-        String pythonExe;
-        Node node = jenkins.internal.Util.workspaceToNode(workspace);
-        if (examTool == null || python == null) {
+        if (python == null) {
             run.setResult(Result.FAILURE);
-            throw new AbortException("examTool or python is null");
-        } else {
-            if (node == null) {
-                run.setResult(Result.FAILURE);
-                throw new AbortException(Messages.EXAM_NodeOffline());
-            }
-            pythonExe = etHelper.getPythonExePath(listener, python, node);
-            examTool = examTool.forNode(node, listener);
-            exe = examTool.getExecutable(launcher);
-            assert exe != null;
-            if (exe.trim().isEmpty()) {
-                run.setResult(Result.FAILURE);
-                throw new AbortException(Messages.EXAM_ExecutableNotFound(examTool.getName()));
-            }
-            args.add(exe);
+            throw new AbortException("python is null");
         }
+        Node node = etHelper.getNode();
+        examTool = examTool.forNode(node, listener);
 
-        File buildFile = new File(exe);
-        FilePath buildFilePath = new FilePath(buildFile);
-
-        String configurationPath = etHelper.getConfigurationPath(launcher, examTool);
-        String examWorkspace = workspace + File.separator + "workspace_exam_restApi";
-        examWorkspace = examWorkspace.replaceAll("[/\\]]", File.separator);
-
-        args.add("-data", examWorkspace);
-        args.add("-configuration", configurationPath);
-        examTool.buildEnvVars(env);
+        String pythonExe = etHelper.getPythonExePath(python);
+        ArgumentListBuilder args = new ArgumentListBuilder();
+        FilePath buildFilePath = etHelper.prepareWorkspace(examTool, args);
 
         Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
         assert instanceOrNull != null;
         ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(
                 ExamPluginConfig.class);
-        args = etHelper.handleAdditionalArgs(javaOpts, args, examPluginConfig, launcher);
+        args = etHelper.handleAdditionalArgs(javaOpts, args, examPluginConfig);
 
         if (timeout <= 0) {
             timeout = examPluginConfig.getTimeout();
         }
 
         long startTime = System.currentTimeMillis();
-        ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
-        ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger());
         try {
             ClientRequest clientRequest = new ClientRequest(listener.getLogger(),
                     examPluginConfig.getPort(), launcher);
@@ -388,13 +359,16 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                     run.setResult(Result.FAILURE);
                     throw new AbortException("ERROR: EXAM is already running");
                 }
-                try {
-                    Launcher.ProcStarter process = launcher.launch().cmds(args).envs(env).pwd(
+                try (ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(),
+                        run.getCharset());
+                     ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger())) {
+                    Launcher.ProcStarter process = launcher.launch().cmds(args).envs(
+                            etHelper.getEnv()).pwd(
                             buildFilePath.getParent());
                     process.stderr(examErr).stdout(eca);
                     proc = process.start();
 
-                    doExecuteExamTestrun(workspace, listener, env, etHelper, pythonExe,
+                    doExecuteExamTestrun(etHelper, pythonExe,
                             clientRequest, runExecutor);
                 } catch (IOException e) {
                     run.setResult(Result.FAILURE);
@@ -411,41 +385,23 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             }
             run.setResult(Result.SUCCESS);
         } catch (IOException e) {
-            Util.displayIOException(e, listener);
-
-            String errorMessage = Messages.EXAM_ExecFailed();
-            if ((System.currentTimeMillis() - startTime) < 1000) {
-                if (getDescriptor().getInstallations().length == 0)
-                // looks like the user didn't configure any EXAM
-                // installation
-                {
-                    errorMessage += Messages.EXAM_GlobalConfigNeeded();
-                } else
-                // There are EXAM installations configured but the project
-                // didn't pick it
-                {
-                    errorMessage += Messages.EXAM_ProjectConfigNeeded();
-                }
-            }
-            run.setResult(Result.FAILURE);
-            throw new AbortException(errorMessage);
+            etHelper.handleIOException(startTime, e, getDescriptor().getInstallations());
         } finally {
             Result result = run.getResult();
             if (result != null) {
                 listener.getLogger().println(result.toString());
             }
-            eca.forceEol();
-            examErr.forceEol();
         }
     }
 
-    public void doExecuteExamTestrun(@Nonnull FilePath workspace, @Nonnull TaskListener listener, EnvVars env, ExamTaskHelper etHelper, String pythonExe, ClientRequest clientRequest, Executor runExecutor) throws IOException, InterruptedException {
+    public void doExecuteExamTestrun(ExamTaskHelper etHelper, String pythonExe, ClientRequest clientRequest, Executor runExecutor) throws IOException, InterruptedException {
         boolean ret = clientRequest.connectClient(runExecutor, timeout);
+        TaskListener listener = etHelper.getListener();
         if (ret) {
             ApiVersion apiVersion = clientRequest.getApiVersion();
             String sApiVersion = (apiVersion == null) ? "unknown" : apiVersion.toString();
             listener.getLogger().println("EXAM api version: " + sApiVersion);
-            TestConfiguration tc = createTestConfiguration(env);
+            TestConfiguration tc = createTestConfiguration(etHelper.getEnv());
             tc.setPythonPath(pythonExe);
             FilterConfiguration fc = new FilterConfiguration();
 
@@ -473,7 +429,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 clientRequest.waitForExportPDFReportJob(runExecutor, timeout * 2);
             }
             clientRequest.convert(tc.getReportProject().getProjectName());
-            etHelper.copyArtifactsToTarget(workspace, tc);
+            etHelper.copyArtifactsToTarget(tc);
         }
     }
 

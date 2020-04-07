@@ -10,6 +10,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ArgumentListBuilder;
 import jenkins.internal.Remote;
+import jenkins.internal.Util;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamPluginConfig;
@@ -18,32 +19,46 @@ import jenkins.task._exam.Messages;
 import org.apache.commons.lang.RandomStringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 public class ExamTaskHelper {
 
-    Run run;
-    EnvVars env;
+    private Run run;
+    private EnvVars env;
+    private Launcher launcher;
+    private FilePath workspace;
+    private TaskListener listener;
 
-    public ExamTaskHelper(@Nonnull Run<?, ?> run, @Nonnull EnvVars env) {
+    public ExamTaskHelper(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
+            @Nonnull TaskListener listener) throws IOException, InterruptedException {
         this.run = run;
-        this.env = env;
+        this.env = run.getEnvironment(listener);
+        this.launcher = launcher;
+        this.workspace = workspace;
+        this.listener = listener;
+    }
+
+    public EnvVars getEnv() {
+        return env;
+    }
+
+    public TaskListener getListener() {
+        return listener;
     }
 
     /**
      * Resolves the given Python to the path on the target node
      *
-     * @param listener
      * @param python
-     * @param node
      * @return String
      * @throws IOException
      * @throws InterruptedException
      */
-    public String getPythonExePath(@Nonnull TaskListener listener, PythonInstallation python, Node node) throws IOException, InterruptedException {
-        PythonInstallation pythonNode = python.forNode(node, listener);
+    public String getPythonExePath(PythonInstallation python) throws IOException, InterruptedException {
+        PythonInstallation pythonNode = python.forNode(getNode(), listener);
         String pythonExe = pythonNode.getHome();
         if (pythonExe == null || pythonExe.trim().isEmpty()) {
             run.setResult(Result.FAILURE);
@@ -58,7 +73,7 @@ public class ExamTaskHelper {
         return pythonExe;
     }
 
-    public ArgumentListBuilder handleAdditionalArgs(String javaOpts, ArgumentListBuilder args, ExamPluginConfig examPluginConfig, Launcher launcher) throws AbortException {
+    public ArgumentListBuilder handleAdditionalArgs(String javaOpts, ArgumentListBuilder args, ExamPluginConfig examPluginConfig) throws AbortException {
         ArgumentListBuilder argsNew = args;
 
         if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
@@ -122,12 +137,11 @@ public class ExamTaskHelper {
     /**
      * copies all reports from the EXAM workspace to the target folder
      *
-     * @param workspace
      * @param tc
      * @throws IOException
      * @throws InterruptedException
      */
-    public void copyArtifactsToTarget(@Nonnull FilePath workspace, TestConfiguration tc) throws IOException, InterruptedException {
+    public void copyArtifactsToTarget(TestConfiguration tc) throws IOException, InterruptedException {
         FilePath source = workspace.child("workspace_exam_restApi");
         FilePath target = workspace.child("target");
         String hash = "__" + RandomStringUtils.random(5,
@@ -139,7 +153,7 @@ public class ExamTaskHelper {
         source.copyRecursiveTo(target);
     }
 
-    public String getConfigurationPath(@Nonnull Launcher launcher, ExamTool examTool) throws IOException, InterruptedException {
+    public String getConfigurationPath(ExamTool examTool) throws IOException, InterruptedException {
         String dataPath = examTool.getHome();
         String relativeDataPath = examTool.getRelativeDataPath();
         if (relativeDataPath != null && !relativeDataPath.trim().isEmpty()) {
@@ -155,5 +169,71 @@ public class ExamTaskHelper {
                     configurationFile.getPath()));
         }
         return configurationPath;
+    }
+
+    public Node getNode() throws AbortException {
+        Node node = Util.workspaceToNode(workspace);
+        if (node == null) {
+            run.setResult(Result.FAILURE);
+            throw new AbortException(Messages.EXAM_NodeOffline());
+        }
+        return node;
+    }
+
+    public FilePath prepareWorkspace(ExamTool examTool, ArgumentListBuilder args) throws IOException, InterruptedException {
+        String exe = examTool.getExecutable(launcher);
+        assert exe != null;
+        if (exe.trim().isEmpty()) {
+            run.setResult(Result.FAILURE);
+            throw new AbortException(Messages.EXAM_ExecutableNotFound(examTool.getName()));
+        }
+
+        args.add(exe);
+
+        FilePath buildFilePath = new FilePath(new File(exe));
+
+        String configurationPath = getConfigurationPath(examTool);
+        String examWorkspace = workspace + File.separator + "workspace_exam_restApi";
+        examWorkspace = examWorkspace.replaceAll("[/\\]]", File.separator);
+
+        args.add("-data", examWorkspace);
+        args.add("-configuration", configurationPath);
+        examTool.buildEnvVars(env);
+        return buildFilePath;
+    }
+
+    public ExamTool getTool(@Nullable ExamTool tool) throws IOException, InterruptedException {
+        Node node = getNode();
+        // check for installations
+        if (tool == null) {
+            run.setResult(Result.FAILURE);
+            throw new AbortException("examTool is null");
+        } else {
+            tool = tool.forNode(node, listener);
+        }
+        return tool;
+    }
+
+    public void handleIOException(long startTime, IOException e, ExamTool[] installations) throws AbortException {
+        hudson.Util.displayIOException(e, listener);
+
+        String errorMessage = Messages.EXAM_ExecFailed();
+        long current = System.currentTimeMillis();
+        if ((current - startTime) < 1000) {
+
+            if (installations.length == 0)
+            // looks like the user didn't configure any EXAM
+            // installation
+            {
+                errorMessage += Messages.EXAM_GlobalConfigNeeded();
+            } else
+            // There are EXAM installations configured but the project
+            // didn't pick it
+            {
+                errorMessage += Messages.EXAM_ProjectConfigNeeded();
+            }
+        }
+        run.setResult(Result.FAILURE);
+        throw new AbortException(errorMessage);
     }
 }
