@@ -132,9 +132,6 @@ public class ApiVersion implements Serializable {
     }
 
     public int compareTo(ApiVersion version) {
-        if (this == version) {
-            return 0;
-        }
         int result = compareInt(major, version.major);
         if (result == 0) {
             result = compareInt(minor, version.minor);
