@@ -29,17 +29,20 @@
  */
 package jenkins.internal;
 
+import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.util.FormValidation;
+import jenkins.internal.data.ApiVersion;
 import jenkins.internal.enumeration.PythonWords;
 import jenkins.model.Jenkins;
 import jenkins.task._exam.Messages;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -243,5 +246,17 @@ public class Util {
             }
         }
         return retString;
+    }
+
+    public static void checkMinRestApiVersion(ApiVersion minRequiredVersion, ClientRequest clientRequest) throws IOException, InterruptedException {
+        ApiVersion actualRestVersion = clientRequest.getApiVersion();
+        if (minRequiredVersion.compareTo(actualRestVersion) > 0) {
+            StringBuilder message = new StringBuilder("ERROR: ");
+            message.append("EXAM REST-API minimum version ");
+            message.append(minRequiredVersion.toString());
+            message.append(" but actual version is ");
+            message.append(actualRestVersion.toString());
+            throw new AbortException(message.toString());
+        }
     }
 }

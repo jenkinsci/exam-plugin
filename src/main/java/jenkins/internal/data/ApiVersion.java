@@ -50,6 +50,15 @@ public class ApiVersion implements Serializable {
     }
 
     /**
+     * Constructor of version information of this API
+     */
+    public ApiVersion(int major, int minor, int fix) {
+        this.major = major;
+        this.minor = minor;
+        this.fix = fix;
+    }
+
+    /**
      * get major version
      *
      * @return int
@@ -110,5 +119,29 @@ public class ApiVersion implements Serializable {
      */
     public String toString() {
         return String.format("%s.%s.%s", major, minor, fix);
+    }
+
+    private int compareInt(int int1, int int2) {
+        if (int1 > int2) {
+            return 1;
+        }
+        if (int1 < int2) {
+            return -1;
+        }
+        return 0;
+    }
+
+    public int compareTo(ApiVersion version) {
+        if (this == version) {
+            return 0;
+        }
+        int result = compareInt(major, version.major);
+        if (result == 0) {
+            result = compareInt(minor, version.minor);
+            if (result == 0) {
+                result = compareInt(fix, version.fix);
+            }
+        }
+        return result;
     }
 }

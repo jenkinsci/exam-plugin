@@ -29,8 +29,18 @@
  */
 package jenkins.task;
 
-import hudson.*;
-import hudson.model.*;
+import hudson.AbortException;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Proc;
+import hudson.model.AbstractProject;
+import hudson.model.Executor;
+import hudson.model.Node;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
@@ -38,7 +48,9 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.Util;
-import jenkins.internal.data.*;
+import jenkins.internal.data.ApiVersion;
+import jenkins.internal.data.GroovyConfiguration;
+import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.descriptor.ExamModelDescriptor;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
@@ -257,7 +269,8 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
         }
 
         long startTime = System.currentTimeMillis();
-        ExamConsoleAnnotator eca = new ExamConsoleAnnotator(taskListener.getLogger(), run.getCharset());
+        ExamConsoleAnnotator eca = new ExamConsoleAnnotator(taskListener.getLogger(),
+                run.getCharset());
         ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(taskListener.getLogger());
         try {
             ClientRequest clientRequest = new ClientRequest(taskListener.getLogger(),
@@ -271,7 +284,9 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
                     throw new AbortException("ERROR: EXAM is already running");
                 }
                 try {
-                    Launcher.ProcStarter process = launcher.launch().cmds(args).envs(envVars).pwd(
+                    Util.checkMinRestApiVersion(new ApiVersion(1, 1, 0), clientRequest);
+                    Launcher.ProcStarter process = launcher.launch().cmds(args).envs(
+                            envVars).pwd(
                             buildFilePath.getParent());
                     process.stderr(examErr).stdout(eca);
                     proc = process.start();

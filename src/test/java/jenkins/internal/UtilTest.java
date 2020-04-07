@@ -29,19 +29,23 @@
  */
 package jenkins.internal;
 
+import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Node;
 import hudson.slaves.DumbSlave;
 import hudson.util.FormValidation;
+import jenkins.internal.data.ApiVersion;
 import jenkins.task.TestUtil.TUtil;
 import jenkins.task._exam.Messages;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
 import org.powermock.reflect.Whitebox;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,11 +53,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class UtilTest {
 
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     @Test
     public void workspaceToNode() throws Exception {
@@ -64,6 +72,9 @@ public class UtilTest {
 
         Node node = Util.workspaceToNode(rootPath);
         assertEquals(slave, node);
+
+        node = Util.workspaceToNode(null);
+        assertEquals(jenkinsRule.getInstance(), node);
     }
 
     @Test
@@ -167,9 +178,11 @@ public class UtilTest {
 
         FormValidation fv_invalidResult = Whitebox
                 .invokeMethod(Util.class, "validateElementForSearch", invalidString);
-        FormValidation fv_validResult = Whitebox.invokeMethod(Util.class, "validateElementForSearch", validString);
+        FormValidation fv_validResult = Whitebox.invokeMethod(Util.class,
+                "validateElementForSearch", validString);
 
-        assertEquals(FormValidation.error(expectedErrorMsg).getMessage(), fv_invalidResult.getMessage());
+        assertEquals(FormValidation.error(expectedErrorMsg).getMessage(),
+                fv_invalidResult.getMessage());
         assertEquals(FormValidation.ok(), fv_validResult);
     }
 
@@ -198,26 +211,43 @@ public class UtilTest {
                 .invokeMethod(Util.class, "validateSystemConfig", invalidString_3);
         FormValidation fv_invalidResult_4 = Whitebox
                 .invokeMethod(Util.class, "validateSystemConfig", invalidString_4);
-        FormValidation fv_validResult = Whitebox.invokeMethod(Util.class, "validateSystemConfig", validString);
+        FormValidation fv_validResult = Whitebox.invokeMethod(Util.class, "validateSystemConfig",
+                validString);
 
-        assertEquals(FormValidation.error(expectedErrorMsg_1).getMessage(), fv_invalidResult_1.getMessage());
-        assertEquals(FormValidation.error(expectedErrorMsg_2).getMessage(), fv_invalidResult_2.getMessage());
-        assertEquals(FormValidation.error(expectedErrorMsg_3).getMessage(), fv_invalidResult_3.getMessage());
-        assertEquals(FormValidation.error(expectedErrorMsg_4).getMessage(), fv_invalidResult_4.getMessage());
+        assertEquals(FormValidation.error(expectedErrorMsg_1).getMessage(),
+                fv_invalidResult_1.getMessage());
+        assertEquals(FormValidation.error(expectedErrorMsg_2).getMessage(),
+                fv_invalidResult_2.getMessage());
+        assertEquals(FormValidation.error(expectedErrorMsg_3).getMessage(),
+                fv_invalidResult_3.getMessage());
+        assertEquals(FormValidation.error(expectedErrorMsg_4).getMessage(),
+                fv_invalidResult_4.getMessage());
         assertEquals(FormValidation.ok(), fv_validResult);
     }
 
     @Test
     @WithoutJenkins
-    public void replaceEnvVars() throws Exception {
+    public void replaceEnvVars() {
         String workspace = "C:\\my\\work\\dir";
         String actual = "";
         String expected = "";
 
         EnvVars env = new EnvVars();
+        actual = workspace;
+        expected = workspace;
+        actual = Util.replaceEnvVars(actual, env);
+        assertEquals(expected, actual);
+
+        actual = Util.replaceEnvVars(actual, null);
+        assertEquals(expected, actual);
+
         env.put("path", "c:\\this\\is\\my\\path;C:\\and\\another\\one");
         env.put("WORKSPACE", workspace);
         env.put("something", "unknown");
+
+        expected = "";
+        actual = Util.replaceEnvVars("", env);
+        assertEquals(expected, actual);
 
         actual = "%WORKSPACE%\\to\\my\\file.xml";
         expected = workspace + "\\to\\my\\file.xml";
@@ -243,5 +273,26 @@ public class UtilTest {
         expected = actual;
         actual = Util.replaceEnvVars(actual, env);
         assertEquals(expected, actual);
+    }
+
+    private void checkMinRestApiVersionException(ApiVersion version, ClientRequest clientRequestMock) throws IOException, InterruptedException {
+        exception.expect(AbortException.class);
+        exception.expectMessage(version.toString());
+        Util.checkMinRestApiVersion(version, clientRequestMock);
+    }
+
+    @Test
+    @WithoutJenkins
+    public void checkMinRestApiVersion() throws IOException, InterruptedException {
+        ClientRequest clientRequestMock = mock(ClientRequest.class, "ClientRequestMock");
+        when(clientRequestMock.getApiVersion()).thenReturn(new ApiVersion(2, 2, 2));
+        Util.checkMinRestApiVersion(new ApiVersion(1, 2, 2), clientRequestMock);
+        Util.checkMinRestApiVersion(new ApiVersion(2, 1, 2), clientRequestMock);
+        Util.checkMinRestApiVersion(new ApiVersion(2, 2, 1), clientRequestMock);
+        Util.checkMinRestApiVersion(new ApiVersion(2, 2, 2), clientRequestMock);
+        Util.checkMinRestApiVersion(new ApiVersion(2, 2, 2), clientRequestMock);
+        checkMinRestApiVersionException(new ApiVersion(3, 2, 2), clientRequestMock);
+        checkMinRestApiVersionException(new ApiVersion(2, 3, 2), clientRequestMock);
+        checkMinRestApiVersionException(new ApiVersion(2, 2, 3), clientRequestMock);
     }
 }
