@@ -59,6 +59,7 @@ import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
+import jenkins.report.ExamReportAction;
 import jenkins.task._exam.ExamConsoleAnnotator;
 import jenkins.task._exam.ExamConsoleErrorOut;
 import jenkins.task._exam.Messages;
@@ -322,6 +323,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws IOException, InterruptedException {
 
+        run.addAction(new ExamReportAction(this));
         ArgumentListBuilder args = new ArgumentListBuilder();
         EnvVars env = run.getEnvironment(listener);
 
