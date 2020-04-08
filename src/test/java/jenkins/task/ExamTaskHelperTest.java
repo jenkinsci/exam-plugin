@@ -42,6 +42,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
@@ -264,20 +265,104 @@ public class ExamTaskHelperTest {
     }
 
     @Test
-    public void handleIOException() throws AbortException {
+    public void handleIOExceptionNormal() throws AbortException {
         mockStatic(hudson.Util.class);
         doNothing().when(hudson.Util.class);
 
         thrown.expect(AbortException.class);
+        thrown.expectMessage(Messages.EXAM_ExecFailed());
         testObject.handleIOException(System.currentTimeMillis() - 2000, null, new ExamTool[]{});
+    }
+
+    @Test
+    public void handleIOExceptionEmptyTools() throws AbortException {
+        mockStatic(hudson.Util.class);
+        doNothing().when(hudson.Util.class);
 
         thrown.expect(AbortException.class);
-        testObject.handleIOException(System.currentTimeMillis() + 100000, null,
+        thrown.expectMessage(Messages.EXAM_GlobalConfigNeeded());
+        testObject.handleIOException(System.currentTimeMillis(), null,
                 new ExamTool[]{});
+    }
+
+    @Test
+    public void handleIOExceptionWithTools() throws AbortException {
+        mockStatic(hudson.Util.class);
+        doNothing().when(hudson.Util.class);
 
         thrown.expect(AbortException.class);
-        testObject.handleIOException(System.currentTimeMillis() + 100000, null,
+        thrown.expectMessage(Messages.EXAM_ProjectConfigNeeded());
+        testObject.handleIOException(System.currentTimeMillis(), null,
                 new ExamTool[]{null});
+    }
+
+    @Test
+    public void getEnv() {
+        EnvVars envVars = new EnvVars();
+        envVars.put("test", "test");
+        Whitebox.setInternalState(testObject, "env", envVars);
+        EnvVars testIt = testObject.getEnv();
+        assertEquals(envVars, testIt);
+        assertTrue(envVars.containsKey("test"));
+        assertEquals(envVars.get("test"), testIt.get("test"));
+    }
+
+    @Test
+    public void getListener() {
+        TaskListener listener = new FakeTaskListener();
+        Whitebox.setInternalState(testObject, "listener", listener);
+        TaskListener testIt = testObject.getListener();
+        assertEquals(listener, testIt);
+    }
+
+
+    @Test
+    public void getTool() throws Exception {
+        mockStatic(Util.class);
+        ExamTool tool = mock(ExamTool.class);
+        when(tool.forNode(any(), any())).thenReturn(tool);
+
+        DumbSlave slave = new DumbSlave("TestSlave", "", new SimpleCommandLauncher("echo hallo"));
+        BDDMockito.given(Util.workspaceToNode(workspace)).willReturn(
+                slave);
+
+        ExamTool result = testObject.getTool(tool);
+        assertEquals(tool, result);
+
+        thrown.expect(AbortException.class);
+        thrown.expectMessage("examTool is null");
+        testObject.getTool(null);
+    }
+
+    @Test
+    public void prepareWorkspace() throws IOException, InterruptedException {
+        ArgumentListBuilder args = new ArgumentListBuilder();
+        String examHome = "C:\\path\\to\\exam";
+        String pathToExe = examHome + "\\exam.exe";
+        PowerMockito.mockStatic(Remote.class);
+        PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(true);
+
+        ExamTool tool = mock(ExamTool.class);
+        when(tool.getHome()).thenReturn(examHome);
+        when(tool.getExecutable(any())).thenReturn(pathToExe);
+        when(tool.getRelativeDataPath()).thenReturn("..\\examData");
+
+        FilePath filePath = testObject.prepareWorkspace(tool, args);
+        List<String> argList = args.toList();
+        assertTrue(argList.contains(pathToExe));
+        assertEquals("exam", filePath.getBaseName());
+    }
+
+    @Test
+    public void prepareWorkspaceException() throws IOException, InterruptedException {
+        ArgumentListBuilder args = new ArgumentListBuilder();
+        ExamTool tool = mock(ExamTool.class);
+        when(tool.getExecutable(any())).thenReturn("");
+        when(tool.getName()).thenReturn("test");
+
+        thrown.expect(AbortException.class);
+        thrown.expectMessage(Messages.EXAM_ExecutableNotFound(tool.getName()));
+        testObject.prepareWorkspace(tool, args);
     }
 
 }

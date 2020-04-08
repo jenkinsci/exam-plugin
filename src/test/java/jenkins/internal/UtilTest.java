@@ -275,7 +275,9 @@ public class UtilTest {
         assertEquals(expected, actual);
     }
 
-    private void checkMinRestApiVersionException(ApiVersion version, ClientRequest clientRequestMock) throws IOException, InterruptedException {
+    private void checkMinRestApiVersionException(ApiVersion version) throws IOException, InterruptedException {
+        ClientRequest clientRequestMock = mock(ClientRequest.class, "ClientRequestMock");
+        when(clientRequestMock.getApiVersion()).thenReturn(new ApiVersion(2, 2, 2));
         exception.expect(AbortException.class);
         exception.expectMessage(version.toString());
         Util.checkMinRestApiVersion(version, clientRequestMock);
@@ -290,9 +292,23 @@ public class UtilTest {
         Util.checkMinRestApiVersion(new ApiVersion(2, 1, 2), clientRequestMock);
         Util.checkMinRestApiVersion(new ApiVersion(2, 2, 1), clientRequestMock);
         Util.checkMinRestApiVersion(new ApiVersion(2, 2, 2), clientRequestMock);
-        Util.checkMinRestApiVersion(new ApiVersion(2, 2, 2), clientRequestMock);
-        checkMinRestApiVersionException(new ApiVersion(3, 2, 2), clientRequestMock);
-        checkMinRestApiVersionException(new ApiVersion(2, 3, 2), clientRequestMock);
-        checkMinRestApiVersionException(new ApiVersion(2, 2, 3), clientRequestMock);
+    }
+
+    @Test
+    @WithoutJenkins
+    public void checkMinRestApiVersionExceptionMajor() throws IOException, InterruptedException {
+        checkMinRestApiVersionException(new ApiVersion(3, 2, 2));
+    }
+
+    @Test
+    @WithoutJenkins
+    public void checkMinRestApiVersionExceptionMinor() throws IOException, InterruptedException {
+        checkMinRestApiVersionException(new ApiVersion(2, 3, 2));
+    }
+
+    @Test
+    @WithoutJenkins
+    public void checkMinRestApiVersionExceptionFix() throws IOException, InterruptedException {
+        checkMinRestApiVersionException(new ApiVersion(2, 2, 3));
     }
 }
