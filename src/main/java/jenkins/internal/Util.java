@@ -34,6 +34,7 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.model.Node;
+import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.enumeration.PythonWords;
@@ -47,11 +48,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
-
+    
     /**
      * Get the Node of a workspace
      *
      * @param workspace FilePath
+     *
      * @return Node
      */
     public static Node workspaceToNode(FilePath workspace) {
@@ -66,11 +68,12 @@ public class Util {
         }
         return j;
     }
-
+    
     /**
      * Check uuid pattern
      *
      * @param uuid String
+     *
      * @return true, if valid
      */
     public static boolean isUuidValid(String uuid) {
@@ -85,11 +88,12 @@ public class Util {
         }
         return false;
     }
-
+    
     /**
      * Check id pattern
      *
      * @param id String
+     *
      * @return true, if valid
      */
     public static boolean isIdValid(String id) {
@@ -100,24 +104,25 @@ public class Util {
         }
         return false;
     }
-
+    
     /**
      * Check name pattern
      *
      * @param name full scoped name
+     *
      * @return true, if valid
      */
     public static boolean isPythonConformFSN(String name) {
         if (name == null) {
             return false;
         }
-
+        
         String[] splitted = name.split("\\.");
-
+        
         if (splitted.length == 1 && name.startsWith("I")) {
             return false;
         }
-
+        
         for (String part : splitted) {
             if (!isPythonConformName(part)) {
                 return false;
@@ -125,11 +130,12 @@ public class Util {
         }
         return true;
     }
-
+    
     /**
      * Check name pattern
      *
      * @param name String
+     *
      * @return true, if valid
      */
     public static boolean isPythonConformName(String name) {
@@ -140,74 +146,77 @@ public class Util {
         PythonWords id = PythonWords.get(name);
         return !PythonWords.RESERVED_WORDS.contains(id);
     }
-
+    
     /**
      * Check uuid pattern
      *
      * @param value String
+     *
      * @return FormValidation
      */
     public static FormValidation validateUuid(String value) {
-
+        
         if (isUuidValid(value)) {
             return FormValidation.ok();
         }
-
+        
         return FormValidation.error(Messages.EXAM_RegExUuid());
     }
-
+    
     /**
      * Check value on id, uuid and python name
      *
      * @param value String
+     *
      * @return FormValidation
      */
     public static FormValidation validateElementForSearch(String value) {
         StringBuilder errorMsg = new StringBuilder();
-
+        
         boolean uuidValid = isUuidValid(value);
         boolean idValid = isIdValid(value);
         boolean fsnValid = isPythonConformFSN(value);
-
+        
         if (uuidValid || idValid || fsnValid) {
             return FormValidation.ok();
         }
-
+        
         errorMsg.append(Messages.EXAM_RegExUuid());
         errorMsg.append("\r\n");
         errorMsg.append(Messages.EXAM_RegExId());
         errorMsg.append("\r\n");
         errorMsg.append(Messages.EXAM_RegExFsn());
         errorMsg.append("\r\n");
-
+        
         return FormValidation.error(errorMsg.toString());
     }
-
+    
     /**
      * Check value on id, uuid and python name
      *
      * @param value String
+     *
      * @return FormValidation
      */
     public static FormValidation validateSystemConfig(@Nonnull String value) {
-
+        
         StringBuilder errorMsg = new StringBuilder();
         errorMsg.append(Messages.EXAM_RegExSysConf());
         errorMsg.append("\r\n");
-
+        
         String[] splitted = value.trim().split(" ", 2);
-
+        
         if (splitted.length != 2) {
             return FormValidation.error(errorMsg.toString());
         }
-
+        
         boolean uuidValid = isUuidValid(splitted[0]);
         boolean pythonValid = isPythonConformName(splitted[1]);
-
+        
         if (uuidValid && pythonValid) {
             return FormValidation.ok();
         }
-
+        
         if (!uuidValid) {
             errorMsg.append(Messages.EXAM_RegExUuid());
             errorMsg.append("\r\n");
@@ -216,15 +225,16 @@ public class Util {
             errorMsg.append(Messages.EXAM_RegExFsn());
             errorMsg.append("\r\n");
         }
-
+        
         return FormValidation.error(errorMsg.toString());
     }
-
+    
     /**
      * Replaces all variables within the text with the corresponding values at env
      *
      * @param text string with variables to replace
      * @param env  environment variables
+     *
      * @return
      */
     public static String replaceEnvVars(@Nullable String text, @Nullable EnvVars env) {
@@ -247,15 +257,18 @@ public class Util {
         }
         return retString;
     }
-
-    public static void checkMinRestApiVersion(ApiVersion minRequiredVersion, ClientRequest clientRequest) throws IOException, InterruptedException {
+    
+    public static void checkMinRestApiVersion(TaskListener taskListener, ApiVersion minRequiredVersion,
+            ClientRequest clientRequest) throws IOException, InterruptedException {
         ApiVersion actualRestVersion = clientRequest.getApiVersion();
-        if (minRequiredVersion.compareTo(actualRestVersion) > 0) {
+        String sApiVersion = (actualRestVersion == null) ? "unknown" : actualRestVersion.toString();
+        taskListener.getLogger().println("EXAM api version: " + sApiVersion);
+        if (actualRestVersion == null || minRequiredVersion.compareTo(actualRestVersion) > 0) {
             StringBuilder message = new StringBuilder("ERROR: ");
             message.append("EXAM REST-API minimum version ");
             message.append(minRequiredVersion.toString());
             message.append(" but actual version is ");
-            message.append(actualRestVersion.toString());
+            message.append(sApiVersion);
             throw new AbortException(message.toString());
         }
     }
