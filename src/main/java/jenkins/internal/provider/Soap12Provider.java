@@ -32,13 +32,15 @@ package jenkins.internal.provider;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.ext.Provider;
-import javax.xml.soap.*;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPConstants;
+import javax.xml.soap.SOAPException;
 
 @Provider
-@Consumes({"application/soap+xml", "multipart/related"})
+@Consumes({ "application/soap+xml", "multipart/related" })
 @Produces("application/soap+xml")
 public class Soap12Provider extends SoapXProvider {
-
+    
     @Override
     public MessageFactory getMessageFactory() throws SOAPException {
         return MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);

@@ -44,15 +44,15 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Ant launcher.
+ * Exam ExecutionFile launcher.
  *
- * @author Kohsuke Kawaguchi
+ * @author Thomas Reinicke
  */
 public class ExamTaskExecutionFile extends ExamTask {
-
+    
     private String pathExecutionFile;
     private String pathPCode;
-
+    
     /**
      * Constructor of ExamTaskExecutionFile
      */
@@ -61,47 +61,47 @@ public class ExamTaskExecutionFile extends ExamTask {
         super(examName, pythonName, examReport, systemConfiguration);
         setUseExecutionFile(true);
     }
-
+    
     public String getPathExecutionFile() {
         return pathExecutionFile;
     }
-
+    
     @DataBoundSetter
     public void setPathExecutionFile(String pathExecutionFile) {
         this.pathExecutionFile = pathExecutionFile;
     }
-
+    
     public String getPathPCode() {
         return pathPCode;
     }
-
+    
     @DataBoundSetter
     public void setPathPCode(String pathPCode) {
         this.pathPCode = pathPCode;
     }
-
+    
     protected TestConfiguration addDataToTestConfiguration(TestConfiguration tc, @Nullable EnvVars env) {
-
+        
         tc.setPathPCode(Util.replaceEnvVars(pathPCode, env));
         tc.setTestObject(Util.replaceEnvVars(pathExecutionFile, env));
-
+        
         return tc;
     }
-
+    
     @Override
     public ExamTaskExecutionFile.DescriptorExamTaskExecutionFile getDescriptor() {
         return (ExamTaskExecutionFile.DescriptorExamTaskExecutionFile) super.getDescriptor();
     }
-
+    
     /**
      * The Descriptor of DescriptorExamTaskExecutionFile
      */
     @Extension
     @Symbol("examTest_ExecutionFile")
     public static class DescriptorExamTaskExecutionFile extends DescriptorExamTask {
-
+        
         private static final long serialVersionUID = 8392999844814000476L;
-
+        
         /**
          * @return the EXAM display name
          */
@@ -109,12 +109,13 @@ public class ExamTaskExecutionFile extends ExamTask {
         public String getDisplayName() {
             return Messages.EXAM_DisplayNameExecutionFile();
         }
-
+        
         /**
          * Validates the parameter SystemConfiguration. Checks if it contains ids, uuids or
          * exam fullscopenames
          *
          * @param value String
+         *
          * @return
          */
         public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
@@ -144,7 +145,7 @@ public class ExamTaskExecutionFile extends ExamTask {
             }
             return FormValidation.ok();
         }
-
+        
         /**
          * @return the default log level
          */

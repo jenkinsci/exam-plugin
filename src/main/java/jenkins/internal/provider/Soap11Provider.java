@@ -33,13 +33,14 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
-import javax.xml.soap.*;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPException;
 
 @Provider
-@Consumes({MediaType.TEXT_XML, "multipart/related"})
+@Consumes({ MediaType.TEXT_XML, "multipart/related" })
 @Produces(MediaType.TEXT_XML)
 public class Soap11Provider extends SoapXProvider {
-
+    
     @Override
     public MessageFactory getMessageFactory() throws SOAPException {
         return MessageFactory.newInstance();

@@ -72,6 +72,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Exam Groovy launcher.
+ *
+ * @author koblofsky
+ */
 public class GroovyTask extends Builder implements SimpleBuildStep {
     
     /**
@@ -106,6 +111,9 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
      */
     private String examName;
     
+    /**
+     * Constructor of ExamTaskModel
+     */
     @DataBoundConstructor
     public GroovyTask(String script, String startElement, String examName, String examModel,
             String modelConfiguration) {
@@ -224,7 +232,7 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
                     process.stderr(examErr).stdout(eca);
                     proc = process.start();
                     
-                    runGroovyScript(taskListener, clientRequest, runExecutor);
+                    runGroovyScript(clientRequest, runExecutor);
                 } catch (IOException e) {
                     run.setResult(Result.FAILURE);
                     throw new AbortException("ERROR: " + e.toString());
@@ -249,7 +257,7 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
         }
     }
     
-    private void runGroovyScript(@Nonnull TaskListener listener, ClientRequest clientRequest, Executor runExecutor)
+    private void runGroovyScript(ClientRequest clientRequest, Executor runExecutor)
             throws IOException, InterruptedException {
         boolean connected = clientRequest.connectClient(runExecutor, timeout);
         if (connected) {
@@ -313,6 +321,9 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
         return (GroovyTask.DescriptorGroovyTask) super.getDescriptor();
     }
     
+    /**
+     * The Descriptor of DescriptorGroovyTask
+     */
     @Extension
     @Symbol("examRun_Groovy")
     public static class DescriptorGroovyTask extends BuildStepDescriptor<Builder>
@@ -320,20 +331,34 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
         
         private static final long serialVersionUID = 4277406576918447167L;
         
+        /**
+         * @return the EXAM Groovy display name
+         */
         @Nonnull
         public String getDisplayName() {
             return Messages.EXAM_RunGroovyTask();
         }
         
+        /**
+         * Constructor of this Descriptor
+         */
         public DescriptorGroovyTask() {
             load();
         }
         
+        /**
+         * is applicable for all job types
+         *
+         * @return true
+         */
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
         }
         
+        /**
+         * @return all EXAM tools
+         */
         public ExamTool[] getInstallations() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
             return (instanceOrNull == null) ?
@@ -341,6 +366,9 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
                     instanceOrNull.getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations();
         }
         
+        /**
+         * @return all ExamModelConfigs
+         */
         public List<ExamModelConfig> getModelConfigs() {
             Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
             if (instanceOrNull == null) {
@@ -349,6 +377,11 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
             return instanceOrNull.getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
         }
         
+        /**
+         * fills the ListBoxModel with all ExamInstallations
+         *
+         * @return ListBoxModel
+         */
         public ListBoxModel doFillExamNameItems() {
             ListBoxModel items = new ListBoxModel();
             ExamTool[] examTools = getInstallations();
@@ -360,6 +393,11 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
             return items;
         }
         
+        /**
+         * fills the ListBoxModel with all ExamModelConfigs
+         *
+         * @return ListBoxModel
+         */
         public ListBoxModel doFillExamModelItems() {
             ListBoxModel items = new ListBoxModel();
             List<ExamModelConfig> models = getModelConfigs();
@@ -371,14 +409,38 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
             return items;
         }
         
+        /**
+         * Validates the parameter ModelConfiguration. Checks if it is an id, uuid or
+         * exam fullscopename
+         *
+         * @param value String
+         *
+         * @return
+         */
         public FormValidation doCheckModelConfiguration(@QueryParameter String value) {
             return Util.validateElementForSearch(value);
         }
         
+        /**
+         * Validates the parameter Script. Checks if it is an id, uuid or
+         * exam fullscopename
+         *
+         * @param value String
+         *
+         * @return
+         */
         public FormValidation doCheckScript(@QueryParameter String value) {
             return Util.validateElementForSearch(value);
         }
         
+        /**
+         * Validates the parameter StartElement. Checks if it is an id, uuid or
+         * exam fullscopename
+         *
+         * @param value String
+         *
+         * @return
+         */
         public FormValidation doCheckStartElement(@QueryParameter String value) {
             return Util.validateElementForSearch(value);
         }

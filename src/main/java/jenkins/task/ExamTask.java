@@ -391,7 +391,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         }
     }
     
-    public void doExecuteExamTestrun(ExamTaskHelper etHelper, String pythonExe, ClientRequest clientRequest,
+    private void doExecuteExamTestrun(ExamTaskHelper etHelper, String pythonExe, ClientRequest clientRequest,
             Executor runExecutor) throws IOException, InterruptedException {
         boolean ret = clientRequest.connectClient(runExecutor, timeout);
         TaskListener listener = etHelper.getListener();
@@ -528,7 +528,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         }
         
         /**
-         * is applicaple for all job types
+         * is applicable for all job types
          *
          * @return true
          */
@@ -605,6 +605,11 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             return lReportConfigs;
         }
         
+        /**
+         * fills the ListBoxModel with all ExamInstallations
+         *
+         * @return ListBoxModel
+         */
         public ListBoxModel doFillExamNameItems() {
             ListBoxModel items = new ListBoxModel();
             ExamTool[] examTools = getInstallations();

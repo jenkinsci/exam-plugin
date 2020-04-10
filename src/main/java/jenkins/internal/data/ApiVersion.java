@@ -29,6 +29,7 @@
  */
 package jenkins.internal.data;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 
 /**
@@ -39,7 +40,7 @@ public class ApiVersion implements Serializable {
     private int major;
     private int minor;
     private int fix;
-
+    
     /**
      * Constructor of version information of this API
      */
@@ -48,7 +49,7 @@ public class ApiVersion implements Serializable {
         this.minor = 0;
         this.fix = 0;
     }
-
+    
     /**
      * Constructor of version information of this API
      */
@@ -57,7 +58,7 @@ public class ApiVersion implements Serializable {
         this.minor = minor;
         this.fix = fix;
     }
-
+    
     /**
      * get major version
      *
@@ -66,7 +67,7 @@ public class ApiVersion implements Serializable {
     public int getMajor() {
         return this.major;
     }
-
+    
     /**
      * sets major version
      *
@@ -75,7 +76,7 @@ public class ApiVersion implements Serializable {
     public void setMajor(int major) {
         this.major = major;
     }
-
+    
     /**
      * get minor version
      *
@@ -84,7 +85,7 @@ public class ApiVersion implements Serializable {
     public int getMinor() {
         return this.minor;
     }
-
+    
     /**
      * set minor version
      *
@@ -93,7 +94,7 @@ public class ApiVersion implements Serializable {
     public void setMinor(int minor) {
         this.minor = minor;
     }
-
+    
     /**
      * get fix version
      *
@@ -102,7 +103,7 @@ public class ApiVersion implements Serializable {
     public int getFix() {
         return this.fix;
     }
-
+    
     /**
      * set fix version
      *
@@ -111,7 +112,7 @@ public class ApiVersion implements Serializable {
     public void setFix(int fix) {
         this.fix = fix;
     }
-
+    
     /**
      * returns the full version as string
      *
@@ -120,7 +121,7 @@ public class ApiVersion implements Serializable {
     public String toString() {
         return String.format("%s.%s.%s", major, minor, fix);
     }
-
+    
     private int compareInt(int int1, int int2) {
         if (int1 > int2) {
             return 1;
@@ -130,8 +131,15 @@ public class ApiVersion implements Serializable {
         }
         return 0;
     }
-
-    public int compareTo(ApiVersion version) {
+    
+    /**
+     * returns the full version as string
+     *
+     * @param version ApiVersion to compare with
+     *
+     * @return int -1, 0, 1
+     */
+    public int compareTo(@Nonnull ApiVersion version) {
         int result = compareInt(major, version.major);
         if (result == 0) {
             result = compareInt(minor, version.minor);
@@ -141,12 +149,12 @@ public class ApiVersion implements Serializable {
         }
         return result;
     }
-
+    
     @Override
     public int hashCode() {
         return super.hashCode();
     }
-
+    
     @Override
     public boolean equals(Object obj) {
         return super.equals(obj);

@@ -258,8 +258,20 @@ public class Util {
         return retString;
     }
     
-    public static void checkMinRestApiVersion(TaskListener taskListener, ApiVersion minRequiredVersion,
-            ClientRequest clientRequest) throws IOException, InterruptedException {
+    /**
+     * Checks whether the REST-API of EXAM has the minimum required version
+     *
+     * @param taskListener       taskListener for logging
+     * @param minRequiredVersion minimum Version required
+     * @param clientRequest      Instance of clientRequest
+     *
+     * @return
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
+     */
+    public static void checkMinRestApiVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion,
+            @Nonnull ClientRequest clientRequest) throws IOException, InterruptedException {
         ApiVersion actualRestVersion = clientRequest.getApiVersion();
         String sApiVersion = (actualRestVersion == null) ? "unknown" : actualRestVersion.toString();
         taskListener.getLogger().println("EXAM api version: " + sApiVersion);

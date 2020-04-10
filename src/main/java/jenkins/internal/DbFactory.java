@@ -34,25 +34,34 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
-import jenkins.internal.provider.Soap12Provider;
 import jenkins.internal.provider.Soap11Provider;
+import jenkins.internal.provider.Soap12Provider;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
-import javax.xml.soap.*;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPConstants;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPFault;
+import javax.xml.soap.SOAPMessage;
+import javax.xml.soap.SOAPPart;
 
 public class DbFactory {
-
+    
     private final static int OK = Response.ok().build().getStatus();
-
-    private static SOAPMessage getSoapMessage(String modelName, int examVersion, MessageFactory messageFactory) throws SOAPException {
+    
+    private static SOAPMessage getSoapMessage(String modelName, int examVersion, MessageFactory messageFactory)
+            throws SOAPException {
         SOAPMessage message = messageFactory.createMessage();
         SOAPPart soapPart = message.getSOAPPart();
         SOAPEnvelope envelope = soapPart.getEnvelope();
-
+        
         envelope.addNamespaceDeclaration("call", "http://call.exam" + examVersion + ".rpc.exam.volkswagenag.com");
-
+        
         SOAPBody body = envelope.getBody();
         SOAPElement bodyElement = body.addChildElement(envelope.createName("call:SessionLogin"));
         bodyElement.addChildElement("modelName").addTextNode(modelName);
@@ -61,23 +70,25 @@ public class DbFactory {
         bodyElement.addChildElement("locale").addTextNode("de");
         bodyElement.addChildElement("clientUuid").addTextNode("jenkins");
         message.saveChanges();
-
+        
         return message;
     }
-
+    
     /**
      * Try to connect to the EXAM server and check the connection status.
      *
      * @param modelName      String
      * @param targetEndpoint String
      * @param examVersion    int
+     *
      * @return String
+     *
      * @throws SOAPException SOAPException
      */
     public static String testModelConnection(String modelName, String targetEndpoint, int examVersion)
             throws SOAPException {
         ClientResponse response = callExamModeler(modelName, targetEndpoint, examVersion);
-
+        
         SOAPMessage retMessage = response.getEntity(SOAPMessage.class);
         SOAPEnvelope retEnvelope = retMessage.getSOAPPart().getEnvelope();
         SOAPBody retBody = retEnvelope.getBody();
@@ -96,17 +107,20 @@ public class DbFactory {
         }
         return "OK";
     }
-
+    
     /**
      * Calls the ExamModelerService depending on the examVersion. If 4.8+ is used SOAP 1.2 is active.
      *
      * @param modelName      String
      * @param targetEndpoint String
      * @param examVersion    int
+     *
      * @return String
+     *
      * @throws SOAPException SOAPException
      */
-    private static ClientResponse callExamModeler(String modelName, String targetEndpoint, int examVersion) throws SOAPException {
+    private static ClientResponse callExamModeler(String modelName, String targetEndpoint, int examVersion)
+            throws SOAPException {
         ClientConfig clientConfig = new DefaultClientConfig();
         MessageFactory messageFactory;
         if (examVersion >= 48) {
@@ -118,11 +132,11 @@ public class DbFactory {
         }
         Client client = Client.create(clientConfig);
         SOAPMessage message = getSoapMessage(modelName, examVersion, messageFactory);
-
+        
         WebResource service = client.resource(targetEndpoint);
         return service.header("SOAPAction", "sessionLogin").post(ClientResponse.class, message);
     }
-
+    
     @Nullable
     private static String getExamServerFault(String modelName, SOAPFault retFault) {
         if (retFault != null) {
@@ -130,15 +144,15 @@ public class DbFactory {
             if (text.contains("Wrong WebService!")) {
                 return "Wrong WebService!";
             }
-
+            
             if (text.contains("Model '" + modelName + "' does not exist on this server.")) {
                 return "Model does not exists";
             }
-
+            
             if (text.contains("WstxParsingException")) {
                 return "WstxParsingException";
             }
-
+            
             if (text.contains("Operation not found")) {
                 return "Operation not found";
             }

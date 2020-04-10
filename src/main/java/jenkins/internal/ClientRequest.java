@@ -32,7 +32,13 @@ package jenkins.internal;
 import hudson.AbortException;
 import hudson.Launcher;
 import hudson.model.Executor;
-import jenkins.internal.data.*;
+import jenkins.internal.data.ApiVersion;
+import jenkins.internal.data.ExamStatus;
+import jenkins.internal.data.FilterConfiguration;
+import jenkins.internal.data.GroovyConfiguration;
+import jenkins.internal.data.ModelConfiguration;
+import jenkins.internal.data.TestConfiguration;
+import jenkins.internal.data.TestrunFilter;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.Response;
@@ -43,14 +49,14 @@ import java.io.PrintStream;
  * REST Api calls to EXAM
  */
 public class ClientRequest {
-
+    
     private final static int OK = Response.ok().build().getStatus();
     long waitTime = 1000;
     private int apiPort = 8085;
     private PrintStream logger;
     private boolean clientConnected = false;
     private Launcher launcher = null;
-
+    
     /**
      * Constructor for REST Api calls to EXAM
      *
@@ -62,27 +68,28 @@ public class ClientRequest {
         this.logger = logger;
         this.launcher = launcher;
     }
-
+    
     public int getApiPort() {
         return apiPort;
     }
-
+    
     public void setApiPort(int apiPort) {
         this.apiPort = apiPort;
     }
-
+    
     public PrintStream getLogger() {
         return logger;
     }
-
+    
     public void setLogger(PrintStream logger) {
         this.logger = logger;
     }
-
+    
     /**
      * Request the job xxecution status from EXAM Client
      *
      * @return ExamStatus
+     *
      * @throws AbortException AbortException
      * @throws IOException    IOException
      */
@@ -91,14 +98,15 @@ public class ClientRequest {
         RemoteServiceResponse response = RemoteService
                 .getJSON(launcher, apiPort, "/testrun/status", ExamStatus.class);
         handleResponseError(response);
-
+        
         return (response == null) ? null : (ExamStatus) response.getEntity();
     }
-
+    
     /**
      * Request the Api Version from EXAM Client
      *
      * @return ApiVersion
+     *
      * @throws AbortException AbortException
      * @throws IOException    IOException
      */
@@ -111,10 +119,10 @@ public class ClientRequest {
         RemoteServiceResponse response = RemoteService
                 .getJSON(launcher, apiPort, "/workspace/apiVersion", ApiVersion.class);
         handleResponseError(response);
-
+        
         return (response == null) ? null : (ApiVersion) response.getEntity();
     }
-
+    
     /**
      * Checks, if the EXAM Client ist responding
      *
@@ -134,11 +142,12 @@ public class ClientRequest {
         }
         return isAvailable;
     }
-
+    
     /**
      * Creates a Exam Project on the Client.
      *
      * @param modelConfiguration ModelConfiguration
+     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -148,15 +157,17 @@ public class ClientRequest {
             return;
         }
         logger.println("creating Exam Project");
-
-        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/workspace/createProject", modelConfiguration, null);
+        
+        RemoteServiceResponse response = RemoteService
+                .post(launcher, apiPort, "/workspace/createProject", modelConfiguration, null);
         handleResponseError(response);
     }
-
+    
     /**
      * Setting the  EXAM Client
      *
      * @param filterConfig FilterConfiguration
+     *
      * @throws AbortException       AbortException
      * @throws InterruptedException InterruptedException
      * @throws IOException          IOException
@@ -181,11 +192,12 @@ public class ClientRequest {
                 .post(launcher, apiPort, "/testrun/setFilter", filterConfig, null);
         handleResponseError(response);
     }
-
+    
     /**
      * Request the Api Version from EXAM Client
      *
      * @param reportProject String
+     *
      * @throws InterruptedException InterruptedException
      * @throws IOException          IOException
      */
@@ -199,11 +211,12 @@ public class ClientRequest {
                 .getJSON(launcher, apiPort, "/testrun/convertToJunit/" + reportProject, null);
         handleResponseError(response);
     }
-
+    
     /**
      * Configure and start testrun at EXAM Client
      *
      * @param testConfig TestConfiguration
+     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -213,15 +226,15 @@ public class ClientRequest {
             return;
         }
         logger.println("starting testrun");
-        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/testrun/start",
-                testConfig, null);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/testrun/start", testConfig, null);
         handleResponseError(response);
     }
-
+    
     /**
      * Executes a Groovy Script at the Exam Client.
      *
      * @param groovyConfiguration GroovyConfiguration
+     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -231,11 +244,11 @@ public class ClientRequest {
             return;
         }
         logger.println("executing Groovy Script");
-        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/groovy/executeGroovyScript",
-                groovyConfiguration, null);
+        RemoteServiceResponse response = RemoteService
+                .post(launcher, apiPort, "/groovy/executeGroovyScript", groovyConfiguration, null);
         handleResponseError(response);
     }
-
+    
     private void handleResponseError(@Nullable RemoteServiceResponse response) throws AbortException {
         if (response == null) {
             return;
@@ -248,7 +261,7 @@ public class ClientRequest {
             throw new AbortException(errorMessage);
         }
     }
-
+    
     /**
      * stops a testrun
      *
@@ -265,11 +278,12 @@ public class ClientRequest {
                 .post(launcher, apiPort, "/testrun/stop?timeout=300", null, null);
         handleResponseError(response);
     }
-
+    
     /**
      * Deletes the project configuration at EXAM and deletes the corresponding report and pcode folders
      *
      * @param projectName String
+     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -283,24 +297,24 @@ public class ClientRequest {
             logger.println("deleting all projects and pcode from EXAM workspace");
             postUrl = "/workspace/delete";
         } else {
-            logger.println(
-                    "deleting project and pcode for project \"" + projectName + "\" from EXAM workspace");
+            logger.println("deleting project and pcode for project \"" + projectName + "\" from EXAM workspace");
             postUrl = "/workspace/delete?projectName=" + projectName;
         }
-
+        
         RemoteServiceResponse response = RemoteService.get(launcher, apiPort, postUrl, null);
         handleResponseError(response);
     }
-
+    
     /**
      * try to connect to EXAM REST Server within a timeout
      *
      * @param timeout millis
+     *
      * @return true, if connected
      */
     public boolean connectClient(Executor executor, int timeout) throws IOException, InterruptedException {
         logger.println("connecting to EXAM");
-
+        
         long timeoutTime = System.currentTimeMillis() + timeout * 1000;
         while (timeoutTime > System.currentTimeMillis()) {
             if (executor.isInterrupted()) {
@@ -315,7 +329,7 @@ public class ClientRequest {
         logger.println("ERROR: EXAM does not answer in " + timeout + "s");
         return false;
     }
-
+    
     /**
      * Try to disconnect from EXAM Client
      *
@@ -326,13 +340,13 @@ public class ClientRequest {
             logger.println("Client is not connected");
         } else {
             logger.println("disconnect from EXAM");
-
+            
             try {
                 RemoteService.get(launcher, apiPort, "/workspace/shutdown", null);
             } catch (Exception e) {
                 logger.println(e.getMessage());
             }
-
+            
             long timeoutTime = System.currentTimeMillis() + timeout * 1000;
             boolean shutdownOK = false;
             while (timeoutTime > System.currentTimeMillis()) {
@@ -348,16 +362,17 @@ public class ClientRequest {
             if (!shutdownOK) {
                 logger.println("ERROR: EXAM does not shutdown in " + timeout + "s");
             }
-
+            
             clientConnected = false;
         }
     }
-
+    
     /**
      * Waits for the EXAM Testrun ends
      *
      * @param executor Executor
      * @param wait     time in s
+     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -389,12 +404,13 @@ public class ClientRequest {
             }
         }
     }
-
+    
     /**
      * Waits until EXAM is idle
      *
      * @param executor Executor
      * @param wait     time in s
+     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -420,12 +436,13 @@ public class ClientRequest {
             }
         }
     }
-
+    
     /**
      * Waits until EXAM is idle
      *
      * @param executor Executor
      * @param wait     time in s
+     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -437,8 +454,7 @@ public class ClientRequest {
             }
             breakAfter--;
             ExamStatus status = this.getStatus();
-            if (!status.getJobRunning() || !"Export Reports to PDF.".equalsIgnoreCase(
-                    status.getJobName())) {
+            if (!status.getJobRunning() || !"Export Reports to PDF.".equalsIgnoreCase(status.getJobName())) {
                 break;
             }
             if (breakAfter <= 0) {
