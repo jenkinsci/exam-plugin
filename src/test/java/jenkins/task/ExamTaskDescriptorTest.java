@@ -4,12 +4,10 @@ import hudson.model.FreeStyleProject;
 import hudson.util.ListBoxModel;
 import jenkins.internal.data.ReportConfiguration;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
-import jenkins.plugins.exam.ExamTool;
-import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
-import jenkins.task.TestUtil.FakeTask;
+import jenkins.task.TestUtil.FakeExamTask;
 import jenkins.task.TestUtil.TUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -23,7 +21,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class ExamTaskDescriptorTest {
     
@@ -31,7 +30,7 @@ public class ExamTaskDescriptorTest {
     public JenkinsRule jenkinsRule = new JenkinsRule();
     
     private ExamTask testObject;
-    FakeTask.DescriptorExamTask testObjectDescriptor;
+    FakeExamTask.DescriptorExamTask testObjectDescriptor;
     private String examName;
     private String pythonName;
     private String examReport;
@@ -45,8 +44,8 @@ public class ExamTaskDescriptorTest {
         examReport = "examReport";
         examSysConfig = "testExamSystemConfig";
         freeStyleProject = jenkinsRule.createFreeStyleProject();
-        testObject = new FakeTask(examName, pythonName, examReport, examSysConfig);
-        testObjectDescriptor = (FakeTask.DescriptorExamTask) testObject.getDescriptor();
+        testObject = new FakeExamTask(examName, pythonName, examReport, examSysConfig);
+        testObjectDescriptor = (FakeExamTask.DescriptorExamTask) testObject.getDescriptor();
     }
     
     @After
@@ -149,21 +148,6 @@ public class ExamTaskDescriptorTest {
     }
     
     @Test
-    public void getInstallations() {
-        String examHome = "examHome";
-        String examRelativePath = "examRelativePath";
-        int num = 5;
-        ExamTool[] expected = new ExamTool[num];
-        for (int i = 0; i < num; i++) {
-            expected[i] = TUtil
-                    .createAndRegisterExamTool(jenkinsRule, examName + "_" + i, examHome, examRelativePath);
-        }
-        
-        ExamTool[] actual = testObjectDescriptor.getInstallations();
-        assertArrayEquals(expected, actual);
-    }
-    
-    @Test
     public void getLoglevelItems() throws Exception {
         ListBoxModel items = Whitebox.invokeMethod(testObjectDescriptor, "getLoglevelItems");
         checkLogLevel(items);
@@ -172,19 +156,6 @@ public class ExamTaskDescriptorTest {
     @Test
     public void getLogLevels() {
         assertArrayEquals(RestAPILogLevelEnum.values(), testObjectDescriptor.getLogLevels());
-    }
-    
-    @Test
-    public void getModelConfigs() {
-        ExamPluginConfig descriptor = (ExamPluginConfig) jenkinsRule.getInstance()
-                .getDescriptor(ExamPluginConfig.class);
-        List<ExamModelConfig> modelConfigs = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            modelConfigs.add(new ExamModelConfig("EMC_" + i));
-        }
-        descriptor.setModelConfigs(modelConfigs);
-        List<ExamModelConfig> actual = testObjectDescriptor.getModelConfigs();
-        assertEquals(modelConfigs, actual);
     }
     
     @Test
@@ -225,11 +196,6 @@ public class ExamTaskDescriptorTest {
         
         actual = testObjectDescriptor.getReportConfigs();
         checkNamesEqual(expected, actual);
-    }
-    
-    @Test
-    public void isApplicable() {
-        assertTrue(testObjectDescriptor.isApplicable(freeStyleProject.getClass()));
     }
     
     //#region Helpermethod

@@ -3,10 +3,9 @@ package jenkins.task;
 import hudson.util.Secret;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
-import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
-import jenkins.task.TestUtil.FakeTask;
+import jenkins.task.TestUtil.FakeExamTask;
 import jenkins.task.TestUtil.TUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -30,8 +29,6 @@ public class ExamTaskTest {
     private String pythonName;
     private String examReport;
     private String examSysConfig;
-    private String examHome;
-    private String examRelativePath;
     
     @Before
     public void setUp() {
@@ -39,9 +36,7 @@ public class ExamTaskTest {
         pythonName = "Python-2.7";
         examReport = "examReport";
         examSysConfig = "testExamSystemConfig";
-        examHome = "examHome";
-        examRelativePath = "examRelativePath";
-        testObject = new FakeTask(examName, pythonName, examReport, examSysConfig);
+        testObject = new FakeExamTask(examName, pythonName, examReport, examSysConfig);
     }
     
     @After
@@ -322,53 +317,6 @@ public class ExamTaskTest {
     
     @Test
     @WithoutJenkins
-    public void getJavaOpts() {
-        String javaOptions = "-test -test2";
-        Whitebox.setInternalState(testObject, "javaOpts", javaOptions);
-        String setOptions = testObject.getJavaOpts();
-        
-        assertEquals(javaOptions, setOptions);
-    }
-    
-    @Test
-    @WithoutJenkins
-    public void setJavaOpts() {
-        String javaOptions = "-testoption -n";
-        testObject.setJavaOpts(javaOptions);
-        String setJavaOpts = Whitebox.getInternalState(testObject, "javaOpts");
-        
-        assertEquals(javaOptions, setJavaOpts);
-    }
-    
-    @Test
-    @WithoutJenkins
-    public void getTimeout() {
-        int testTimeout = 1234;
-        Whitebox.setInternalState(testObject, "timeout", testTimeout);
-        int setTimeout = testObject.getTimeout();
-        
-        assertEquals(testTimeout, setTimeout);
-    }
-    
-    @Test
-    @WithoutJenkins
-    public void setTimeout() {
-        int testTimeout = 9876;
-        testObject.setTimeout(testTimeout);
-        int setTimeout = Whitebox.getInternalState(testObject, "timeout");
-        
-        assertEquals(testTimeout, setTimeout);
-    }
-    
-    @Test
-    @WithoutJenkins
-    public void getExamName() {
-        String setExamName = testObject.getExamName();
-        assertEquals(examName, setExamName);
-    }
-    
-    @Test
-    @WithoutJenkins
     public void getPythonName() {
         String setPythonName = testObject.getPythonName();
         assertEquals(pythonName, setPythonName);
@@ -451,23 +399,6 @@ public class ExamTaskTest {
     @Test
     public void getPython_noPythonRegisterd() {
         assertNull(testObject.getPython());
-    }
-    
-    @Test
-    public void getExam() {
-        assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
-                .getInstallations().length);
-        ExamTool newExamTool = TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
-        assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
-                .getInstallations().length);
-        
-        ExamTool setTool = testObject.getExam();
-        assertEquals(newExamTool, setTool);
-    }
-    
-    @Test
-    public void getExam_noExamRegisterd() {
-        assertNull(testObject.getExam());
     }
     
     private void assertPdfReport(TestConfiguration tc) {

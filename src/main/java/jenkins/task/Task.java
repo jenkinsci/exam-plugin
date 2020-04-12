@@ -47,7 +47,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class Task extends Builder {
+public abstract class Task extends Builder {
     
     /**
      * JAVA_OPTS if not null.
@@ -146,7 +146,7 @@ abstract class Task extends Builder {
         /**
          * Constructor of this Descriptor
          */
-        protected DescriptorTask(Class<? extends ExamTask> clazz) {
+        protected DescriptorTask(Class<? extends Task> clazz) {
             super(clazz);
             load();
         }
