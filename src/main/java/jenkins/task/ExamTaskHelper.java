@@ -33,17 +33,24 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Proc;
+import hudson.model.Executor;
 import hudson.model.Node;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ArgumentListBuilder;
+import jenkins.internal.ClientRequest;
 import jenkins.internal.Remote;
 import jenkins.internal.Util;
+import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.TestConfiguration;
+import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
+import jenkins.task._exam.ExamConsoleAnnotator;
+import jenkins.task._exam.ExamConsoleErrorOut;
 import jenkins.task._exam.Messages;
 import org.apache.commons.lang.RandomStringUtils;
 
@@ -52,6 +59,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Helper class for all EXAM Tasks.
@@ -64,27 +72,27 @@ public class ExamTaskHelper {
     private EnvVars env;
     private Launcher launcher;
     private FilePath workspace;
-    private TaskListener listener;
+    private TaskListener taskListener;
     
     /**
      * Constructor for ExamTaskHelper.
      *
-     * @param run       Run
-     * @param workspace FilePath
-     * @param launcher  Launcher
-     * @param listener  TaskListener
+     * @param run          Run
+     * @param workspace    FilePath
+     * @param launcher     Launcher
+     * @param taskListener TaskListener
      *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
     
     public ExamTaskHelper(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-            @Nonnull TaskListener listener) throws IOException, InterruptedException {
+            @Nonnull TaskListener taskListener) throws IOException, InterruptedException {
         this.run = run;
-        this.env = run.getEnvironment(listener);
+        this.env = run.getEnvironment(taskListener);
         this.launcher = launcher;
         this.workspace = workspace;
-        this.listener = listener;
+        this.taskListener = taskListener;
     }
     
     /**
@@ -97,12 +105,21 @@ public class ExamTaskHelper {
     }
     
     /**
+     * get the Run
+     *
+     * @return Run
+     */
+    public Run getRun() {
+        return run;
+    }
+    
+    /**
      * get the TaskListener
      *
      * @return TaskListener
      */
-    public TaskListener getListener() {
-        return listener;
+    public TaskListener getTaskListener() {
+        return taskListener;
     }
     
     /**
@@ -116,7 +133,7 @@ public class ExamTaskHelper {
      * @throws InterruptedException
      */
     public String getPythonExePath(PythonInstallation python) throws IOException, InterruptedException {
-        PythonInstallation pythonNode = python.forNode(getNode(), listener);
+        PythonInstallation pythonNode = python.forNode(getNode(), taskListener);
         String pythonExe = pythonNode.getHome();
         if (pythonExe == null || pythonExe.trim().isEmpty()) {
             run.setResult(Result.FAILURE);
@@ -309,7 +326,7 @@ public class ExamTaskHelper {
             run.setResult(Result.FAILURE);
             throw new AbortException("examTool is null");
         } else {
-            tool = tool.forNode(node, listener);
+            tool = tool.forNode(node, taskListener);
         }
         return tool;
     }
@@ -324,7 +341,7 @@ public class ExamTaskHelper {
      * @throws AbortException AbortException
      */
     public void handleIOException(long startTime, IOException e, ExamTool[] installations) throws AbortException {
-        hudson.Util.displayIOException(e, listener);
+        hudson.Util.displayIOException(e, taskListener);
         
         String errorMessage = Messages.EXAM_ExecFailed();
         long current = System.currentTimeMillis();
@@ -344,5 +361,73 @@ public class ExamTaskHelper {
         }
         run.setResult(Result.FAILURE);
         throw new AbortException(errorMessage);
+    }
+    
+    private void disconnectAndCloseEXAM(@Nonnull ClientRequest clientRequest, Proc proc, int timeout)
+            throws IOException, InterruptedException {
+        Executor runExecutor = run.getExecutor();
+        
+        try {
+            clientRequest.disconnectClient(runExecutor, timeout);
+        } finally {
+            if (proc != null && proc.isAlive()) {
+                proc.joinWithTimeout(10, TimeUnit.SECONDS, taskListener);
+            }
+        }
+    }
+    
+    void perform(@Nonnull Task task, @Nonnull Launcher launcher, ApiVersion minApiVersion)
+            throws IOException, InterruptedException {
+        ArgumentListBuilder args = new ArgumentListBuilder();
+        ExamTool examTool = getTool(task.getExam());
+        
+        FilePath buildFilePath = prepareWorkspace(examTool, args);
+        
+        Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
+        assert instanceOrNull != null;
+        ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(ExamPluginConfig.class);
+        args = handleAdditionalArgs(task.javaOpts, args, examPluginConfig);
+        
+        long startTime = System.currentTimeMillis();
+        try {
+            ClientRequest clientRequest = new ClientRequest(taskListener.getLogger(), examPluginConfig.getPort(),
+                    launcher);
+            if (clientRequest.isApiAvailable()) {
+                taskListener.getLogger().println("ERROR: EXAM is already running");
+                failTask("ERROR: EXAM is already running");
+            }
+            Proc proc = null;
+            try (ExamConsoleAnnotator eca = new ExamConsoleAnnotator(taskListener.getLogger(), run.getCharset());
+                    ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(taskListener.getLogger())) {
+                jenkins.internal.Util.checkMinRestApiVersion(taskListener, minApiVersion, clientRequest);
+                Launcher.ProcStarter process = launcher.launch().cmds(args).envs(getEnv())
+                        .pwd(buildFilePath.getParent());
+                process.stderr(examErr).stdout(eca);
+                proc = process.start();
+                
+                task.doExecuteTask(clientRequest);
+            } catch (IOException e) {
+                failTask("ERROR: " + e.toString());
+            } finally {
+                disconnectAndCloseEXAM(clientRequest, proc, task.timeout);
+            }
+            run.setResult(Result.SUCCESS);
+        } catch (IOException e) {
+            handleIOException(startTime, e, task.getDescriptor().getInstallations());
+        } finally {
+            printResult();
+        }
+    }
+    
+    private void printResult() {
+        Result result = run.getResult();
+        if (result != null) {
+            taskListener.getLogger().println(result.toString());
+        }
+    }
+    
+    private void failTask(String exceptionMessage) throws AbortException {
+        run.setResult(Result.FAILURE);
+        throw new AbortException(exceptionMessage);
     }
 }

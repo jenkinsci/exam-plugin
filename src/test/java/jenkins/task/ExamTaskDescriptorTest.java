@@ -23,15 +23,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ExamTaskDescriptorTest {
-
+    
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
-
+    
     private ExamTask testObject;
     FakeTask.DescriptorExamTask testObjectDescriptor;
     private String examName;
@@ -39,7 +37,7 @@ public class ExamTaskDescriptorTest {
     private String examReport;
     private String examSysConfig;
     FreeStyleProject freeStyleProject;
-
+    
     @Before
     public void setUp() throws IOException {
         examName = "EXAM";
@@ -48,14 +46,14 @@ public class ExamTaskDescriptorTest {
         examSysConfig = "testExamSystemConfig";
         freeStyleProject = jenkinsRule.createFreeStyleProject();
         testObject = new FakeTask(examName, pythonName, examReport, examSysConfig);
-        testObjectDescriptor = testObject.getDescriptor();
+        testObjectDescriptor = (FakeTask.DescriptorExamTask) testObject.getDescriptor();
     }
-
+    
     @After
     public void tearDown() {
         testObject = null;
     }
-
+    
     @Test
     public void doFillExamReportItems() {
         ExamPluginConfig descriptor = (ExamPluginConfig) jenkinsRule.getInstance()
@@ -70,67 +68,66 @@ public class ExamTaskDescriptorTest {
             expected[i] = "ERC_" + i;
         }
         expected[num] = ReportConfiguration.NO_REPORT;
-
+        
         ExamReportConfig noReport = new ExamReportConfig();
         noReport.setName(ReportConfiguration.NO_REPORT);
         noReport.setSchema("");
         noReport.setHost("");
         noReport.setPort("0");
         reportConfigs.add(0, noReport);
-
+        
         descriptor.setReportConfigs(reportConfigs);
         ListBoxModel items = testObjectDescriptor.doFillExamReportItems();
-
+        
         String[] actual = new String[items.size()];
         for (int i = 0; i < items.size(); i++) {
             actual[i] = items.get(i).value;
         }
-
+        
         assertArrayEquals(expected, actual);
     }
-
+    
     @Test
     public void doFillLoglevelLibCtrlItems() {
         ListBoxModel items = testObjectDescriptor.doFillLoglevelLibCtrlItems();
         checkLogLevel(items);
     }
-
+    
     @Test
     public void doFillLoglevelTestCtrlItems() {
         ListBoxModel items = testObjectDescriptor.doFillLoglevelTestCtrlItems();
         checkLogLevel(items);
     }
-
+    
     @Test
     public void doFillLoglevelTestLogicItems() {
         ListBoxModel items = testObjectDescriptor.doFillLoglevelTestLogicItems();
         checkLogLevel(items);
     }
-
+    
     @Test
     public void doFillPythonNameItems() {
         int num = 5;
         String[] expected = new String[num];
         for (int i = 0; i < num; i++) {
             expected[i] = pythonName + "_" + i;
-            TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName + "_" + i,
-                    "testHome");
+            TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName + "_" + i, "testHome");
         }
-
+        
         ListBoxModel items = testObjectDescriptor.doFillPythonNameItems();
-
+        
         String[] actual = new String[items.size()];
         for (int i = 0; i < items.size(); i++) {
             actual[i] = items.get(i).name;
         }
         assertArrayEquals(expected, actual);
     }
-
+    
     @Test
     public void getDefaultLogLevel() {
         assertEquals(RestAPILogLevelEnum.INFO.name(), testObjectDescriptor.getDefaultLogLevel());
     }
-
+    
     @Test
     public void doFillExamNameItems() {
         String examHome = "examHome";
@@ -139,19 +136,18 @@ public class ExamTaskDescriptorTest {
         String[] expected = new String[num];
         for (int i = 0; i < num; i++) {
             expected[i] = examName + "_" + i;
-            TUtil.createAndRegisterExamTool(jenkinsRule, examName + "_" + i, examHome,
-                    examRelativePath);
+            TUtil.createAndRegisterExamTool(jenkinsRule, examName + "_" + i, examHome, examRelativePath);
         }
-
+        
         ListBoxModel items = testObjectDescriptor.doFillExamNameItems();
-
+        
         String[] actual = new String[items.size()];
         for (int i = 0; i < items.size(); i++) {
             actual[i] = items.get(i).name;
         }
         assertArrayEquals(expected, actual);
     }
-
+    
     @Test
     public void getInstallations() {
         String examHome = "examHome";
@@ -160,25 +156,24 @@ public class ExamTaskDescriptorTest {
         ExamTool[] expected = new ExamTool[num];
         for (int i = 0; i < num; i++) {
             expected[i] = TUtil
-                    .createAndRegisterExamTool(jenkinsRule, examName + "_" + i, examHome,
-                            examRelativePath);
+                    .createAndRegisterExamTool(jenkinsRule, examName + "_" + i, examHome, examRelativePath);
         }
-
+        
         ExamTool[] actual = testObjectDescriptor.getInstallations();
         assertArrayEquals(expected, actual);
     }
-
+    
     @Test
     public void getLoglevelItems() throws Exception {
         ListBoxModel items = Whitebox.invokeMethod(testObjectDescriptor, "getLoglevelItems");
         checkLogLevel(items);
     }
-
+    
     @Test
     public void getLogLevels() {
         assertArrayEquals(RestAPILogLevelEnum.values(), testObjectDescriptor.getLogLevels());
     }
-
+    
     @Test
     public void getModelConfigs() {
         ExamPluginConfig descriptor = (ExamPluginConfig) jenkinsRule.getInstance()
@@ -191,23 +186,22 @@ public class ExamTaskDescriptorTest {
         List<ExamModelConfig> actual = testObjectDescriptor.getModelConfigs();
         assertEquals(modelConfigs, actual);
     }
-
+    
     @Test
     public void getPythonInstallations() {
         int num = 5;
         PythonInstallation[] expected = new PythonInstallation[num];
         for (int i = 0; i < num; i++) {
-            expected[i] = TUtil.createAndRegisterPythonInstallation(jenkinsRule,
-                    pythonName + "_" + i, "testHome");
+            expected[i] = TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName + "_" + i, "testHome");
         }
-
+        
         PythonInstallation[] actual = testObjectDescriptor.getPythonInstallations();
         assertArrayEquals(expected, actual);
     }
-
+    
     @Test
     public void getReportConfigs() {
-
+        
         ExamPluginConfig descriptor = (ExamPluginConfig) jenkinsRule.getInstance()
                 .getDescriptor(ExamPluginConfig.class);
         List<ExamReportConfig> reportConfigs = new ArrayList<>();
@@ -225,21 +219,21 @@ public class ExamTaskDescriptorTest {
         noReport.setPort("0");
         expected.add(0, noReport);
         expected.addAll(reportConfigs);
-
+        
         List<ExamReportConfig> actual = testObjectDescriptor.getReportConfigs();
         checkNamesEqual(expected, actual);
-
+        
         actual = testObjectDescriptor.getReportConfigs();
         checkNamesEqual(expected, actual);
     }
-
+    
     @Test
     public void isApplicable() {
         assertTrue(testObjectDescriptor.isApplicable(freeStyleProject.getClass()));
     }
-
+    
     //#region Helpermethod
-
+    
     private void checkNamesEqual(List<ExamReportConfig> expected, List<ExamReportConfig> actual) {
         if (expected.size() != actual.size()) {
             throw new ComparisonFailure("Lists differ in size", String.valueOf(expected.size()),
@@ -247,12 +241,12 @@ public class ExamTaskDescriptorTest {
         }
         List<String> expectedStrings = new ArrayList<>();
         List<String> actualStrings = new ArrayList<>();
-
+        
         expected.forEach(item -> expectedStrings.add(item.getName()));
         actual.forEach(item -> actualStrings.add(item.getName()));
         assertEquals(expectedStrings, actualStrings);
     }
-
+    
     private void checkLogLevel(ListBoxModel items) {
         String[] expected = RestAPILogLevelEnum.getValues();
         String[] actual = new String[items.size()];
@@ -261,6 +255,6 @@ public class ExamTaskDescriptorTest {
         }
         assertArrayEquals(expected, actual);
     }
-
+    
     //#endregion
 }

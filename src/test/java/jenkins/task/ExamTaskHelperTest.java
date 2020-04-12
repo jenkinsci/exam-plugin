@@ -60,15 +60,15 @@ public class ExamTaskHelperTest {
     
     private ExamTaskHelper testObject;
     private FilePath workspace;
-    private TaskListener listener;
+    private TaskListener taskListener;
     
     @Before
     public void setUp() throws InterruptedException, IOException {
         MockitoAnnotations.initMocks(this);
         workspace = new FilePath(new File("c:\\my\\path\\to\\workspace"));
         Launcher launcher = new Launcher.DummyLauncher(new FakeTaskListener());
-        listener = new FakeTaskListener();
-        testObject = new ExamTaskHelper(runMock, workspace, launcher, listener);
+        taskListener = new FakeTaskListener();
+        testObject = new ExamTaskHelper(runMock, workspace, launcher, taskListener);
     }
     
     @After
@@ -292,10 +292,10 @@ public class ExamTaskHelperTest {
     }
     
     @Test
-    public void getListener() {
+    public void getTaskListener() {
         TaskListener listener = new FakeTaskListener();
-        Whitebox.setInternalState(testObject, "listener", listener);
-        TaskListener testIt = testObject.getListener();
+        Whitebox.setInternalState(testObject, "taskListener", listener);
+        TaskListener testIt = testObject.getTaskListener();
         assertEquals(listener, testIt);
     }
     

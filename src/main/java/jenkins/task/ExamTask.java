@@ -33,62 +33,37 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Proc;
 import hudson.Util;
-import hudson.model.AbstractProject;
 import hudson.model.Executor;
-import hudson.model.Node;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
-import hudson.util.ArgumentListBuilder;
 import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.FilterConfiguration;
 import jenkins.internal.data.ReportConfiguration;
 import jenkins.internal.data.TestConfiguration;
-import jenkins.internal.descriptor.ExamDescriptor;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
-import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 import jenkins.report.ExamReportAction;
-import jenkins.task._exam.ExamConsoleAnnotator;
-import jenkins.task._exam.ExamConsoleErrorOut;
 import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-public abstract class ExamTask extends Builder implements SimpleBuildStep {
+public abstract class ExamTask extends Task implements SimpleBuildStep {
     
-    /**
-     * JAVA_OPTS if not null.
-     */
-    protected String javaOpts;
-    
-    /**
-     * timeout if not null.
-     */
-    protected int timeout;
-    /**
-     * Identifies {@link ExamTool} to be used.
-     */
-    protected String examName;
     /**
      * Identifies {@link PythonInstallation} to be used.
      */
@@ -116,6 +91,8 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
      */
     protected String reportPrefix;
     private boolean useExecutionFile;
+    
+    private String pythonExe;
     
     /**
      * Constructor of ExamTask
@@ -225,10 +202,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         this.loglevelLibCtrl = loglevelLibCtrl;
     }
     
-    public String getExamName() {
-        return examName;
-    }
-    
     public String getPythonName() {
         return pythonName;
     }
@@ -258,59 +231,20 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     /**
      * Gets the EXAM to invoke, or null to invoke the default one.
      *
-     * @return ExamTool
-     */
-    @Nullable
-    public ExamTool getExam() {
-        for (ExamTool i : getDescriptor().getInstallations()) {
-            if (examName != null && examName.equals(i.getName())) {
-                return i;
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Gets the EXAM to invoke, or null to invoke the default one.
-     *
      * @return PythonInstallation
      */
     @Nullable
     public PythonInstallation getPython() {
-        for (PythonInstallation i : getDescriptor().getPythonInstallations()) {
-            if (pythonName != null && pythonName.equals(i.getName())) {
-                return i;
+        Task.DescriptorTask descriptorTask = getDescriptor();
+        if (descriptorTask instanceof ExamTask.DescriptorExamTask) {
+            ExamTask.DescriptorExamTask descriptorExamTask = (ExamTask.DescriptorExamTask) descriptorTask;
+            for (PythonInstallation i : descriptorExamTask.getPythonInstallations()) {
+                if (pythonName != null && pythonName.equals(i.getName())) {
+                    return i;
+                }
             }
         }
         return null;
-    }
-    
-    /**
-     * Gets the JAVA_OPTS parameter, or null.
-     *
-     * @return javaOpts
-     */
-    public String getJavaOpts() {
-        return javaOpts;
-    }
-    
-    @DataBoundSetter
-    public void setJavaOpts(String javaOpts) {
-        this.javaOpts = Util.fixEmptyAndTrim(javaOpts);
-    }
-    
-    /**
-     * Gets the timeout parameter, or null.
-     *
-     * @return timeout
-     */
-    public int getTimeout() {
-        return timeout;
-    }
-    
-    @DataBoundSetter
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
     }
     
     public ExamTool.DescriptorImpl getToolDescriptor() {
@@ -319,84 +253,30 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-            @Nonnull TaskListener listener) throws IOException, InterruptedException {
+            @Nonnull TaskListener taskListener) throws IOException, InterruptedException {
         
-        ExamTaskHelper etHelper = new ExamTaskHelper(run, workspace, launcher, listener);
+        Executor runExecutor = run.getExecutor();
+        assert runExecutor != null;
+        taskHelper = new ExamTaskHelper(run, workspace, launcher, taskListener);
         
         run.addAction(new ExamReportAction(this));
-        ExamTool examTool = etHelper.getTool(getExam());
+        
         PythonInstallation python = getPython();
         if (python == null) {
             run.setResult(Result.FAILURE);
             throw new AbortException("python is null");
         }
-        Node node = etHelper.getNode();
-        examTool = examTool.forNode(node, listener);
+        pythonExe = taskHelper.getPythonExePath(python);
         
-        String pythonExe = etHelper.getPythonExePath(python);
-        ArgumentListBuilder args = new ArgumentListBuilder();
-        FilePath buildFilePath = etHelper.prepareWorkspace(examTool, args);
-        
-        Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
-        assert instanceOrNull != null;
-        ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(ExamPluginConfig.class);
-        args = etHelper.handleAdditionalArgs(javaOpts, args, examPluginConfig);
-        
-        if (timeout <= 0) {
-            timeout = examPluginConfig.getTimeout();
-        }
-        
-        long startTime = System.currentTimeMillis();
-        try {
-            ClientRequest clientRequest = new ClientRequest(listener.getLogger(), examPluginConfig.getPort(),
-                    launcher);
-            Proc proc = null;
-            Executor runExecutor = run.getExecutor();
-            if (runExecutor != null) {
-                if (clientRequest.isApiAvailable()) {
-                    listener.getLogger().println("ERROR: EXAM is already running");
-                    run.setResult(Result.FAILURE);
-                    throw new AbortException("ERROR: EXAM is already running");
-                }
-                try (ExamConsoleAnnotator eca = new ExamConsoleAnnotator(listener.getLogger(), run.getCharset());
-                        ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(listener.getLogger())) {
-                    jenkins.internal.Util.checkMinRestApiVersion(listener, new ApiVersion(1, 0, 0), clientRequest);
-                    Launcher.ProcStarter process = launcher.launch().cmds(args).envs(etHelper.getEnv())
-                            .pwd(buildFilePath.getParent());
-                    process.stderr(examErr).stdout(eca);
-                    proc = process.start();
-                    
-                    doExecuteExamTestrun(etHelper, pythonExe, clientRequest, runExecutor);
-                } catch (IOException e) {
-                    run.setResult(Result.FAILURE);
-                    throw new AbortException("ERROR: " + e.toString());
-                } finally {
-                    try {
-                        clientRequest.disconnectClient(runExecutor, timeout);
-                    } finally {
-                        if (proc != null && proc.isAlive()) {
-                            proc.joinWithTimeout(10, TimeUnit.SECONDS, listener);
-                        }
-                    }
-                }
-            }
-            run.setResult(Result.SUCCESS);
-        } catch (IOException e) {
-            etHelper.handleIOException(startTime, e, getDescriptor().getInstallations());
-        } finally {
-            Result result = run.getResult();
-            if (result != null) {
-                listener.getLogger().println(result.toString());
-            }
-        }
+        taskHelper.perform(this, launcher, new ApiVersion(1, 0, 0));
     }
     
-    private void doExecuteExamTestrun(ExamTaskHelper etHelper, String pythonExe, ClientRequest clientRequest,
-            Executor runExecutor) throws IOException, InterruptedException {
+    protected void doExecuteTask(ClientRequest clientRequest) throws IOException, InterruptedException {
+        Executor runExecutor = taskHelper.getRun().getExecutor();
         boolean ret = clientRequest.connectClient(runExecutor, timeout);
-        TaskListener listener = etHelper.getListener();
+        TaskListener listener = taskHelper.getTaskListener();
         if (ret) {
-            TestConfiguration tc = createTestConfiguration(etHelper.getEnv());
+            TestConfiguration tc = createTestConfiguration(taskHelper.getEnv());
             tc.setPythonPath(pythonExe);
             FilterConfiguration fc = new FilterConfiguration();
             
@@ -423,15 +303,19 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
                 clientRequest.waitForExportPDFReportJob(runExecutor, timeout * 2);
             }
             clientRequest.convert(tc.getReportProject().getProjectName());
-            etHelper.copyArtifactsToTarget(tc);
+            taskHelper.copyArtifactsToTarget(tc);
         }
     }
     
     @Nullable
     private ExamReportConfig getReport(String name) {
-        for (ExamReportConfig rConfig : getDescriptor().getReportConfigs()) {
-            if (rConfig.getName().equalsIgnoreCase(name)) {
-                return rConfig;
+        Task.DescriptorTask descriptorTask = getDescriptor();
+        if (descriptorTask instanceof ExamTask.DescriptorExamTask) {
+            ExamTask.DescriptorExamTask descriptorExamTask = (ExamTask.DescriptorExamTask) descriptorTask;
+            for (ExamReportConfig rConfig : descriptorExamTask.getReportConfigs()) {
+                if (rConfig.getName().equalsIgnoreCase(name)) {
+                    return rConfig;
+                }
             }
         }
         return null;
@@ -439,11 +323,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     
     abstract protected TestConfiguration addDataToTestConfiguration(TestConfiguration testConfiguration, EnvVars env)
             throws AbortException;
-    
-    @Override
-    public ExamTask.DescriptorExamTask getDescriptor() {
-        return (ExamTask.DescriptorExamTask) super.getDescriptor();
-    }
     
     private TestConfiguration createTestConfiguration(EnvVars env) throws AbortException {
         TestConfiguration tc = new TestConfiguration();
@@ -481,7 +360,7 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         assert r != null;
         rep.setProjectName(r.getName());
         rep.setDbHost(r.getHost());
-        rep.setDbPassword(r.getDbPass());
+        rep.setDbPassword(r.getDbPass().getPlainText());
         rep.setDbPort(Integer.valueOf(r.getPort()));
         rep.setDbSchema(r.getSchema());
         rep.setDbService(r.getServiceOrSid());
@@ -493,25 +372,9 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
     /**
      * The Descriptor of DescriptorExamTask
      */
-    protected static class DescriptorExamTask extends BuildStepDescriptor<Builder>
-            implements ExamDescriptor, Serializable {
+    protected static class DescriptorExamTask extends Task.DescriptorTask {
         
         private static final long serialVersionUID = 7068994149846799797L;
-        
-        /**
-         * Constructor of this Descriptor
-         */
-        public DescriptorExamTask() {
-            load();
-        }
-        
-        /**
-         * Constructor of this Descriptor
-         */
-        protected DescriptorExamTask(Class<? extends ExamTask> clazz) {
-            super(clazz);
-            load();
-        }
         
         /**
          * @return the default log level
@@ -528,25 +391,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
         }
         
         /**
-         * is applicable for all job types
-         *
-         * @return true
-         */
-        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
-            return true;
-        }
-        
-        /**
-         * @return all EXAM tools
-         */
-        public ExamTool[] getInstallations() {
-            Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
-            return (instanceOrNull == null) ?
-                    new ExamTool[0] :
-                    instanceOrNull.getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations();
-        }
-        
-        /**
          * @return all Python installations
          */
         public PythonInstallation[] getPythonInstallations() {
@@ -554,17 +398,6 @@ public abstract class ExamTask extends Builder implements SimpleBuildStep {
             return (instanceOrNull == null) ?
                     new PythonInstallation[0] :
                     instanceOrNull.getDescriptorByType(PythonInstallation.DescriptorImpl.class).getInstallations();
-        }
-        
-        /**
-         * @return all ExamModelConfigs
-         */
-        public List<ExamModelConfig> getModelConfigs() {
-            Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
-            if (instanceOrNull == null) {
-                return new ArrayList<>();
-            }
-            return instanceOrNull.getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
         }
         
         /**

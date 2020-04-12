@@ -47,7 +47,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,16 +108,6 @@ public class ExamTaskModel extends ExamTask {
     @DataBoundSetter
     public void setModelConfiguration(String modelConfiguration) {
         this.modelConfiguration = modelConfiguration;
-    }
-    
-    @Nullable
-    private ExamModelConfig getModel(String name) {
-        for (ExamModelConfig mConfig : getDescriptor().getModelConfigs()) {
-            if (mConfig.getName().equalsIgnoreCase(name)) {
-                return mConfig;
-            }
-        }
-        return null;
     }
     
     protected TestConfiguration addDataToTestConfiguration(TestConfiguration tc, EnvVars env) throws AbortException {
