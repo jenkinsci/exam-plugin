@@ -1,14 +1,19 @@
 package jenkins.task;
 
 import hudson.AbortException;
+import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
+import hudson.model.Run;
+import jenkins.internal.ClientRequest;
 import jenkins.internal.data.GroovyConfiguration;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
+import jenkins.task.TestUtil.FakeTaskListener;
 import jenkins.task.TestUtil.TUtil;
 import jenkins.task._exam.Messages;
 import org.hamcrest.CoreMatchers;
@@ -21,11 +26,15 @@ import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +48,9 @@ public class GroovyTaskTest {
     public JenkinsRule jenkinsRule = new JenkinsRule();
     @ClassRule
     public static BuildWatcher buildWatcher = new BuildWatcher();
+    
+    @Mock
+    Run runMock;
     
     private FreeStyleProject examTestProject;
     private GroovyTask testObject;
@@ -374,6 +386,29 @@ public class GroovyTaskTest {
         expected.setScript("anotherScript");
         expected.setStartElement("");
         assertGroovyConfig(expected, actual);
+    }
+    
+    @Test
+    public void doExecuteTask() throws IOException, InterruptedException {
+        MockitoAnnotations.initMocks(this);
+        
+        ExamModelConfig mod = new ExamModelConfig(examModel);
+        mod.setName(examModel);
+        testObject.getDescriptor().getModelConfigs().add(mod);
+        
+        FakeTaskListener taskListener = new FakeTaskListener();
+        ExamTaskHelper taskHelper = new ExamTaskHelper(runMock, new FilePath(new File("c:\\my\\path")),
+                new Launcher.DummyLauncher(taskListener), taskListener);
+        Whitebox.setInternalState(testObject, "taskHelper", taskHelper);
+        
+        ClientRequest clientRequestMock = Mockito.mock(ClientRequest.class);
+        Mockito.when(clientRequestMock.connectClient(Mockito.any(), Mockito.anyInt())).thenReturn(Boolean.FALSE);
+        testObject.doExecuteTask(clientRequestMock);
+        Mockito.verify(clientRequestMock, Mockito.never()).clearWorkspace(Mockito.any());
+        
+        Mockito.when(clientRequestMock.connectClient(Mockito.any(), Mockito.anyInt())).thenReturn(Boolean.TRUE);
+        testObject.doExecuteTask(clientRequestMock);
+        Mockito.verify(clientRequestMock, Mockito.times(1)).clearWorkspace(Mockito.any());
     }
     
     private void runProjectWithoutTools(String logContains) throws Exception {

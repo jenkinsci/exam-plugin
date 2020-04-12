@@ -43,10 +43,8 @@ import jenkins.internal.Util;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GroovyConfiguration;
 import jenkins.internal.data.ModelConfiguration;
-import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
-import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.task._exam.Messages;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
@@ -56,7 +54,6 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -216,17 +213,6 @@ public class GroovyTask extends Task implements SimpleBuildStep {
          */
         public DescriptorGroovyTask() {
             load();
-        }
-        
-        /**
-         * @return all ExamModelConfigs
-         */
-        public List<ExamModelConfig> getModelConfigs() {
-            Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
-            if (instanceOrNull == null) {
-                return new ArrayList<>();
-            }
-            return instanceOrNull.getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
         }
         
         /**

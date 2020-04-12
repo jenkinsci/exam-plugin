@@ -273,8 +273,8 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
     
     protected void doExecuteTask(ClientRequest clientRequest) throws IOException, InterruptedException {
         Executor runExecutor = taskHelper.getRun().getExecutor();
-        boolean ret = clientRequest.connectClient(runExecutor, timeout);
         TaskListener listener = taskHelper.getTaskListener();
+        boolean ret = clientRequest.connectClient(runExecutor, timeout);
         if (ret) {
             TestConfiguration tc = createTestConfiguration(taskHelper.getEnv());
             tc.setPythonPath(pythonExe);

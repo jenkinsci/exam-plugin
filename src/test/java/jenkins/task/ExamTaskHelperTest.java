@@ -4,12 +4,15 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Proc;
 import hudson.model.Descriptor;
 import hudson.model.Node;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.DumbSlave;
 import hudson.util.ArgumentListBuilder;
+import jenkins.internal.ClientRequest;
 import jenkins.internal.Remote;
 import jenkins.internal.Util;
 import jenkins.internal.data.ReportConfiguration;
@@ -25,7 +28,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.SimpleCommandLauncher;
+import org.jvnet.hudson.test.WithoutJenkins;
 import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -39,18 +44,21 @@ import org.powermock.reflect.Whitebox;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ Remote.class, Util.class, hudson.Util.class })
+@PrepareForTest({ Remote.class, Util.class, hudson.Util.class, Result.class })
 @PowerMockIgnore({ "javax.crypto.*" })
 public class ExamTaskHelperTest {
+    
+    @Rule
+    public JenkinsRule jenkinsRule = new JenkinsRule();
     
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -77,6 +85,78 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
+    public void printResult() throws Exception {
+        TaskListener taskListenerMock = mock(FakeTaskListener.class);
+        when(taskListenerMock.getLogger()).thenCallRealMethod();
+        Result resultMock = PowerMockito.mock(Result.class);
+        Whitebox.setInternalState(testObject, "taskListener", taskListenerMock);
+        
+        when(runMock.getResult()).thenReturn(null);
+        Whitebox.invokeMethod(testObject, "printResult");
+        verify(taskListenerMock, never()).getLogger();
+        
+        when(runMock.getResult()).thenReturn(resultMock);
+        Whitebox.invokeMethod(testObject, "printResult");
+        verify(taskListenerMock, times(1)).getLogger();
+    }
+    
+    @Test
+    @WithoutJenkins
+    public void failTask() throws Exception {
+        String testString = "testString";
+        thrown.expect(AbortException.class);
+        thrown.expectMessage(testString);
+        Whitebox.invokeMethod(testObject, "failTask", testString);
+    }
+    
+    @Test
+    @WithoutJenkins
+    public void disconnectAndCloseEXAM() throws Exception {
+        ClientRequest clientRequestMock = mock(ClientRequest.class);
+        Whitebox.invokeMethod(testObject, "disconnectAndCloseEXAM", clientRequestMock, null, 1000);
+        verify(clientRequestMock).disconnectClient(any(), anyInt());
+        
+        Proc procMock = mock(Proc.class);
+        when(procMock.isAlive()).thenReturn(Boolean.FALSE);
+        Whitebox.invokeMethod(testObject, "disconnectAndCloseEXAM", clientRequestMock, procMock, 1000);
+        verify(procMock, never()).joinWithTimeout(10, TimeUnit.SECONDS, taskListener);
+        
+        when(procMock.isAlive()).thenReturn(Boolean.TRUE);
+        Whitebox.invokeMethod(testObject, "disconnectAndCloseEXAM", clientRequestMock, procMock, 1000);
+        verify(procMock).joinWithTimeout(10, TimeUnit.SECONDS, taskListener);
+    }
+    
+    @Test
+    public void perform_noLicense() throws IOException, InterruptedException, Descriptor.FormException {
+        mockStatic(Util.class);
+        String examHome = "C:\\path\\to\\exam";
+        String pathToExe = examHome + "\\exam.exe";
+        PowerMockito.mockStatic(Remote.class);
+        PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(true);
+        
+        ExamTool toolMock = mock(ExamTool.class);
+        when(toolMock.forNode(any(), any())).thenReturn(toolMock);
+        when(toolMock.getHome()).thenReturn(examHome);
+        when(toolMock.getExecutable(any())).thenReturn(pathToExe);
+        when(toolMock.getRelativeDataPath()).thenReturn("../examData");
+        
+        DumbSlave slave = new DumbSlave("TestSlave", "", new SimpleCommandLauncher("echo hallo"));
+        BDDMockito.given(Util.workspaceToNode(workspace)).willReturn(slave);
+        Task taskMock = mock(Task.class);
+        when(taskMock.getExam()).thenReturn(toolMock);
+        
+        ExamPluginConfig pluginConfigMock = mock(ExamPluginConfig.class);
+        when(pluginConfigMock.getLicenseHost()).thenReturn("");
+        when(pluginConfigMock.getLicensePort()).thenReturn(0);
+        
+        thrown.expect(AbortException.class);
+        thrown.expectMessage(Messages.EXAM_LicenseServerNotConfigured());
+        testObject.perform(taskMock, null, null);
+    }
+    
+    @Test
+    @WithoutJenkins
     public void copyArtifactsToTarget() throws Exception {
         TestConfiguration tc = new TestConfiguration();
         prepareExamReportConfig(tc);
@@ -87,6 +167,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void toWindowsCommand() throws Exception {
         int port = 8085;
         
@@ -123,6 +204,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void handleAdditionalArgs_noLicenseConfig() throws Exception {
         
         ExamPluginConfig pluginConfigMock = mock(ExamPluginConfig.class);
@@ -136,6 +218,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void handleAdditionalArgs() throws Exception {
         
         Launcher launcherMock = mock(Launcher.class);
@@ -173,6 +256,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void getConfigurationPath() throws IOException, InterruptedException {
         String examHome = "c:\\my\\examHome";
         PowerMockito.mockStatic(Remote.class);
@@ -197,6 +281,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void getPythonExePath() throws IOException, InterruptedException, Descriptor.FormException {
         String pythonHome = "c:\\my\\pythonHome";
         
@@ -234,6 +319,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void getNode() throws Exception {
         mockStatic(Util.class);
         
@@ -251,6 +337,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void handleIOExceptionNormal() throws AbortException {
         mockStatic(hudson.Util.class);
         doNothing().when(hudson.Util.class);
@@ -261,6 +348,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void handleIOExceptionEmptyTools() throws AbortException {
         mockStatic(hudson.Util.class);
         doNothing().when(hudson.Util.class);
@@ -271,6 +359,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void handleIOExceptionWithTools() throws AbortException {
         mockStatic(hudson.Util.class);
         doNothing().when(hudson.Util.class);
@@ -281,6 +370,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void getEnv() {
         EnvVars envVars = new EnvVars();
         envVars.put("test", "test");
@@ -292,6 +382,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void getTaskListener() {
         TaskListener listener = new FakeTaskListener();
         Whitebox.setInternalState(testObject, "taskListener", listener);
@@ -300,6 +391,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void getTool() throws Exception {
         mockStatic(Util.class);
         ExamTool tool = mock(ExamTool.class);
@@ -317,6 +409,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void prepareWorkspace() throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
         String examHome = "C:\\path\\to\\exam";
@@ -336,6 +429,7 @@ public class ExamTaskHelperTest {
     }
     
     @Test
+    @WithoutJenkins
     public void prepareWorkspaceException() throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
         ExamTool tool = mock(ExamTool.class);

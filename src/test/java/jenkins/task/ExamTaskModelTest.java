@@ -1,16 +1,12 @@
 package jenkins.task;
 
 import hudson.AbortException;
-import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
-import hudson.model.Result;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.task.TestUtil.TUtil;
-import jenkins.task._exam.Messages;
-import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -28,7 +24,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "javax.crypto.*" })
@@ -53,7 +50,7 @@ public class ExamTaskModelTest {
     List<File> createdFiles = new ArrayList<>();
     
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         examName = "EXAM_name";
         pythonName = "Python-2.7";
         pythonHome = "pythonHome";
@@ -145,91 +142,6 @@ public class ExamTaskModelTest {
         
         modelConfig = Whitebox.invokeMethod(testObject, "getModel", examModel);
         assertEquals(mod2, modelConfig);
-    }
-    
-    @Test
-    public void perform_noConfig() throws Exception {
-        TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
-        TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName, pythonHome);
-        
-        File file = new File(examHome + File.separator + "EXAM.exe");
-        boolean fileCreated = file.createNewFile();
-        assertTrue("File not created", fileCreated);
-        createdFiles.add(file);
-        
-        examTestProject = jenkinsRule.createFreeStyleProject();
-        examTestProject.getBuildersList().add(testObject);
-        FreeStyleBuild build = examTestProject.scheduleBuild2(0).get();
-        Result buildResult = build.getResult();
-        assertEquals("FAILURE", buildResult.toString());
-        
-        List<String> log = build.getLog(1000);
-        String workspacePath = jenkinsRule.getInstance().getRootPath().getRemote();
-        assertThat(log, CoreMatchers.hasItem("ERROR: " + Messages.EXAM_NotExamConfigDirectory(
-                workspacePath + File.separator + "examRelativePath" + File.separator + "configuration"
-                        + File.separator + "config.ini")));
-    }
-    
-    @Test
-    public void perform_noLicenseConfig() throws Exception {
-        TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, "./data");
-        TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName, pythonHome);
-        
-        File file = new File(examHome + File.separator + "EXAM.exe");
-        boolean fileCreated = file.createNewFile();
-        assertTrue("File not created", fileCreated);
-        createdFiles.add(file);
-        File file2 = new File(examHome + File.separator + "data" + File.separator + "configuration" + File.separator
-                + "config.ini");
-        fileCreated = file2.getParentFile().mkdirs();
-        assertTrue("Folder not created", fileCreated);
-        fileCreated = file2.createNewFile();
-        assertTrue("File not created", fileCreated);
-        createdFiles.add(file2);
-        
-        examTestProject = jenkinsRule.createFreeStyleProject();
-        examTestProject.getBuildersList().add(testObject);
-        FreeStyleBuild build = examTestProject.scheduleBuild2(0).get();
-        Result buildResult = build.getResult();
-        assertEquals("FAILURE", buildResult.toString());
-        
-        List<String> log = build.getLog(1000);
-        assertThat(log, CoreMatchers.hasItem("ERROR: " + Messages.EXAM_LicenseServerNotConfigured()));
-    }
-    
-    @Test
-    public void perform_noTool() throws Exception {
-        examTestProject = jenkinsRule.createFreeStyleProject();
-        examTestProject.getBuildersList().add(testObject);
-        runProjectWithoutTools("ERROR: python is null");
-        
-        TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
-        runProjectWithoutTools("ERROR: python is null");
-        TUtil.cleanUpExamTools(jenkinsRule);
-        
-        TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName, pythonHome);
-        runProjectWithoutTools("ERROR: examTool is null");
-        TUtil.cleanUpPythonInstallations(jenkinsRule);
-        
-        TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
-        TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName, "");
-        runProjectWithoutTools("ERROR: python home not set");
-        TUtil.cleanUpExamTools(jenkinsRule);
-        TUtil.cleanUpPythonInstallations(jenkinsRule);
-        
-        TUtil.createAndRegisterExamTool(jenkinsRule, examName, "", examRelativePath);
-        TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName, pythonHome);
-        runProjectWithoutTools("ERROR: " + Messages.EXAM_ExecutableNotFound(examName));
-        
-    }
-    
-    private void runProjectWithoutTools(String logContains) throws Exception {
-        FreeStyleBuild build = examTestProject.scheduleBuild2(0).get();
-        Result buildResult = build.getResult();
-        assertEquals("FAILURE", buildResult.toString());
-        List<String> log = build.getLog(1000);
-        assertThat(log, CoreMatchers.hasItem(logContains));
-        
     }
     
     @Test(expected = AbortException.class)
