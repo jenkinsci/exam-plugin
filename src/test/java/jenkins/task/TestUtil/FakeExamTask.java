@@ -13,6 +13,7 @@ public class FakeExamTask extends ExamTask {
     }
     
     protected TestConfiguration addDataToTestConfiguration(TestConfiguration tc, EnvVars env) throws AbortException {
+        
         return tc;
     }
     

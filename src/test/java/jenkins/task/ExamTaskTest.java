@@ -1,9 +1,16 @@
 package jenkins.task;
 
+import hudson.AbortException;
+import hudson.EnvVars;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.model.Executor;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
+import hudson.model.Run;
 import hudson.util.Secret;
+import jenkins.internal.ClientRequest;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.model.Jenkins;
@@ -11,6 +18,8 @@ import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 import jenkins.task.TestUtil.FakeExamTask;
+import jenkins.task.TestUtil.FakeExamTaskExtended;
+import jenkins.task.TestUtil.FakeTaskListener;
 import jenkins.task.TestUtil.TUtil;
 import jenkins.task._exam.Messages;
 import org.hamcrest.CoreMatchers;
@@ -18,20 +27,36 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
+import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.*;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(ExamTaskHelper.class)
+@PowerMockIgnore({ "javax.crypto.*" })
 public class ExamTaskTest {
     
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
     
     private ExamTask testObject;
     private String examName;
@@ -479,6 +504,29 @@ public class ExamTaskTest {
         assertThat(log, CoreMatchers.hasItem("ERROR: " + Messages.EXAM_LicenseServerNotConfigured()));
     }
     
+    @Test
+    public void perform() throws Exception {
+        TUtil.createAndRegisterPythonInstallation(jenkinsRule, pythonName, pythonHome);
+        Executor executor = Mockito.mock(Executor.class);
+        Run runMock = Mockito.mock(Run.class);
+        Mockito.when(runMock.getExecutor()).thenReturn(executor);
+        
+        ExamTaskHelper helperMock = Mockito.mock(ExamTaskHelper.class, "ExamTaskHelperMock");
+        FakeTaskListener listener = new FakeTaskListener();
+        Launcher launcher = new Launcher.DummyLauncher(listener);
+        FilePath filePath = new FilePath(new File(""));
+        
+        Whitebox.setInternalState(testObject, "taskHelper", helperMock);
+        testObject.perform(runMock, filePath, launcher, listener);
+        
+        Mockito.verify(helperMock).perform(Mockito.any(), Mockito.any(), Mockito.any());
+        
+        TUtil.cleanUpPythonInstallations(jenkinsRule);
+        thrown.expect(AbortException.class);
+        thrown.expectMessage("python is null");
+        testObject.perform(runMock, filePath, launcher, listener);
+    }
+    
     private void runProjectWithoutTools(FreeStyleProject examTestProject, String logContains) throws Exception {
         FreeStyleBuild build = examTestProject.scheduleBuild2(0).get();
         Result buildResult = build.getResult();
@@ -537,6 +585,14 @@ public class ExamTaskTest {
     }
     
     private void prepareExamReportConfig() {
+        List<ExamReportConfig> reportConfigs = ((ExamTask.DescriptorExamTask) testObject.getDescriptor())
+                .getReportConfigs();
+        for (ExamReportConfig config : reportConfigs) {
+            if (config.getName().equalsIgnoreCase(examReport)) {
+                return;
+            }
+        }
+        
         ExamReportConfig rep = new ExamReportConfig();
         rep.setName(examReport);
         rep.setHost("host");
@@ -552,5 +608,69 @@ public class ExamTaskTest {
         testObject.setLoglevelLibCtrl(RestAPILogLevelEnum.ERROR.name());
         testObject.setLoglevelTestCtrl(RestAPILogLevelEnum.WARNING.name());
         testObject.setLoglevelTestLogic(RestAPILogLevelEnum.INTERNAL.name());
+    }
+    
+    private void prepareDoExecuteTask() {
+        
+        prepareExamReportConfig();
+        
+        testObject.setPdfReportTemplate("template");
+        testObject.setPdfReport(false);
+        testObject.setPdfSelectFilter("filter");
+        testObject.setPdfMeasureImages(true);
+        
+        testObject.setPdfReport(false);
+        testObject.setClearWorkspace(false);
+        testObject.setTestrunFilter(new ArrayList<>());
+    }
+    
+    @Test
+    public void doExecuteTask() throws IOException, InterruptedException {
+        prepareDoExecuteTask();
+        Executor executor = Mockito.mock(Executor.class);
+        
+        Run runMock = mock(Run.class, "runMock");
+        Mockito.when(runMock.getExecutor()).thenReturn(executor);
+        
+        ExamTaskHelper taskHelperMock = Mockito.mock(ExamTaskHelper.class, "taskHelperMock");
+        when(taskHelperMock.getRun()).thenReturn(runMock);
+        when(taskHelperMock.getEnv()).thenReturn(new EnvVars());
+        when(taskHelperMock.getTaskListener()).thenReturn(new FakeTaskListener());
+        Whitebox.setInternalState(testObject, "taskHelper", taskHelperMock);
+        
+        ClientRequest clientRequestMock = mock(ClientRequest.class, "clientRequestMock");
+        when(clientRequestMock.connectClient(any(), anyInt())).thenReturn(Boolean.FALSE);
+        
+        // test no EXAM connected
+        testObject.doExecuteTask(clientRequestMock);
+        verify(taskHelperMock, never()).getEnv();
+        
+        // test minimum configuration
+        when(clientRequestMock.connectClient(any(), anyInt())).thenReturn(Boolean.TRUE);
+        
+        testObject.doExecuteTask(clientRequestMock);
+        verify(taskHelperMock).copyArtifactsToTarget(any());
+        verify(clientRequestMock, never()).waitForExportPDFReportJob(any(), anyInt());
+        verify(clientRequestMock, never()).setTestrunFilter(any());
+        verify(clientRequestMock).clearWorkspace(examReport);
+        
+        // test maximum configuration
+        
+        testObject = new FakeExamTaskExtended(testObject.getExamName(), testObject.getPythonName(),
+                testObject.getExamReport(), testObject.getSystemConfiguration());
+        prepareDoExecuteTask();
+        Whitebox.setInternalState(testObject, "taskHelper", taskHelperMock);
+        testObject.setPdfReport(true);
+        testObject.setClearWorkspace(true);
+        TestrunFilter filter = new TestrunFilter("name", "regex", false, true);
+        testObject.setTestrunFilter(Collections.singletonList(filter));
+        
+        testObject.doExecuteTask(clientRequestMock);
+        verify(taskHelperMock, times(2)).copyArtifactsToTarget(any());
+        verify(clientRequestMock).waitForExportPDFReportJob(any(), anyInt());
+        verify(clientRequestMock).setTestrunFilter(any());
+        verify(clientRequestMock, times(3)).clearWorkspace(anyString());
+        verify(clientRequestMock, times(2)).clearWorkspace(examReport);
+        verify(clientRequestMock).clearWorkspace("modelName");
     }
 }

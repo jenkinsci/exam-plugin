@@ -14,7 +14,10 @@ import hudson.slaves.DumbSlave;
 import hudson.util.ArgumentListBuilder;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.Remote;
+import jenkins.internal.RemoteService;
+import jenkins.internal.RemoteServiceResponse;
 import jenkins.internal.Util;
+import jenkins.internal.data.ExamStatus;
 import jenkins.internal.data.ReportConfiguration;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.plugins.exam.ExamTool;
@@ -41,6 +44,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -53,7 +57,7 @@ import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ Remote.class, Util.class, hudson.Util.class, Result.class })
+@PrepareForTest({ Remote.class, RemoteService.class, Util.class, hudson.Util.class, Result.class })
 @PowerMockIgnore({ "javax.crypto.*" })
 public class ExamTaskHelperTest {
     
@@ -66,17 +70,41 @@ public class ExamTaskHelperTest {
     @Mock
     Run runMock;
     
+    @Mock
+    ExamTool toolMock;
+    
+    @Mock
+    Task taskMock;
+    
     private ExamTaskHelper testObject;
     private FilePath workspace;
     private TaskListener taskListener;
+    private Launcher launcher;
     
     @Before
-    public void setUp() throws InterruptedException, IOException {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        String examHome = "C:\\path\\to\\exam";
+        String pathToExe = examHome + "\\exam.exe";
+        PowerMockito.mockStatic(Remote.class);
+        PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(true);
+        
+        when(toolMock.forNode(any(), any())).thenReturn(toolMock);
+        when(toolMock.getName()).thenReturn("test");
+        when(toolMock.getHome()).thenReturn(examHome);
+        when(toolMock.getExecutable(any())).thenReturn(pathToExe);
+        when(toolMock.getRelativeDataPath()).thenReturn("../examData");
+        
+        when(taskMock.getExam()).thenReturn(toolMock);
+        
         workspace = new FilePath(new File("c:\\my\\path\\to\\workspace"));
-        Launcher launcher = new Launcher.DummyLauncher(new FakeTaskListener());
+        launcher = new Launcher.DummyLauncher(new FakeTaskListener());
         taskListener = new FakeTaskListener();
-        testObject = new ExamTaskHelper(runMock, workspace, launcher, taskListener);
+        testObject = new ExamTaskHelper();
+        testObject.setRun(runMock);
+        testObject.setWorkspace(workspace);
+        testObject.setLauncher(launcher);
+        testObject.setTaskListener(taskListener);
     }
     
     @After
@@ -129,23 +157,6 @@ public class ExamTaskHelperTest {
     
     @Test
     public void perform_noLicense() throws IOException, InterruptedException, Descriptor.FormException {
-        mockStatic(Util.class);
-        String examHome = "C:\\path\\to\\exam";
-        String pathToExe = examHome + "\\exam.exe";
-        PowerMockito.mockStatic(Remote.class);
-        PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(true);
-        
-        ExamTool toolMock = mock(ExamTool.class);
-        when(toolMock.forNode(any(), any())).thenReturn(toolMock);
-        when(toolMock.getHome()).thenReturn(examHome);
-        when(toolMock.getExecutable(any())).thenReturn(pathToExe);
-        when(toolMock.getRelativeDataPath()).thenReturn("../examData");
-        
-        DumbSlave slave = new DumbSlave("TestSlave", "", new SimpleCommandLauncher("echo hallo"));
-        BDDMockito.given(Util.workspaceToNode(workspace)).willReturn(slave);
-        Task taskMock = mock(Task.class);
-        when(taskMock.getExam()).thenReturn(toolMock);
-        
         ExamPluginConfig pluginConfigMock = mock(ExamPluginConfig.class);
         when(pluginConfigMock.getLicenseHost()).thenReturn("");
         when(pluginConfigMock.getLicensePort()).thenReturn(0);
@@ -232,23 +243,25 @@ public class ExamTaskHelperTest {
         when(pluginConfigMock.getLicenseHost()).thenReturn("localhost");
         when(pluginConfigMock.getLicensePort()).thenReturn(8090);
         
-        ArgumentListBuilder argsNew = testObject
-                .handleAdditionalArgs(null, new ArgumentListBuilder(), pluginConfigMock);
-        List<String> argList = argsNew.toList();
+        ArgumentListBuilder args = new ArgumentListBuilder();
+        testObject.handleAdditionalArgs(null, args, pluginConfigMock);
+        List<String> argList = args.toList();
         assertTrue(argList.contains("-Dsun.jnu.encoding=UTF-8"));
         assertFalse(envar.containsKey("JAVA_OPTS"));
         
         String javaOpts = "-Dtest1 -Dtest2=hallo";
-        argsNew = testObject.handleAdditionalArgs(javaOpts, new ArgumentListBuilder(), pluginConfigMock);
-        argList = argsNew.toList();
+        args.clear();
+        testObject.handleAdditionalArgs(javaOpts, args, pluginConfigMock);
+        argList = args.toList();
         assertTrue(argList.contains("-Dsun.jnu.encoding=UTF-8"));
         assertTrue(argList.contains("-Dtest1"));
         assertTrue(envar.containsKey("JAVA_OPTS"));
         assertEquals("JavaOpts not extended", javaOpts, envar.get("JAVA_OPTS"));
         
         when(launcherMock.isUnix()).thenReturn(true);
-        argsNew = testObject.handleAdditionalArgs(javaOpts, new ArgumentListBuilder(), pluginConfigMock);
-        argList = argsNew.toList();
+        args.clear();
+        testObject.handleAdditionalArgs(javaOpts, args, pluginConfigMock);
+        argList = args.toList();
         assertTrue(argList.contains("-Dsun.jnu.encoding=UTF-8"));
         assertTrue(argList.contains("-Dtest1"));
         assertTrue(envar.containsKey("JAVA_OPTS"));
@@ -383,6 +396,14 @@ public class ExamTaskHelperTest {
     
     @Test
     @WithoutJenkins
+    public void getRun() {
+        Whitebox.setInternalState(testObject, "run", runMock);
+        Run testIt = testObject.getRun();
+        assertEquals(runMock, testIt);
+    }
+    
+    @Test
+    @WithoutJenkins
     public void getTaskListener() {
         TaskListener listener = new FakeTaskListener();
         Whitebox.setInternalState(testObject, "taskListener", listener);
@@ -409,7 +430,6 @@ public class ExamTaskHelperTest {
     }
     
     @Test
-    @WithoutJenkins
     public void prepareWorkspace() throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
         String examHome = "C:\\path\\to\\exam";
@@ -422,23 +442,98 @@ public class ExamTaskHelperTest {
         when(tool.getExecutable(any())).thenReturn(pathToExe);
         when(tool.getRelativeDataPath()).thenReturn("..\\examData");
         
-        FilePath filePath = testObject.prepareWorkspace(tool, args);
+        FilePath filePath = testObject.prepareWorkspace(taskMock, args);
         List<String> argList = args.toList();
         assertTrue(argList.contains(pathToExe));
         assertEquals("exam", filePath.getBaseName());
     }
     
     @Test
-    @WithoutJenkins
     public void prepareWorkspaceException() throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
-        ExamTool tool = mock(ExamTool.class);
-        when(tool.getExecutable(any())).thenReturn("");
-        when(tool.getName()).thenReturn("test");
+        when(toolMock.getExecutable(any())).thenReturn("");
         
         thrown.expect(AbortException.class);
-        thrown.expectMessage(Messages.EXAM_ExecutableNotFound(tool.getName()));
-        testObject.prepareWorkspace(tool, args);
+        thrown.expectMessage(Messages.EXAM_ExecutableNotFound(toolMock.getName()));
+        testObject.prepareWorkspace(taskMock, args);
     }
     
+    @Test
+    @WithoutJenkins
+    public void setLauncher() {
+        testObject.setLauncher(launcher);
+        Launcher testLauncher = Whitebox.getInternalState(testObject, "launcher");
+        assertEquals(launcher, testLauncher);
+    }
+    
+    @Test
+    @WithoutJenkins
+    public void setWorkspace() {
+        testObject.setWorkspace(workspace);
+        FilePath testWorkspace = Whitebox.getInternalState(testObject, "workspace");
+        assertEquals(workspace, testWorkspace);
+    }
+    
+    @Test
+    @WithoutJenkins
+    public void setRun() throws IOException, InterruptedException {
+        testObject.setTaskListener(null);
+        testObject.setRun(null);
+        EnvVars envVars = new EnvVars();
+        envVars.put("test", "test");
+        when(runMock.getEnvironment(any())).thenReturn(envVars);
+        testObject.setRun(runMock);
+        Run testRun = Whitebox.getInternalState(testObject, "run");
+        assertEquals(runMock, testRun);
+        assertNull(testObject.getEnv());
+        
+        testObject.setRun(null);
+        testObject.setTaskListener(taskListener);
+        testObject.setRun(runMock);
+        assertEquals(envVars, testObject.getEnv());
+        assertEquals(1, testObject.getEnv().size());
+        
+    }
+    
+    @Test
+    @WithoutJenkins
+    public void setTaskListener() throws IOException, InterruptedException {
+        testObject.setTaskListener(null);
+        testObject.setRun(null);
+        EnvVars envVars = new EnvVars();
+        envVars.put("test", "test");
+        when(runMock.getEnvironment(any())).thenReturn(envVars);
+        testObject.setTaskListener(taskListener);
+        TaskListener testListener = Whitebox.getInternalState(testObject, "taskListener");
+        assertEquals(taskListener, testListener);
+        assertNull(testObject.getEnv());
+        
+        testObject.setTaskListener(null);
+        testObject.setRun(runMock);
+        testObject.setTaskListener(taskListener);
+        assertEquals(envVars, testObject.getEnv());
+        assertEquals(1, testObject.getEnv().size());
+    }
+    
+    @Test
+    public void getClientRequest() throws Exception {
+        ExamStatus status = new ExamStatus();
+        status.setJobRunning(Boolean.FALSE);
+        
+        PowerMockito.mockStatic(RemoteService.class);
+        PowerMockito.when(RemoteService.getJSON(any(), anyInt(), any(), any()))
+                .thenReturn(new RemoteServiceResponse(Response.serverError().build().getStatus(), status, ""));
+        
+        ExamPluginConfig pluginMock = mock(ExamPluginConfig.class);
+        when(pluginMock.getPort()).thenReturn(8085);
+        
+        ClientRequest clientRequest = Whitebox.invokeMethod(testObject, "getClientRequest", launcher, pluginMock);
+        assertEquals(8085, clientRequest.getApiPort());
+        
+        thrown.expect(AbortException.class);
+        thrown.expectMessage("ERROR: EXAM is already running");
+        PowerMockito.when(RemoteService.getJSON(any(), anyInt(), any(), any()))
+                .thenReturn(new RemoteServiceResponse(Response.ok().build().getStatus(), status, ""));
+        Whitebox.invokeMethod(testObject, "getClientRequest", launcher, pluginMock);
+    }
 }

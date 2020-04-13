@@ -1,6 +1,7 @@
 package jenkins.plugins.exam;
 
-import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import jenkins.model.Jenkins;
 import jenkins.task.TestUtil.TUtil;
@@ -79,9 +80,9 @@ public class ExamToolDescriptorTest {
         HtmlPage page = webClient.goTo("configureTools");
         TUtil.cleanUpExamTools(jenkinsRule);
         
-        DomElement elmt = page.getElementByName("Apply");
-        elmt = page.getElementById(elmt.getId() + "-button");
-        elmt.click();
+        HtmlForm form = page.getFormByName("config");
+        HtmlButton button = jenkinsRule.getButtonByCaption(form, "Apply");
+        button.click();
         
         ExamTool[] installations = jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
                 .getInstallations();

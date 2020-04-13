@@ -62,7 +62,7 @@ public abstract class Task extends Builder {
      */
     protected int timeout;
     
-    protected ExamTaskHelper taskHelper;
+    protected ExamTaskHelper taskHelper = new ExamTaskHelper();
     
     /**
      * Gets the JAVA_OPTS parameter, or null.

@@ -76,23 +76,9 @@ public class ExamTaskHelper {
     
     /**
      * Constructor for ExamTaskHelper.
-     *
-     * @param run          Run
-     * @param workspace    FilePath
-     * @param launcher     Launcher
-     * @param taskListener TaskListener
-     *
-     * @throws IOException          IOException
-     * @throws InterruptedException InterruptedException
      */
+    public ExamTaskHelper() {
     
-    public ExamTaskHelper(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-            @Nonnull TaskListener taskListener) throws IOException, InterruptedException {
-        this.run = run;
-        this.env = run.getEnvironment(taskListener);
-        this.launcher = launcher;
-        this.workspace = workspace;
-        this.taskListener = taskListener;
     }
     
     /**
@@ -120,6 +106,48 @@ public class ExamTaskHelper {
      */
     public TaskListener getTaskListener() {
         return taskListener;
+    }
+    
+    /**
+     * get the TaskListener
+     *
+     * @param run
+     */
+    public void setRun(Run run) throws IOException, InterruptedException {
+        this.run = run;
+        if (taskListener != null) {
+            this.env = run.getEnvironment(taskListener);
+        }
+    }
+    
+    /**
+     * get the TaskListener
+     *
+     * @param launcher
+     */
+    public void setLauncher(Launcher launcher) {
+        this.launcher = launcher;
+    }
+    
+    /**
+     * get the TaskListener
+     *
+     * @param workspace
+     */
+    public void setWorkspace(FilePath workspace) {
+        this.workspace = workspace;
+    }
+    
+    /**
+     * get the TaskListener
+     *
+     * @param taskListener
+     */
+    public void setTaskListener(TaskListener taskListener) throws IOException, InterruptedException {
+        this.taskListener = taskListener;
+        if (run != null) {
+            this.env = run.getEnvironment(taskListener);
+        }
     }
     
     /**
@@ -157,8 +185,8 @@ public class ExamTaskHelper {
      *
      * @return ArgumentListBuilder
      */
-    public ArgumentListBuilder handleAdditionalArgs(String javaOpts, ArgumentListBuilder args,
-            ExamPluginConfig examPluginConfig) throws AbortException {
+    public void handleAdditionalArgs(String javaOpts, ArgumentListBuilder args, ExamPluginConfig examPluginConfig)
+            throws AbortException {
         ArgumentListBuilder argsNew = args;
         
         if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
@@ -183,8 +211,8 @@ public class ExamTaskHelper {
         if (!launcher.isUnix()) {
             argsNew = toWindowsCommand(argsNew);
         }
-        
-        return argsNew;
+        args.clear();
+        args.add(argsNew.toList());
     }
     
     /**
@@ -278,7 +306,7 @@ public class ExamTaskHelper {
     /**
      * prepare some configurations and arguments to run EXAM
      *
-     * @param examTool
+     * @param task
      * @param args
      *
      * @return the path to EXAM runnable
@@ -286,8 +314,9 @@ public class ExamTaskHelper {
      * @throws IOException
      * @throws InterruptedException
      */
-    public FilePath prepareWorkspace(ExamTool examTool, ArgumentListBuilder args)
+    public FilePath prepareWorkspace(@Nonnull Task task, ArgumentListBuilder args)
             throws IOException, InterruptedException {
+        ExamTool examTool = getTool(task.getExam());
         String exe = examTool.getExecutable(launcher);
         assert exe != null;
         if (exe.trim().isEmpty()) {
@@ -379,23 +408,16 @@ public class ExamTaskHelper {
     void perform(@Nonnull Task task, @Nonnull Launcher launcher, ApiVersion minApiVersion)
             throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
-        ExamTool examTool = getTool(task.getExam());
-        
-        FilePath buildFilePath = prepareWorkspace(examTool, args);
+        FilePath buildFilePath = prepareWorkspace(task, args);
         
         Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
         assert instanceOrNull != null;
         ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(ExamPluginConfig.class);
-        args = handleAdditionalArgs(task.javaOpts, args, examPluginConfig);
+        handleAdditionalArgs(task.javaOpts, args, examPluginConfig);
         
         long startTime = System.currentTimeMillis();
         try {
-            ClientRequest clientRequest = new ClientRequest(taskListener.getLogger(), examPluginConfig.getPort(),
-                    launcher);
-            if (clientRequest.isApiAvailable()) {
-                taskListener.getLogger().println("ERROR: EXAM is already running");
-                failTask("ERROR: EXAM is already running");
-            }
+            ClientRequest clientRequest = getClientRequest(launcher, examPluginConfig);
             Proc proc = null;
             try (ExamConsoleAnnotator eca = new ExamConsoleAnnotator(taskListener.getLogger(), run.getCharset());
                     ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(taskListener.getLogger())) {
@@ -417,6 +439,18 @@ public class ExamTaskHelper {
         } finally {
             printResult();
         }
+    }
+    
+    @Nonnull
+    private ClientRequest getClientRequest(@Nonnull Launcher launcher, ExamPluginConfig examPluginConfig)
+            throws IOException, InterruptedException {
+        ClientRequest clientRequest = new ClientRequest(taskListener.getLogger(), examPluginConfig.getPort(),
+                launcher);
+        if (clientRequest.isApiAvailable()) {
+            taskListener.getLogger().println("ERROR: EXAM is already running");
+            failTask("ERROR: EXAM is already running");
+        }
+        return clientRequest;
     }
     
     private void printResult() {

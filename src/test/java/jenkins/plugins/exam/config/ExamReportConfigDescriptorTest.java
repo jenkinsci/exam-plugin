@@ -1,6 +1,7 @@
 package jenkins.plugins.exam.config;
 
-import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.util.FormValidation;
@@ -72,9 +73,9 @@ public class ExamReportConfigDescriptorTest {
         examPluginConfig.getReportConfigs().clear();
         examPluginConfig.getModelConfigs().clear();
         
-        DomElement elmt = page.getElementByName("Apply");
-        elmt = page.getElementById(elmt.getId() + "-button");
-        elmt.click();
+        HtmlForm form = page.getFormByName("config");
+        HtmlButton button = jenkinsRule.getButtonByCaption(form, "Apply");
+        button.click();
         
         assertEquals(TUtil.pluginConfigPort, examPluginConfig.getPort());
         assertEquals(1, examPluginConfig.getModelConfigs().size());

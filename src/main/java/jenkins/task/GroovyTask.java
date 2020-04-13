@@ -146,8 +146,10 @@ public class GroovyTask extends Task implements SimpleBuildStep {
         assert runExecutor != null;
         
         // prepare environment
-        
-        taskHelper = new ExamTaskHelper(run, workspace, launcher, taskListener);
+        taskHelper.setRun(run);
+        taskHelper.setWorkspace(workspace);
+        taskHelper.setLauncher(launcher);
+        taskHelper.setTaskListener(taskListener);
         
         taskHelper.perform(this, launcher, new ApiVersion(1, 0, 2));
     }

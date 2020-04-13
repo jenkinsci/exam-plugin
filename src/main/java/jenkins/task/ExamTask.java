@@ -257,7 +257,10 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
         
         Executor runExecutor = run.getExecutor();
         assert runExecutor != null;
-        taskHelper = new ExamTaskHelper(run, workspace, launcher, taskListener);
+        taskHelper.setRun(run);
+        taskHelper.setWorkspace(workspace);
+        taskHelper.setLauncher(launcher);
+        taskHelper.setTaskListener(taskListener);
         
         run.addAction(new ExamReportAction(this));
         
@@ -286,7 +289,7 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
                                 filter.activateTestcases));
             }
             
-            if (isClearWorkspace()) {
+            if (isClearWorkspace() && tc.getModelProject() != null) {
                 clientRequest.clearWorkspace(tc.getModelProject().getModelName());
             }
             clientRequest.clearWorkspace(tc.getReportProject().getProjectName());

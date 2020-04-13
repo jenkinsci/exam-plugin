@@ -397,8 +397,11 @@ public class GroovyTaskTest {
         testObject.getDescriptor().getModelConfigs().add(mod);
         
         FakeTaskListener taskListener = new FakeTaskListener();
-        ExamTaskHelper taskHelper = new ExamTaskHelper(runMock, new FilePath(new File("c:\\my\\path")),
-                new Launcher.DummyLauncher(taskListener), taskListener);
+        ExamTaskHelper taskHelper = new ExamTaskHelper();
+        taskHelper.setRun(runMock);
+        taskHelper.setWorkspace(new FilePath(new File("c:\\my\\path")));
+        taskHelper.setLauncher(new Launcher.DummyLauncher(taskListener));
+        taskHelper.setTaskListener(taskListener);
         Whitebox.setInternalState(testObject, "taskHelper", taskHelper);
         
         ClientRequest clientRequestMock = Mockito.mock(ClientRequest.class);
