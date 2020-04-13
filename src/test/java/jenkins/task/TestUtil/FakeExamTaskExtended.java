@@ -21,6 +21,7 @@ public class FakeExamTaskExtended extends FakeExamTask {
     
     @Extension
     public static class DescriptorFakeTaskExtended extends DescriptorFakeTask {
-    
+        
+        private static final long serialVersionUID = 2276768263667197734L;
     }
 }

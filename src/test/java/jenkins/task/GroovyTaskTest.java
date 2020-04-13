@@ -405,11 +405,11 @@ public class GroovyTaskTest {
         Whitebox.setInternalState(testObject, "taskHelper", taskHelper);
         
         ClientRequest clientRequestMock = Mockito.mock(ClientRequest.class);
-        Mockito.when(clientRequestMock.connectClient(Mockito.any(), Mockito.anyInt())).thenReturn(Boolean.FALSE);
+        Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.FALSE);
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.never()).clearWorkspace(Mockito.any());
         
-        Mockito.when(clientRequestMock.connectClient(Mockito.any(), Mockito.anyInt())).thenReturn(Boolean.TRUE);
+        Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.TRUE);
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.times(1)).clearWorkspace(Mockito.any());
     }

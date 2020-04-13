@@ -19,6 +19,7 @@ import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 import jenkins.task.TestUtil.FakeExamTask;
 import jenkins.task.TestUtil.FakeExamTaskExtended;
+import jenkins.task.TestUtil.FakeExamTaskWithoutExecute;
 import jenkins.task.TestUtil.FakeTaskListener;
 import jenkins.task.TestUtil.TUtil;
 import jenkins.task._exam.Messages;
@@ -86,6 +87,11 @@ public class ExamTaskTest {
     @After
     public void tearDown() {
         testObject = null;
+        for (File file : createdFiles) {
+            if (file.exists()) {
+                file.delete();
+            }
+        }
     }
     
     @Test
@@ -488,8 +494,7 @@ public class ExamTaskTest {
         createdFiles.add(file);
         File file2 = new File(examHome + File.separator + "data" + File.separator + "configuration" + File.separator
                 + "config.ini");
-        fileCreated = file2.getParentFile().mkdirs();
-        assertTrue("Folder not created", fileCreated);
+        file2.getParentFile().mkdirs();
         fileCreated = file2.createNewFile();
         assertTrue("File not created", fileCreated);
         createdFiles.add(file2);
@@ -516,6 +521,7 @@ public class ExamTaskTest {
         Launcher launcher = new Launcher.DummyLauncher(listener);
         FilePath filePath = new FilePath(new File(""));
         
+        testObject = new FakeExamTaskWithoutExecute(examName, pythonName, examReport, examSysConfig);
         Whitebox.setInternalState(testObject, "taskHelper", helperMock);
         testObject.perform(runMock, filePath, launcher, listener);
         
@@ -639,14 +645,14 @@ public class ExamTaskTest {
         Whitebox.setInternalState(testObject, "taskHelper", taskHelperMock);
         
         ClientRequest clientRequestMock = mock(ClientRequest.class, "clientRequestMock");
-        when(clientRequestMock.connectClient(any(), anyInt())).thenReturn(Boolean.FALSE);
+        when(clientRequestMock.isClientConnected()).thenReturn(Boolean.FALSE);
         
         // test no EXAM connected
         testObject.doExecuteTask(clientRequestMock);
         verify(taskHelperMock, never()).getEnv();
         
         // test minimum configuration
-        when(clientRequestMock.connectClient(any(), anyInt())).thenReturn(Boolean.TRUE);
+        when(clientRequestMock.isClientConnected()).thenReturn(Boolean.TRUE);
         
         testObject.doExecuteTask(clientRequestMock);
         verify(taskHelperMock).copyArtifactsToTarget(any());

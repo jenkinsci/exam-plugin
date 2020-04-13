@@ -69,6 +69,10 @@ public class ClientRequest {
         this.launcher = launcher;
     }
     
+    public boolean isClientConnected() {
+        return clientConnected;
+    }
+    
     public int getApiPort() {
         return apiPort;
     }

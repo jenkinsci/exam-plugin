@@ -373,6 +373,7 @@ public class ExamTaskHelper {
         hudson.Util.displayIOException(e, taskListener);
         
         String errorMessage = Messages.EXAM_ExecFailed();
+        errorMessage += e.getMessage();
         long current = System.currentTimeMillis();
         if ((current - startTime) < 1000) {
             
@@ -413,7 +414,7 @@ public class ExamTaskHelper {
         Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
         assert instanceOrNull != null;
         ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(ExamPluginConfig.class);
-        handleAdditionalArgs(task.javaOpts, args, examPluginConfig);
+        handleAdditionalArgs(task.getJavaOpts(), args, examPluginConfig);
         
         long startTime = System.currentTimeMillis();
         try {
@@ -421,19 +422,22 @@ public class ExamTaskHelper {
             Proc proc = null;
             try (ExamConsoleAnnotator eca = new ExamConsoleAnnotator(taskListener.getLogger(), run.getCharset());
                     ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(taskListener.getLogger())) {
-                jenkins.internal.Util.checkMinRestApiVersion(taskListener, minApiVersion, clientRequest);
                 Launcher.ProcStarter process = launcher.launch().cmds(args).envs(getEnv())
                         .pwd(buildFilePath.getParent());
-                process.stderr(examErr).stdout(eca);
-                proc = process.start();
                 
+                proc = process.stderr(examErr).stdout(eca).start();
+                clientRequest.connectClient(run.getExecutor(), task.getTimeout());
+                jenkins.internal.Util.checkMinRestApiVersion(taskListener, minApiVersion, clientRequest);
                 task.doExecuteTask(clientRequest);
+                
             } catch (IOException e) {
                 failTask("ERROR: " + e.toString());
             } finally {
-                disconnectAndCloseEXAM(clientRequest, proc, task.timeout);
+                disconnectAndCloseEXAM(clientRequest, proc, task.getTimeout());
             }
             run.setResult(Result.SUCCESS);
+        } catch (AbortException e) {
+            throw e;
         } catch (IOException e) {
             handleIOException(startTime, e, task.getDescriptor().getInstallations());
         } finally {

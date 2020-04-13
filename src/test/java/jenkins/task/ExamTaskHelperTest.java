@@ -6,6 +6,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
 import hudson.model.Descriptor;
+import hudson.model.Executor;
 import hudson.model.Node;
 import hudson.model.Result;
 import hudson.model.Run;
@@ -17,12 +18,14 @@ import jenkins.internal.Remote;
 import jenkins.internal.RemoteService;
 import jenkins.internal.RemoteServiceResponse;
 import jenkins.internal.Util;
+import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.ExamStatus;
 import jenkins.internal.data.ReportConfiguration;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
+import jenkins.task.TestUtil.FakeExamLauncher;
 import jenkins.task.TestUtil.FakeTaskListener;
 import jenkins.task._exam.Messages;
 import org.junit.After;
@@ -43,10 +46,12 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
+import org.xml.sax.SAXException;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -58,7 +63,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Remote.class, RemoteService.class, Util.class, hudson.Util.class, Result.class })
-@PowerMockIgnore({ "javax.crypto.*" })
+@PowerMockIgnore({ "javax.crypto.*", "java.security.*", "java.lang.IllegalStateException" })
 public class ExamTaskHelperTest {
     
     @Rule
@@ -80,17 +85,20 @@ public class ExamTaskHelperTest {
     private FilePath workspace;
     private TaskListener taskListener;
     private Launcher launcher;
+    private String examHome;
+    private String examName;
     
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        String examHome = "C:\\path\\to\\exam";
+        examName = "examName";
+        examHome = "C:\\path\\to\\exam";
         String pathToExe = examHome + "\\exam.exe";
         PowerMockito.mockStatic(Remote.class);
         PowerMockito.when(Remote.fileExists(Mockito.any(), Mockito.any())).thenReturn(true);
         
         when(toolMock.forNode(any(), any())).thenReturn(toolMock);
-        when(toolMock.getName()).thenReturn("test");
+        when(toolMock.getName()).thenReturn(examName);
         when(toolMock.getHome()).thenReturn(examHome);
         when(toolMock.getExecutable(any())).thenReturn(pathToExe);
         when(toolMock.getRelativeDataPath()).thenReturn("../examData");
@@ -164,6 +172,59 @@ public class ExamTaskHelperTest {
         thrown.expect(AbortException.class);
         thrown.expectMessage(Messages.EXAM_LicenseServerNotConfigured());
         testObject.perform(taskMock, null, null);
+    }
+    
+    @Test
+    public void perform_exception() throws IOException, InterruptedException, SAXException {
+        ExamPluginConfig examPluginConfig = jenkinsRule.getInstance().getDescriptorByType(ExamPluginConfig.class);
+        examPluginConfig.setLicenseHost("localhost");
+        examPluginConfig.setLicensePort(5054);
+        
+        ExamStatus status = new ExamStatus();
+        status.setJobRunning(Boolean.FALSE);
+        
+        PowerMockito.mockStatic(RemoteService.class);
+        PowerMockito.when(RemoteService.getJSON(any(), anyInt(), anyString(), any()))
+                .thenReturn(new RemoteServiceResponse(Response.ok().build().getStatus(), status, ""));
+        
+        Task.DescriptorTask descriptorTaskMock = mock(Task.DescriptorTask.class);
+        when(descriptorTaskMock.getInstallations()).thenReturn(new ExamTool[] {});
+        when(taskMock.getDescriptor()).thenReturn(descriptorTaskMock);
+        
+        thrown.expect(AbortException.class);
+        thrown.expectMessage("ERROR: EXAM is already running");
+        testObject.perform(taskMock, launcher, new ApiVersion(0, 0, 0));
+    }
+    
+    @Test
+    public void perform() throws IOException, InterruptedException {
+        ExamPluginConfig examPluginConfig = jenkinsRule.getInstance().getDescriptorByType(ExamPluginConfig.class);
+        examPluginConfig.setLicenseHost("localhost");
+        examPluginConfig.setLicensePort(5054);
+        
+        ExamStatus status = new ExamStatus();
+        status.setJobRunning(Boolean.FALSE);
+        
+        PowerMockito.mockStatic(RemoteService.class);
+        PowerMockito.when(RemoteService.getJSON(any(), anyInt(), anyString(), any()))
+                .thenReturn(new RemoteServiceResponse(Response.serverError().build().getStatus(), status, ""))
+                .thenReturn(new RemoteServiceResponse(Response.ok().build().getStatus(), status, "")).thenReturn(
+                new RemoteServiceResponse(Response.ok().build().getStatus(), new ApiVersion(1, 0, 0), ""));
+        
+        PrintStream printStreamMock = mock(PrintStream.class);
+        TaskListener taskListenerMock = mock(TaskListener.class);
+        when(taskListenerMock.getLogger()).thenReturn(printStreamMock);
+        testObject.setTaskListener(taskListenerMock);
+        Whitebox.setInternalState(testObject, "env", new EnvVars());
+        
+        Executor executorMock = mock(Executor.class);
+        when(executorMock.isInterrupted()).thenReturn(false);
+        when(runMock.getExecutor()).thenReturn(executorMock);
+        when(taskMock.getTimeout()).thenReturn(10);
+        launcher = new FakeExamLauncher(taskListener);
+        testObject.perform(taskMock, launcher, new ApiVersion(0, 0, 0));
+        
+        verify(taskMock).doExecuteTask(any());
     }
     
     @Test
@@ -357,7 +418,8 @@ public class ExamTaskHelperTest {
         
         thrown.expect(AbortException.class);
         thrown.expectMessage(Messages.EXAM_ExecFailed());
-        testObject.handleIOException(System.currentTimeMillis() - 2000, null, new ExamTool[] {});
+        testObject.handleIOException(System.currentTimeMillis() - 2000, new AbortException("testException"),
+                new ExamTool[] {});
     }
     
     @Test
@@ -368,7 +430,8 @@ public class ExamTaskHelperTest {
         
         thrown.expect(AbortException.class);
         thrown.expectMessage(Messages.EXAM_GlobalConfigNeeded());
-        testObject.handleIOException(System.currentTimeMillis(), null, new ExamTool[] {});
+        testObject.handleIOException(System.currentTimeMillis(), new AbortException("testException"),
+                new ExamTool[] {});
     }
     
     @Test
@@ -379,7 +442,8 @@ public class ExamTaskHelperTest {
         
         thrown.expect(AbortException.class);
         thrown.expectMessage(Messages.EXAM_ProjectConfigNeeded());
-        testObject.handleIOException(System.currentTimeMillis(), null, new ExamTool[] { null });
+        testObject.handleIOException(System.currentTimeMillis(), new AbortException("testException"),
+                new ExamTool[] { null });
     }
     
     @Test

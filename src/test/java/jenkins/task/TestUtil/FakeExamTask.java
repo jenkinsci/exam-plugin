@@ -19,6 +19,7 @@ public class FakeExamTask extends ExamTask {
     
     @Extension
     public static class DescriptorFakeTask extends DescriptorExamTask {
-    
+        
+        private static final long serialVersionUID = 8047116945301712014L;
     }
 }

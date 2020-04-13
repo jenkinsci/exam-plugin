@@ -52,7 +52,7 @@ public abstract class Task extends Builder {
     /**
      * JAVA_OPTS if not null.
      */
-    protected String javaOpts;
+    private String javaOpts;
     /**
      * Identifies {@link ExamTool} to be used.
      */
@@ -60,7 +60,7 @@ public abstract class Task extends Builder {
     /**
      * timeout if not null.
      */
-    protected int timeout;
+    private int timeout;
     
     protected ExamTaskHelper taskHelper = new ExamTaskHelper();
     

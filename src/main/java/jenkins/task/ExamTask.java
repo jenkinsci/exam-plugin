@@ -277,8 +277,7 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
     protected void doExecuteTask(ClientRequest clientRequest) throws IOException, InterruptedException {
         Executor runExecutor = taskHelper.getRun().getExecutor();
         TaskListener listener = taskHelper.getTaskListener();
-        boolean ret = clientRequest.connectClient(runExecutor, timeout);
-        if (ret) {
+        if (clientRequest.isClientConnected()) {
             TestConfiguration tc = createTestConfiguration(taskHelper.getEnv());
             tc.setPythonPath(pythonExe);
             FilterConfiguration fc = new FilterConfiguration();
@@ -300,10 +299,10 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
             
             clientRequest.waitForTestrunEnds(runExecutor, 60);
             listener.getLogger().println("waiting until EXAM is idle");
-            clientRequest.waitForExamIdle(runExecutor, timeout);
+            clientRequest.waitForExamIdle(runExecutor, getTimeout());
             if (pdfReport) {
                 listener.getLogger().println("waiting for PDF Report");
-                clientRequest.waitForExportPDFReportJob(runExecutor, timeout * 2);
+                clientRequest.waitForExportPDFReportJob(runExecutor, getTimeout() * 2);
             }
             clientRequest.convert(tc.getReportProject().getProjectName());
             taskHelper.copyArtifactsToTarget(tc);

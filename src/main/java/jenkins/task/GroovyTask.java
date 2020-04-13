@@ -155,9 +155,7 @@ public class GroovyTask extends Task implements SimpleBuildStep {
     }
     
     protected void doExecuteTask(ClientRequest clientRequest) throws IOException, InterruptedException {
-        Executor runExecutor = taskHelper.getRun().getExecutor();
-        boolean connected = clientRequest.connectClient(runExecutor, timeout);
-        if (connected) {
+        if (clientRequest.isClientConnected()) {
             ModelConfiguration modelConfig = createModelConfig();
             GroovyConfiguration config = createGroovyConfig();
             

@@ -40,83 +40,89 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ServerDispatcher extends Dispatcher {
-
+    
     private Map<String, MockResponse> mResponse;
-
+    
     public ServerDispatcher() {
         mResponse = new HashMap<>();
         setDefaults();
     }
-
+    
     public void setDefaults() {
         clearAllResponse();
-
+        
         setResponse("/examRest/testrun/status",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache")
                         .setBody("{\"jobName\":\"myTestJob\",\"jobRunning\":\"true\",\"testRunState\":-1}"));
-
+        
         setResponse("/examRest/testrun/start",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache").setBody("{}"));
-
+        
         setResponse("/examRest/testrun/stop",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache").setBody("{}"));
-
-        setResponse("/examRest/workspace/apiVersion",
-                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
-                        .addHeader("Cache-Control", "no-cache").setBody(this.getApiVersionResponseString()));
-
+        
+        setApiResponse(2, 5, 7);
+        
         setResponse("/examRest/testrun/setFilter",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache").setBody("{}"));
-
+        
         setResponse("/examRest/testrun/convertToJunit/testProject",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache"));
-
+        
         setResponse("/examRest/workspace/createProject",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache"));
-
+        
         setResponse("/examRest/groovy/executeGroovyScript",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache"));
-
+        
         setResponse("/examRest/workspace/delete", new MockResponse().setResponseCode(200));
         setResponse("/examRest/workspace/shutdown", new MockResponse().setResponseCode(200));
     }
-
+    
     public void setResponse(String path, MockResponse response) {
         mResponse.put(path, response);
     }
-
+    
     public void removeResponse(String path) {
         if (mResponse.containsKey(path)) {
             mResponse.remove(path);
         }
     }
-
+    
     public void clearAllResponse() {
         mResponse.clear();
     }
-
+    
     // Helper Method for ApiVersion Response
-    private String getApiVersionResponseString() {
+    public void setApiResponse(int major, int minor, int fix) {
+        setResponse("/examRest/workspace/apiVersion",
+                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache")
+                        .setBody(this.getApiVersionResponseString(major, minor, fix)));
+        
+    }
+    
+    private String getApiVersionResponseString(int major, int minor, int fix) {
         ApiVersion apiVersion = new ApiVersion();
-        apiVersion.setMajor(2);
-        apiVersion.setMinor(5);
-        apiVersion.setFix(7);
+        apiVersion.setMajor(major);
+        apiVersion.setMinor(minor);
+        apiVersion.setFix(fix);
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         try {
             String json = ow.writeValueAsString(apiVersion);
             return json;
         } catch (Exception e) {
-            return "{ major: \"2\", minor: \"5\", fix: \"7\" }";
+            return "{ major: \"" + major + "\", minor: \"" + minor + "\", fix: \"" + fix + "\" }";
         }
     }
-
+    
     @Override
     public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
         String path = request.getPath();
