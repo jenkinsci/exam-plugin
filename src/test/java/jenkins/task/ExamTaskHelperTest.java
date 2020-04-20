@@ -307,6 +307,7 @@ public class ExamTaskHelperTest {
         ArgumentListBuilder args = new ArgumentListBuilder();
         testObject.handleAdditionalArgs(null, args, pluginConfigMock);
         List<String> argList = args.toList();
+        System.out.println("DEBUG: " + argList.toString());
         assertTrue(argList.contains("-Dsun.jnu.encoding=UTF-8"));
         assertFalse(envar.containsKey("JAVA_OPTS"));
         
