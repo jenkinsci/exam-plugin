@@ -187,32 +187,31 @@ public class ExamTaskHelper {
      */
     public void handleAdditionalArgs(String javaOpts, ArgumentListBuilder args, ExamPluginConfig examPluginConfig)
             throws AbortException {
-        ArgumentListBuilder argsNew = args;
         
         if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
             run.setResult(Result.FAILURE);
             throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
         }
-        argsNew.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
+        args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
                 "-DRESTAPI_PORT=" + examPluginConfig.getPort());
         
-        argsNew.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
+        args.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
                 "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
         
-        argsNew.add("-Dfile.encoding=UTF-8");
-        argsNew.add("-Dsun.jnu.encoding=UTF-8");
+        args.add("-Dfile.encoding=UTF-8");
+        args.add("-Dsun.jnu.encoding=UTF-8");
         
         if (javaOpts != null) {
             env.put("JAVA_OPTS", env.expand(javaOpts));
             String[] splittedJavaOpts = javaOpts.split(" ");
-            argsNew.add(splittedJavaOpts);
+            args.add(splittedJavaOpts);
         }
         
         if (!launcher.isUnix()) {
-            argsNew = toWindowsCommand(argsNew);
+            ArgumentListBuilder argsNew = toWindowsCommand(args);
+            args.clear();
+            args.add(argsNew.toList());
         }
-        args.clear();
-        args.add(argsNew.toList());
     }
     
     /**

@@ -293,8 +293,9 @@ public class ExamTaskHelperTest {
     @WithoutJenkins
     public void handleAdditionalArgs() throws Exception {
         
-        Launcher launcherMock = mock(Launcher.class);
+        Launcher launcherMock = mock(Launcher.LocalLauncher.class);
         when(launcherMock.isUnix()).thenReturn(false);
+        testObject.setLauncher(launcher);
         
         ExamPluginConfig pluginConfigMock = mock(ExamPluginConfig.class);
         EnvVars envar = new EnvVars();
@@ -307,7 +308,6 @@ public class ExamTaskHelperTest {
         ArgumentListBuilder args = new ArgumentListBuilder();
         testObject.handleAdditionalArgs(null, args, pluginConfigMock);
         List<String> argList = args.toList();
-        System.out.println("DEBUG: " + argList.toString());
         assertTrue(argList.contains("-Dsun.jnu.encoding=UTF-8"));
         assertFalse(envar.containsKey("JAVA_OPTS"));
         
