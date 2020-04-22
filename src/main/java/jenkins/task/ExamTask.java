@@ -262,8 +262,6 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
         getTaskHelper().setLauncher(launcher);
         getTaskHelper().setTaskListener(taskListener);
         
-        //run.addAction(new ExamReportAction(this));
-        
         PythonInstallation python = getPython();
         if (python == null) {
             run.setResult(Result.FAILURE);

@@ -34,14 +34,12 @@ import hudson.console.LineTransformationOutputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 
 /**
  * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
  * execution.
  */
-public class ExamConsoleErrorOut extends LineTransformationOutputStream implements Serializable {
-    private static final long serialVersionUID = 4981965190071641485L;
+public class ExamConsoleErrorOut extends LineTransformationOutputStream {
     private final OutputStream out;
     
     /**

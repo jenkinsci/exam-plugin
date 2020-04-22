@@ -58,7 +58,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -67,9 +66,8 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Thomas Reinicke
  */
-public class ExamTaskHelper implements Serializable {
+public class ExamTaskHelper {
     
-    private static final long serialVersionUID = 3490051201093788820L;
     private Run run;
     private EnvVars env;
     private Launcher launcher;
