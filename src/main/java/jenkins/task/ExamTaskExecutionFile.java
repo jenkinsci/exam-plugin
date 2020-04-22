@@ -50,6 +50,7 @@ import javax.annotation.Nullable;
  */
 public class ExamTaskExecutionFile extends ExamTask {
     
+    private static final long serialVersionUID = -8324531506174590974L;
     private String pathExecutionFile;
     private String pathPCode;
     

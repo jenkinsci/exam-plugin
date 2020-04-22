@@ -37,10 +37,12 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import java.io.Serializable;
 
 @XStreamAlias("testrun-filter")
-public class TestrunFilter extends AbstractDescribableImpl<TestrunFilter> {
+public class TestrunFilter extends AbstractDescribableImpl<TestrunFilter> implements Serializable {
     
+    private static final long serialVersionUID = 1198627925572702398L;
     @CheckForNull
     protected String name;
     @CheckForNull

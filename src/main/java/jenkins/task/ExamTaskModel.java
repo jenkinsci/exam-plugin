@@ -54,6 +54,7 @@ import java.util.List;
  */
 public class ExamTaskModel extends ExamTask {
     
+    private static final long serialVersionUID = 7181777487768961676L;
     /**
      * Identifies {@link jenkins.plugins.exam.config.ExamModelConfig} to be used.
      */

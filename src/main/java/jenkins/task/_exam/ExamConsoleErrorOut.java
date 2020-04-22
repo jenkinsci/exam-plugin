@@ -34,14 +34,16 @@ import hudson.console.LineTransformationOutputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 
 /**
  * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
  * execution.
  */
-public class ExamConsoleErrorOut extends LineTransformationOutputStream {
+public class ExamConsoleErrorOut extends LineTransformationOutputStream implements Serializable {
+    private static final long serialVersionUID = 4981965190071641485L;
     private final OutputStream out;
-
+    
     /**
      * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
      * execution.
@@ -51,11 +53,11 @@ public class ExamConsoleErrorOut extends LineTransformationOutputStream {
     public ExamConsoleErrorOut(OutputStream out) {
         this.out = out;
     }
-
+    
     @Override
     protected void eol(byte[] b, int len) {
     }
-
+    
     @Override
     public void close() throws IOException {
         forceEol();
@@ -64,5 +66,5 @@ public class ExamConsoleErrorOut extends LineTransformationOutputStream {
             out.close();
         }
     }
-
+    
 }

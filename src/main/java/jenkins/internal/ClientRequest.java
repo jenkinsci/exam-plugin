@@ -396,6 +396,9 @@ public class ClientRequest {
                     logger.println("No Testrun detected");
                     break;
                 }
+                if (testDetected) {
+                    logger.println("Testrun detected");
+                }
             } else {
                 if (!status.getJobRunning()) {
                     break;

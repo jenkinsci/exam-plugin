@@ -58,6 +58,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -66,8 +67,9 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Thomas Reinicke
  */
-public class ExamTaskHelper {
+public class ExamTaskHelper implements Serializable {
     
+    private static final long serialVersionUID = 3490051201093788820L;
     private Run run;
     private EnvVars env;
     private Launcher launcher;
@@ -421,10 +423,8 @@ public class ExamTaskHelper {
             Proc proc = null;
             try (ExamConsoleAnnotator eca = new ExamConsoleAnnotator(taskListener.getLogger(), run.getCharset());
                     ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(taskListener.getLogger())) {
-                Launcher.ProcStarter process = launcher.launch().cmds(args).envs(getEnv())
-                        .pwd(buildFilePath.getParent());
-                
-                proc = process.stderr(examErr).stdout(eca).start();
+                proc = launcher.launch().cmds(args).envs(getEnv()).pwd(buildFilePath.getParent()).stderr(examErr)
+                        .stdout(eca).start();
                 clientRequest.connectClient(run.getExecutor(), task.getTimeout());
                 jenkins.internal.Util.checkMinRestApiVersion(taskListener, minApiVersion, clientRequest);
                 task.doExecuteTask(clientRequest);

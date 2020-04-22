@@ -51,7 +51,6 @@ import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
-import jenkins.report.ExamReportAction;
 import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -64,6 +63,7 @@ import java.util.List;
 
 public abstract class ExamTask extends Task implements SimpleBuildStep {
     
+    private static final long serialVersionUID = 845638286844546158L;
     /**
      * Identifies {@link PythonInstallation} to be used.
      */
@@ -257,28 +257,28 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
         
         Executor runExecutor = run.getExecutor();
         assert runExecutor != null;
-        taskHelper.setRun(run);
-        taskHelper.setWorkspace(workspace);
-        taskHelper.setLauncher(launcher);
-        taskHelper.setTaskListener(taskListener);
+        getTaskHelper().setRun(run);
+        getTaskHelper().setWorkspace(workspace);
+        getTaskHelper().setLauncher(launcher);
+        getTaskHelper().setTaskListener(taskListener);
         
-        run.addAction(new ExamReportAction(this));
+        //run.addAction(new ExamReportAction(this));
         
         PythonInstallation python = getPython();
         if (python == null) {
             run.setResult(Result.FAILURE);
             throw new AbortException("python is null");
         }
-        pythonExe = taskHelper.getPythonExePath(python);
+        pythonExe = getTaskHelper().getPythonExePath(python);
         
-        taskHelper.perform(this, launcher, new ApiVersion(1, 0, 0));
+        getTaskHelper().perform(this, launcher, new ApiVersion(1, 0, 0));
     }
     
     protected void doExecuteTask(ClientRequest clientRequest) throws IOException, InterruptedException {
-        Executor runExecutor = taskHelper.getRun().getExecutor();
-        TaskListener listener = taskHelper.getTaskListener();
+        Executor runExecutor = getTaskHelper().getRun().getExecutor();
+        TaskListener listener = getTaskHelper().getTaskListener();
         if (clientRequest.isClientConnected()) {
-            TestConfiguration tc = createTestConfiguration(taskHelper.getEnv());
+            TestConfiguration tc = createTestConfiguration(getTaskHelper().getEnv());
             tc.setPythonPath(pythonExe);
             FilterConfiguration fc = new FilterConfiguration();
             
@@ -297,7 +297,7 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
             }
             clientRequest.startTestrun(tc);
             
-            clientRequest.waitForTestrunEnds(runExecutor, 60);
+            clientRequest.waitForTestrunEnds(runExecutor, getTimeout());
             listener.getLogger().println("waiting until EXAM is idle");
             clientRequest.waitForExamIdle(runExecutor, getTimeout());
             if (pdfReport) {
@@ -305,7 +305,7 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
                 clientRequest.waitForExportPDFReportJob(runExecutor, getTimeout() * 2);
             }
             clientRequest.convert(tc.getReportProject().getProjectName());
-            taskHelper.copyArtifactsToTarget(tc);
+            getTaskHelper().copyArtifactsToTarget(tc);
         }
     }
     

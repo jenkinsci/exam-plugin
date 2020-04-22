@@ -44,13 +44,16 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Build Step for CleanExam
  */
-public class CleanExam extends Builder implements SimpleBuildStep {
+public class CleanExam extends Builder implements SimpleBuildStep, Serializable {
+    
+    private static final long serialVersionUID = 8438981308429128410L;
     
     /**
      * Build Step for CleanExam

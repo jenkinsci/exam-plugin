@@ -32,7 +32,7 @@
     <l:layout title="EXAM build">
         <l:main-panel>
             <h1>
-                Name: ${it.name} __ hallo
+                Name: ${it.name}
             </h1>
         </l:main-panel>
     </l:layout>

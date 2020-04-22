@@ -47,8 +47,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Task extends Builder {
+public abstract class Task extends Builder implements Serializable {
     
+    private static final long serialVersionUID = 8046565551678421640L;
     /**
      * JAVA_OPTS if not null.
      */
@@ -62,7 +63,19 @@ public abstract class Task extends Builder {
      */
     private int timeout;
     
-    protected ExamTaskHelper taskHelper = new ExamTaskHelper();
+    protected ExamTaskHelper taskHelper;
+    
+    /**
+     * Gets the ExamTaskHelper parameter.
+     *
+     * @return ExamTaskHelper
+     */
+    public ExamTaskHelper getTaskHelper() {
+        if (taskHelper == null) {
+            taskHelper = new ExamTaskHelper();
+        }
+        return taskHelper;
+    }
     
     /**
      * Gets the JAVA_OPTS parameter, or null.
@@ -84,6 +97,13 @@ public abstract class Task extends Builder {
      * @return timeout
      */
     public int getTimeout() {
+        if (timeout <= 0) {
+            Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
+            assert instanceOrNull != null;
+            ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(ExamPluginConfig.class);
+            return examPluginConfig.getTimeout();
+        }
+        
         return timeout;
     }
     

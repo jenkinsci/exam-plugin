@@ -64,6 +64,7 @@ import java.util.List;
  */
 public class GroovyTask extends Task implements SimpleBuildStep {
     
+    private static final long serialVersionUID = 2641943348736414442L;
     /**
      * the script, and if specified the startElement, as ID, UUID, or FullScopedName
      */
@@ -82,7 +83,7 @@ public class GroovyTask extends Task implements SimpleBuildStep {
     private String examModel;
     
     /**
-     * Constructor of ExamTaskModel
+     * Constructor of GroovyTask
      */
     @DataBoundConstructor
     public GroovyTask(String script, String startElement, String examName, String examModel,
@@ -146,12 +147,12 @@ public class GroovyTask extends Task implements SimpleBuildStep {
         assert runExecutor != null;
         
         // prepare environment
-        taskHelper.setRun(run);
-        taskHelper.setWorkspace(workspace);
-        taskHelper.setLauncher(launcher);
-        taskHelper.setTaskListener(taskListener);
+        getTaskHelper().setRun(run);
+        getTaskHelper().setWorkspace(workspace);
+        getTaskHelper().setLauncher(launcher);
+        getTaskHelper().setTaskListener(taskListener);
         
-        taskHelper.perform(this, launcher, new ApiVersion(1, 0, 2));
+        getTaskHelper().perform(this, launcher, new ApiVersion(1, 0, 2));
     }
     
     protected void doExecuteTask(ClientRequest clientRequest) throws IOException, InterruptedException {

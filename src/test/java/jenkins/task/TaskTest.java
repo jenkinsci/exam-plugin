@@ -1,6 +1,7 @@
 package jenkins.task;
 
 import jenkins.plugins.exam.ExamTool;
+import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.task.TestUtil.FakeExamTask;
 import jenkins.task.TestUtil.TUtil;
 import org.junit.After;
@@ -11,8 +12,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
 import org.powermock.reflect.Whitebox;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class TaskTest {
     
@@ -45,6 +45,15 @@ public class TaskTest {
     
     @Test
     @WithoutJenkins
+    public void getTaskHelper() {
+        ExamTaskHelper helper = testObject.getTaskHelper();
+        assertNotNull(helper);
+        ExamTaskHelper helper2 = testObject.getTaskHelper();
+        assertEquals(helper, helper2);
+    }
+    
+    @Test
+    @WithoutJenkins
     public void getJavaOpts() {
         String javaOptions = "-test -test2";
         Whitebox.setInternalState(testObject, "javaOpts", javaOptions);
@@ -64,13 +73,20 @@ public class TaskTest {
     }
     
     @Test
-    @WithoutJenkins
     public void getTimeout() {
-        int testTimeout = 1234;
-        Whitebox.setInternalState(testObject, "timeout", testTimeout);
-        int setTimeout = testObject.getTimeout();
+        int testTimeout = 222;
+        int testLocalTimeout = 333;
+        ExamPluginConfig examPluginConfig = jenkinsRule.getInstance().getDescriptorByType(ExamPluginConfig.class);
+        examPluginConfig.setTimeout(testTimeout);
         
+        Whitebox.setInternalState(testObject, "timeout", 0);
+        int setTimeout = testObject.getTimeout();
         assertEquals(testTimeout, setTimeout);
+        
+        Whitebox.setInternalState(testObject, "timeout", testLocalTimeout);
+        setTimeout = testObject.getTimeout();
+        assertEquals(testLocalTimeout, setTimeout);
+        
     }
     
     @Test
