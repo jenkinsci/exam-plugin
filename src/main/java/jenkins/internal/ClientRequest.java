@@ -69,6 +69,10 @@ public class ClientRequest {
         this.launcher = launcher;
     }
     
+    public boolean isClientConnected() {
+        return clientConnected;
+    }
+    
     public int getApiPort() {
         return apiPort;
     }
@@ -391,6 +395,9 @@ public class ClientRequest {
                 if (!testDetected && breakAfter <= 0) {
                     logger.println("No Testrun detected");
                     break;
+                }
+                if (testDetected) {
+                    logger.println("Testrun detected");
                 }
             } else {
                 if (!status.getJobRunning()) {

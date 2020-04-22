@@ -36,14 +36,16 @@ import jenkins.task.ExamTask;
 import jenkins.task.ExamTaskModel;
 
 import javax.annotation.CheckForNull;
+import java.io.Serializable;
 
 /**
  * The report site of a build with information about the parameterized build.
  *
  * @author Thomas Reinicke
  */
-public class ExamReportAction implements Action, RunAction2 {
+public class ExamReportAction implements Action, RunAction2, Serializable {
     
+    private static final long serialVersionUID = -7896187027455719999L;
     private transient Run run;
     private ExamTask examTask;
     

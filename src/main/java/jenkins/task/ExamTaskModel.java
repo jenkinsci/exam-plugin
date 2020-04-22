@@ -37,9 +37,7 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.data.TestConfiguration;
-import jenkins.model.Jenkins;
 import jenkins.plugins.exam.config.ExamModelConfig;
-import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.task._exam.Messages;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -47,8 +45,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,6 +54,7 @@ import java.util.List;
  */
 public class ExamTaskModel extends ExamTask {
     
+    private static final long serialVersionUID = 7181777487768961676L;
     /**
      * Identifies {@link jenkins.plugins.exam.config.ExamModelConfig} to be used.
      */
@@ -109,16 +106,6 @@ public class ExamTaskModel extends ExamTask {
     @DataBoundSetter
     public void setModelConfiguration(String modelConfiguration) {
         this.modelConfiguration = modelConfiguration;
-    }
-    
-    @Nullable
-    private ExamModelConfig getModel(String name) {
-        for (ExamModelConfig mConfig : getDescriptor().getModelConfigs()) {
-            if (mConfig.getName().equalsIgnoreCase(name)) {
-                return mConfig;
-            }
-        }
-        return null;
     }
     
     protected TestConfiguration addDataToTestConfiguration(TestConfiguration tc, EnvVars env) throws AbortException {
@@ -189,18 +176,6 @@ public class ExamTaskModel extends ExamTask {
          */
         public FormValidation doCheckExecutionFile(@QueryParameter String value) {
             return jenkins.internal.Util.validateElementForSearch(value);
-        }
-        
-        /**
-         * returns all ExamModelConfigs
-         *
-         * @return List<ExamModelConfig>
-         */
-        public List<ExamModelConfig> getModelConfigs() {
-            Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
-            return (instanceOrNull == null) ?
-                    new ArrayList<>() :
-                    instanceOrNull.getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
         }
         
         /**

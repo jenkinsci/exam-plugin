@@ -1,5 +1,8 @@
 package jenkins.plugins.exam;
 
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import jenkins.model.Jenkins;
 import jenkins.task.TestUtil.TUtil;
 import org.junit.After;
@@ -8,7 +11,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.powermock.reflect.Whitebox;
+import org.xml.sax.SAXException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -65,6 +70,24 @@ public class ExamToolDescriptorTest {
         
         ExamTool[] actual = testObjectDescriptor.getInstallations();
         assertArrayEquals(examTools, actual);
+    }
+    
+    @Test
+    public void configure() throws IOException, SAXException {
+        TUtil.createAndRegisterExamTool(jenkinsRule, name, examHome, examRelativePath);
+        
+        JenkinsRule.WebClient webClient = jenkinsRule.createWebClient();
+        HtmlPage page = webClient.goTo("configureTools");
+        TUtil.cleanUpExamTools(jenkinsRule);
+        
+        HtmlForm form = page.getFormByName("config");
+        HtmlButton button = jenkinsRule.getButtonByCaption(form, "Apply");
+        button.click();
+        
+        ExamTool[] installations = jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
+                .getInstallations();
+        assertEquals(1, installations.length);
+        assertEquals(name, installations[0].getName());
     }
     
     private ExamTool[] createExamTools() {

@@ -33,15 +33,9 @@ import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Proc;
-import hudson.model.AbstractProject;
 import hudson.model.Executor;
-import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
-import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
@@ -49,13 +43,8 @@ import jenkins.internal.Util;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GroovyConfiguration;
 import jenkins.internal.data.ModelConfiguration;
-import jenkins.internal.descriptor.ExamModelDescriptor;
-import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
-import jenkins.plugins.exam.config.ExamPluginConfig;
-import jenkins.task._exam.ExamConsoleAnnotator;
-import jenkins.task._exam.ExamConsoleErrorOut;
 import jenkins.task._exam.Messages;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
@@ -64,31 +53,18 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Exam Groovy launcher.
  *
  * @author koblofsky
  */
-public class GroovyTask extends Builder implements SimpleBuildStep {
+public class GroovyTask extends Task implements SimpleBuildStep {
     
-    /**
-     * JAVA_OPTS if not null
-     */
-    private String javaOpts;
-    
-    /**
-     * timeout if not null
-     */
-    private int timeout;
-    
+    private static final long serialVersionUID = 2641943348736414442L;
     /**
      * the script, and if specified the startElement, as ID, UUID, or FullScopedName
      */
@@ -107,12 +83,7 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
     private String examModel;
     
     /**
-     * Identifies {@link ExamTool} to be used.
-     */
-    private String examName;
-    
-    /**
-     * Constructor of ExamTaskModel
+     * Constructor of GroovyTask
      */
     @DataBoundConstructor
     public GroovyTask(String script, String startElement, String examName, String examModel,
@@ -122,24 +93,6 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
         this.examName = examName;
         this.examModel = examModel;
         this.modelConfiguration = modelConfiguration;
-    }
-    
-    public String getJavaOpts() {
-        return javaOpts;
-    }
-    
-    @DataBoundSetter
-    public void setJavaOpts(String javaOpts) {
-        this.javaOpts = javaOpts;
-    }
-    
-    public int getTimeout() {
-        return timeout;
-    }
-    
-    @DataBoundSetter
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
     }
     
     public String getStartElement() {
@@ -187,80 +140,23 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
         this.examModel = examModel;
     }
     
-    public String getExamName() {
-        return examName;
-    }
-    
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-            @Nonnull TaskListener taskListener) throws InterruptedException, IOException {
+            @Nonnull TaskListener taskListener) throws IOException, InterruptedException {
+        Executor runExecutor = run.getExecutor();
+        assert runExecutor != null;
+        
         // prepare environment
-        ArgumentListBuilder args = new ArgumentListBuilder();
+        getTaskHelper().setRun(run);
+        getTaskHelper().setWorkspace(workspace);
+        getTaskHelper().setLauncher(launcher);
+        getTaskHelper().setTaskListener(taskListener);
         
-        ExamTaskHelper taskHelper = new ExamTaskHelper(run, workspace, launcher, taskListener);
-        ExamTool tool = taskHelper.getTool(getExam());
-        
-        // prepare workspace
-        FilePath buildFilePath = taskHelper.prepareWorkspace(tool, args);
-        
-        Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
-        assert instanceOrNull != null;
-        ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(ExamPluginConfig.class);
-        args = taskHelper.handleAdditionalArgs(javaOpts, args, examPluginConfig);
-        
-        if (timeout <= 0) {
-            timeout = examPluginConfig.getTimeout();
-        }
-        
-        long startTime = System.currentTimeMillis();
-        try {
-            ClientRequest clientRequest = new ClientRequest(taskListener.getLogger(), examPluginConfig.getPort(),
-                    launcher);
-            Proc proc = null;
-            Executor runExecutor = run.getExecutor();
-            if (runExecutor != null) {
-                if (clientRequest.isApiAvailable()) {
-                    taskListener.getLogger().println("ERROR: EXAM is already running");
-                    run.setResult(Result.FAILURE);
-                    throw new AbortException("ERROR: EXAM is already running");
-                }
-                try (ExamConsoleAnnotator eca = new ExamConsoleAnnotator(taskListener.getLogger(), run.getCharset());
-                        ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(taskListener.getLogger())) {
-                    Util.checkMinRestApiVersion(taskListener, new ApiVersion(1, 0, 2), clientRequest);
-                    Launcher.ProcStarter process = launcher.launch().cmds(args).envs(taskHelper.getEnv())
-                            .pwd(buildFilePath.getParent());
-                    process.stderr(examErr).stdout(eca);
-                    proc = process.start();
-                    
-                    runGroovyScript(clientRequest, runExecutor);
-                } catch (IOException e) {
-                    run.setResult(Result.FAILURE);
-                    throw new AbortException("ERROR: " + e.toString());
-                } finally {
-                    try {
-                        clientRequest.disconnectClient(runExecutor, timeout);
-                    } finally {
-                        if (proc != null && proc.isAlive()) {
-                            proc.joinWithTimeout(10, TimeUnit.SECONDS, taskListener);
-                        }
-                    }
-                }
-            }
-            run.setResult(Result.SUCCESS);
-        } catch (IOException e) {
-            taskHelper.handleIOException(startTime, e, getDescriptor().getInstallations());
-        } finally {
-            Result result = run.getResult();
-            if (result != null) {
-                taskListener.getLogger().println(result.toString());
-            }
-        }
+        getTaskHelper().perform(this, launcher, new ApiVersion(1, 0, 2));
     }
     
-    private void runGroovyScript(ClientRequest clientRequest, Executor runExecutor)
-            throws IOException, InterruptedException {
-        boolean connected = clientRequest.connectClient(runExecutor, timeout);
-        if (connected) {
+    protected void doExecuteTask(ClientRequest clientRequest) throws IOException, InterruptedException {
+        if (clientRequest.isClientConnected()) {
             ModelConfiguration modelConfig = createModelConfig();
             GroovyConfiguration config = createGroovyConfig();
             
@@ -296,38 +192,12 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
         return config;
     }
     
-    @Nullable
-    private ExamTool getExam() {
-        for (ExamTool tool : getDescriptor().getInstallations()) {
-            if (examName != null && examName.equals(tool.getName())) {
-                return tool;
-            }
-        }
-        return null;
-    }
-    
-    @Nullable
-    private ExamModelConfig getModel(String name) {
-        for (ExamModelConfig mConfig : getDescriptor().getModelConfigs()) {
-            if (mConfig.getName().equalsIgnoreCase(name)) {
-                return mConfig;
-            }
-        }
-        return null;
-    }
-    
-    @Override
-    public GroovyTask.DescriptorGroovyTask getDescriptor() {
-        return (GroovyTask.DescriptorGroovyTask) super.getDescriptor();
-    }
-    
     /**
      * The Descriptor of DescriptorGroovyTask
      */
     @Extension
     @Symbol("examRun_Groovy")
-    public static class DescriptorGroovyTask extends BuildStepDescriptor<Builder>
-            implements ExamModelDescriptor, Serializable {
+    public static class DescriptorGroovyTask extends Task.DescriptorTask {
         
         private static final long serialVersionUID = 4277406576918447167L;
         
@@ -344,37 +214,6 @@ public class GroovyTask extends Builder implements SimpleBuildStep {
          */
         public DescriptorGroovyTask() {
             load();
-        }
-        
-        /**
-         * is applicable for all job types
-         *
-         * @return true
-         */
-        @Override
-        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
-            return true;
-        }
-        
-        /**
-         * @return all EXAM tools
-         */
-        public ExamTool[] getInstallations() {
-            Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
-            return (instanceOrNull == null) ?
-                    new ExamTool[0] :
-                    instanceOrNull.getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations();
-        }
-        
-        /**
-         * @return all ExamModelConfigs
-         */
-        public List<ExamModelConfig> getModelConfigs() {
-            Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
-            if (instanceOrNull == null) {
-                return new ArrayList<>();
-            }
-            return instanceOrNull.getDescriptorByType(ExamPluginConfig.class).getModelConfigs();
         }
         
         /**

@@ -12,37 +12,37 @@ public class FakeTaskListener implements TaskListener {
     @Nonnull
     @Override
     public PrintStream getLogger() {
-        return null;
+        return System.out;
     }
-
+    
     @Override
     public void annotate(ConsoleNote ann) throws IOException {
-
+    
     }
-
+    
     @Override
     public void hyperlink(String url, String text) throws IOException {
-
+    
     }
-
+    
     @Nonnull
     @Override
     public PrintWriter error(String msg) {
         return null;
     }
-
+    
     @Nonnull
     @Override
     public PrintWriter error(String format, Object... args) {
         return null;
     }
-
+    
     @Nonnull
     @Override
     public PrintWriter fatalError(String msg) {
         return null;
     }
-
+    
     @Nonnull
     @Override
     public PrintWriter fatalError(String format, Object... args) {

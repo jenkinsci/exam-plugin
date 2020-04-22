@@ -33,17 +33,24 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Proc;
+import hudson.model.Executor;
 import hudson.model.Node;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ArgumentListBuilder;
+import jenkins.internal.ClientRequest;
 import jenkins.internal.Remote;
 import jenkins.internal.Util;
+import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.TestConfiguration;
+import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
+import jenkins.task._exam.ExamConsoleAnnotator;
+import jenkins.task._exam.ExamConsoleErrorOut;
 import jenkins.task._exam.Messages;
 import org.apache.commons.lang.RandomStringUtils;
 
@@ -52,6 +59,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Helper class for all EXAM Tasks.
@@ -64,27 +72,13 @@ public class ExamTaskHelper {
     private EnvVars env;
     private Launcher launcher;
     private FilePath workspace;
-    private TaskListener listener;
+    private TaskListener taskListener;
     
     /**
      * Constructor for ExamTaskHelper.
-     *
-     * @param run       Run
-     * @param workspace FilePath
-     * @param launcher  Launcher
-     * @param listener  TaskListener
-     *
-     * @throws IOException          IOException
-     * @throws InterruptedException InterruptedException
      */
+    public ExamTaskHelper() {
     
-    public ExamTaskHelper(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-            @Nonnull TaskListener listener) throws IOException, InterruptedException {
-        this.run = run;
-        this.env = run.getEnvironment(listener);
-        this.launcher = launcher;
-        this.workspace = workspace;
-        this.listener = listener;
     }
     
     /**
@@ -97,12 +91,63 @@ public class ExamTaskHelper {
     }
     
     /**
+     * get the Run
+     *
+     * @return Run
+     */
+    public Run getRun() {
+        return run;
+    }
+    
+    /**
      * get the TaskListener
      *
      * @return TaskListener
      */
-    public TaskListener getListener() {
-        return listener;
+    public TaskListener getTaskListener() {
+        return taskListener;
+    }
+    
+    /**
+     * get the TaskListener
+     *
+     * @param run
+     */
+    public void setRun(Run run) throws IOException, InterruptedException {
+        this.run = run;
+        if (taskListener != null) {
+            this.env = run.getEnvironment(taskListener);
+        }
+    }
+    
+    /**
+     * get the TaskListener
+     *
+     * @param launcher
+     */
+    public void setLauncher(Launcher launcher) {
+        this.launcher = launcher;
+    }
+    
+    /**
+     * get the TaskListener
+     *
+     * @param workspace
+     */
+    public void setWorkspace(FilePath workspace) {
+        this.workspace = workspace;
+    }
+    
+    /**
+     * get the TaskListener
+     *
+     * @param taskListener
+     */
+    public void setTaskListener(TaskListener taskListener) throws IOException, InterruptedException {
+        this.taskListener = taskListener;
+        if (run != null) {
+            this.env = run.getEnvironment(taskListener);
+        }
     }
     
     /**
@@ -116,7 +161,7 @@ public class ExamTaskHelper {
      * @throws InterruptedException
      */
     public String getPythonExePath(PythonInstallation python) throws IOException, InterruptedException {
-        PythonInstallation pythonNode = python.forNode(getNode(), listener);
+        PythonInstallation pythonNode = python.forNode(getNode(), taskListener);
         String pythonExe = pythonNode.getHome();
         if (pythonExe == null || pythonExe.trim().isEmpty()) {
             run.setResult(Result.FAILURE);
@@ -140,34 +185,33 @@ public class ExamTaskHelper {
      *
      * @return ArgumentListBuilder
      */
-    public ArgumentListBuilder handleAdditionalArgs(String javaOpts, ArgumentListBuilder args,
-            ExamPluginConfig examPluginConfig) throws AbortException {
-        ArgumentListBuilder argsNew = args;
+    public void handleAdditionalArgs(String javaOpts, ArgumentListBuilder args, ExamPluginConfig examPluginConfig)
+            throws AbortException {
         
         if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
             run.setResult(Result.FAILURE);
             throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
         }
-        argsNew.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
+        args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
                 "-DRESTAPI_PORT=" + examPluginConfig.getPort());
         
-        argsNew.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
+        args.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
                 "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
         
-        argsNew.add("-Dfile.encoding=UTF-8");
-        argsNew.add("-Dsun.jnu.encoding=UTF-8");
+        args.add("-Dfile.encoding=UTF-8");
+        args.add("-Dsun.jnu.encoding=UTF-8");
         
         if (javaOpts != null) {
             env.put("JAVA_OPTS", env.expand(javaOpts));
             String[] splittedJavaOpts = javaOpts.split(" ");
-            argsNew.add(splittedJavaOpts);
+            args.add(splittedJavaOpts);
         }
         
         if (!launcher.isUnix()) {
-            argsNew = toWindowsCommand(argsNew);
+            ArgumentListBuilder argsNew = toWindowsCommand(args);
+            args.clear();
+            args.add(argsNew.toList());
         }
-        
-        return argsNew;
     }
     
     /**
@@ -261,7 +305,7 @@ public class ExamTaskHelper {
     /**
      * prepare some configurations and arguments to run EXAM
      *
-     * @param examTool
+     * @param task
      * @param args
      *
      * @return the path to EXAM runnable
@@ -269,8 +313,9 @@ public class ExamTaskHelper {
      * @throws IOException
      * @throws InterruptedException
      */
-    public FilePath prepareWorkspace(ExamTool examTool, ArgumentListBuilder args)
+    public FilePath prepareWorkspace(@Nonnull Task task, ArgumentListBuilder args)
             throws IOException, InterruptedException {
+        ExamTool examTool = getTool(task.getExam());
         String exe = examTool.getExecutable(launcher);
         assert exe != null;
         if (exe.trim().isEmpty()) {
@@ -309,7 +354,7 @@ public class ExamTaskHelper {
             run.setResult(Result.FAILURE);
             throw new AbortException("examTool is null");
         } else {
-            tool = tool.forNode(node, listener);
+            tool = tool.forNode(node, taskListener);
         }
         return tool;
     }
@@ -324,9 +369,10 @@ public class ExamTaskHelper {
      * @throws AbortException AbortException
      */
     public void handleIOException(long startTime, IOException e, ExamTool[] installations) throws AbortException {
-        hudson.Util.displayIOException(e, listener);
+        hudson.Util.displayIOException(e, taskListener);
         
         String errorMessage = Messages.EXAM_ExecFailed();
+        errorMessage += e.getMessage();
         long current = System.currentTimeMillis();
         if ((current - startTime) < 1000) {
             
@@ -344,5 +390,79 @@ public class ExamTaskHelper {
         }
         run.setResult(Result.FAILURE);
         throw new AbortException(errorMessage);
+    }
+    
+    private void disconnectAndCloseEXAM(@Nonnull ClientRequest clientRequest, Proc proc, int timeout)
+            throws IOException, InterruptedException {
+        Executor runExecutor = run.getExecutor();
+        
+        try {
+            clientRequest.disconnectClient(runExecutor, timeout);
+        } finally {
+            if (proc != null && proc.isAlive()) {
+                proc.joinWithTimeout(10, TimeUnit.SECONDS, taskListener);
+            }
+        }
+    }
+    
+    void perform(@Nonnull Task task, @Nonnull Launcher launcher, ApiVersion minApiVersion)
+            throws IOException, InterruptedException {
+        ArgumentListBuilder args = new ArgumentListBuilder();
+        FilePath buildFilePath = prepareWorkspace(task, args);
+        
+        Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
+        assert instanceOrNull != null;
+        ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(ExamPluginConfig.class);
+        handleAdditionalArgs(task.getJavaOpts(), args, examPluginConfig);
+        
+        long startTime = System.currentTimeMillis();
+        try {
+            ClientRequest clientRequest = getClientRequest(launcher, examPluginConfig);
+            Proc proc = null;
+            try (ExamConsoleAnnotator eca = new ExamConsoleAnnotator(taskListener.getLogger(), run.getCharset());
+                    ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(taskListener.getLogger())) {
+                proc = launcher.launch().cmds(args).envs(getEnv()).pwd(buildFilePath.getParent()).stderr(examErr)
+                        .stdout(eca).start();
+                clientRequest.connectClient(run.getExecutor(), task.getTimeout());
+                jenkins.internal.Util.checkMinRestApiVersion(taskListener, minApiVersion, clientRequest);
+                task.doExecuteTask(clientRequest);
+                
+            } catch (IOException e) {
+                failTask("ERROR: " + e.toString());
+            } finally {
+                disconnectAndCloseEXAM(clientRequest, proc, task.getTimeout());
+            }
+            run.setResult(Result.SUCCESS);
+        } catch (AbortException e) {
+            throw e;
+        } catch (IOException e) {
+            handleIOException(startTime, e, task.getDescriptor().getInstallations());
+        } finally {
+            printResult();
+        }
+    }
+    
+    @Nonnull
+    private ClientRequest getClientRequest(@Nonnull Launcher launcher, ExamPluginConfig examPluginConfig)
+            throws IOException, InterruptedException {
+        ClientRequest clientRequest = new ClientRequest(taskListener.getLogger(), examPluginConfig.getPort(),
+                launcher);
+        if (clientRequest.isApiAvailable()) {
+            taskListener.getLogger().println("ERROR: EXAM is already running");
+            failTask("ERROR: EXAM is already running");
+        }
+        return clientRequest;
+    }
+    
+    private void printResult() {
+        Result result = run.getResult();
+        if (result != null) {
+            taskListener.getLogger().println(result.toString());
+        }
+    }
+    
+    private void failTask(String exceptionMessage) throws AbortException {
+        run.setResult(Result.FAILURE);
+        throw new AbortException(exceptionMessage);
     }
 }

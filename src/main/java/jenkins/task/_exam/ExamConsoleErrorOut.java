@@ -41,7 +41,7 @@ import java.io.OutputStream;
  */
 public class ExamConsoleErrorOut extends LineTransformationOutputStream {
     private final OutputStream out;
-
+    
     /**
      * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
      * execution.
@@ -51,11 +51,11 @@ public class ExamConsoleErrorOut extends LineTransformationOutputStream {
     public ExamConsoleErrorOut(OutputStream out) {
         this.out = out;
     }
-
+    
     @Override
     protected void eol(byte[] b, int len) {
     }
-
+    
     @Override
     public void close() throws IOException {
         forceEol();
@@ -64,5 +64,5 @@ public class ExamConsoleErrorOut extends LineTransformationOutputStream {
             out.close();
         }
     }
-
+    
 }

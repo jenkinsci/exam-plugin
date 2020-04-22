@@ -19,8 +19,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ExamToolTest {
     
@@ -113,6 +112,13 @@ public class ExamToolTest {
         actual = testObject.getExecutable(launcher);
         assertEquals(home + File.separator + "EXAM.exe", actual);
         
+    }
+    
+    @Test
+    @WithoutJenkins
+    public void getDescriptorNoJenkins() {
+        ExamTool.DescriptorImpl descriptor = testObject.getDescriptor();
+        assertNull(descriptor);
     }
     
     private DumbSlave createSlave() throws Exception {

@@ -44,7 +44,7 @@ public class ExamConsoleAnnotator extends LineTransformationOutputStream {
     private final OutputStream out;
     private final Charset charset;
     private boolean logPause = false;
-
+    
     /**
      * Filter {@link OutputStream} that places an annotation that marks ExamTaskModel target
      * execution.
@@ -56,10 +56,10 @@ public class ExamConsoleAnnotator extends LineTransformationOutputStream {
         this.out = out;
         this.charset = charset;
     }
-
+    
     @Override
     protected void eol(byte[] b, int len) throws IOException {
-
+        
         String logit = new String(b, charset);
         if (logit.startsWith("-- begin listing")) {
             logPause = true;
@@ -72,7 +72,7 @@ public class ExamConsoleAnnotator extends LineTransformationOutputStream {
             logPause = false;
         }
     }
-
+    
     @Override
     public void close() throws IOException {
         forceEol();
@@ -81,5 +81,5 @@ public class ExamConsoleAnnotator extends LineTransformationOutputStream {
             out.close();
         }
     }
-
+    
 }
