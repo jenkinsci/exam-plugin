@@ -32,7 +32,6 @@ package jenkins.task._exam;
 
 import hudson.console.LineTransformationOutputStream;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -54,15 +53,6 @@ public class ExamConsoleErrorOut extends LineTransformationOutputStream {
     
     @Override
     protected void eol(byte[] b, int len) {
-    }
-    
-    @Override
-    public void close() throws IOException {
-        forceEol();
-        super.close();
-        if (out != null) {
-            out.close();
-        }
     }
     
 }

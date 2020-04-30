@@ -73,13 +73,4 @@ public class ExamConsoleAnnotator extends LineTransformationOutputStream {
         }
     }
     
-    @Override
-    public void close() throws IOException {
-        forceEol();
-        super.close();
-        if (out != null) {
-            out.close();
-        }
-    }
-    
 }
