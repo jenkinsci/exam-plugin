@@ -110,6 +110,10 @@ public abstract class SoapXProvider implements MessageBodyWriter<SOAPMessage>, M
     
     /**
      * gets the MessageFactory for the SOAP Version.
+     *
+     * @return MessageFactory
+     *
+     * @throws SOAPException SOAPException
      */
     public abstract MessageFactory getMessageFactory() throws SOAPException;
     

@@ -72,6 +72,12 @@ public class ExamTaskModel extends ExamTask {
     
     /**
      * Constructor of ExamTaskModel
+     *
+     * @param examName            examName
+     * @param pythonName          pythonName
+     * @param examReport          examReport
+     * @param executionFile       executionFile
+     * @param systemConfiguration systemConfiguration
      */
     @DataBoundConstructor
     public ExamTaskModel(String examName, String pythonName, String examReport, String executionFile,
@@ -160,7 +166,7 @@ public class ExamTaskModel extends ExamTask {
          *
          * @param value String
          *
-         * @return
+         * @return FormValidation
          */
         public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
             return jenkins.internal.Util.validateElementForSearch(value);
@@ -172,7 +178,7 @@ public class ExamTaskModel extends ExamTask {
          *
          * @param value String
          *
-         * @return
+         * @return FormValidation
          */
         public FormValidation doCheckExecutionFile(@QueryParameter String value) {
             return jenkins.internal.Util.validateElementForSearch(value);

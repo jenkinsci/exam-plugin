@@ -60,6 +60,8 @@ public class ExamReportAction implements Action, RunAction2, Serializable {
     
     /**
      * Constructor for ExamTool.
+     *
+     * @return ExamTask
      */
     public ExamTask getExamTask() {
         return examTask;

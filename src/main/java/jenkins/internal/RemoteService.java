@@ -44,117 +44,124 @@ import java.io.Serializable;
  * Execute code on remote slave
  */
 public class RemoteService implements Serializable {
-
+    
     private final static String BASEURL = "http://localhost:%s/examRest";
     private static final long serialVersionUID = 1984941733988614781L;
-
+    
     /**
      * @param launcher Launcher
      * @param apiPort  port of REST-API
      * @param postUrl  postfix for api url
-     * @return ClientResponse
+     * @param clazz    Class
+     *
+     * @return RemoteServiceResponse
+     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
     @Nullable
     public static RemoteServiceResponse get(@Nonnull Launcher launcher, int apiPort, @Nonnull String postUrl,
-                                            Class clazz) throws IOException, InterruptedException {
+            Class clazz) throws IOException, InterruptedException {
         VirtualChannel channel = launcher.getChannel();
         if (channel == null) {
             return null;
         }
-
-        return channel
-                .call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
-                    private static final long serialVersionUID = -7246380216097840885L;
-
-                    /**
-                     * @return ip address of slave
-                     */
-                    public RemoteServiceResponse call() {
-                        String url = String.format(BASEURL, apiPort) + postUrl;
-                        WebResource service = createClient(url);
-                        ClientResponse clientResponse = service.get(ClientResponse.class);
-                        RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
-                        destroyClient();
-                        return response;
-                    }
-                });
+        
+        return channel.call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
+            private static final long serialVersionUID = -7246380216097840885L;
+            
+            /**
+             * @return ip address of slave
+             */
+            public RemoteServiceResponse call() {
+                String url = String.format(BASEURL, apiPort) + postUrl;
+                WebResource service = createClient(url);
+                ClientResponse clientResponse = service.get(ClientResponse.class);
+                RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
+                destroyClient();
+                return response;
+            }
+        });
     }
-
+    
     /**
      * @param launcher Launcher
      * @param apiPort  port of REST-API
      * @param postUrl  postfix for api url
-     * @return ClientResponse
+     * @param clazz    Class
+     *
+     * @return RemoteServiceResponse
+     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
     @Nullable
-    public static RemoteServiceResponse getJSON(@Nonnull Launcher launcher, int apiPort,
-                                                @Nonnull String postUrl, Class clazz) throws IOException, InterruptedException {
+    public static RemoteServiceResponse getJSON(@Nonnull Launcher launcher, int apiPort, @Nonnull String postUrl,
+            Class clazz) throws IOException, InterruptedException {
         VirtualChannel channel = launcher.getChannel();
         if (channel == null) {
             return null;
         }
-        return channel
-                .call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
-                    private static final long serialVersionUID = -7246380216097840887L;
-
-                    /**
-                     * @return ip address of slave
-                     */
-                    public RemoteServiceResponse call() {
-                        String url = String.format(BASEURL, apiPort) + postUrl;
-                        WebResource service = createClient(url);
-                        ClientResponse clientResponse = service.accept(MediaType.APPLICATION_JSON)
-                                .type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
-                        RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
-                        destroyClient();
-                        return response;
-
-                    }
-                });
+        return channel.call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
+            private static final long serialVersionUID = -7246380216097840887L;
+            
+            /**
+             * @return ip address of slave
+             */
+            public RemoteServiceResponse call() {
+                String url = String.format(BASEURL, apiPort) + postUrl;
+                WebResource service = createClient(url);
+                ClientResponse clientResponse = service.accept(MediaType.APPLICATION_JSON)
+                        .type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+                RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
+                destroyClient();
+                return response;
+                
+            }
+        });
     }
-
+    
     /**
-     * @param launcher Launcher
-     * @param apiPort  port of REST-API
-     * @param postUrl  postfix for api url
-     * @return ClientResponse
+     * @param launcher   Launcher
+     * @param apiPort    port of REST-API
+     * @param postUrl    postfix for api url
+     * @param clazz      Class
+     * @param postObject object to post
+     *
+     * @return RemoteServiceResponse
+     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
     @Nullable
-    public static RemoteServiceResponse post(@Nonnull Launcher launcher, int apiPort,
-                                             @Nonnull String postUrl, Object postObject, Class clazz) throws IOException, InterruptedException {
+    public static RemoteServiceResponse post(@Nonnull Launcher launcher, int apiPort, @Nonnull String postUrl,
+            Object postObject, Class clazz) throws IOException, InterruptedException {
         VirtualChannel channel = launcher.getChannel();
         if (channel == null) {
             return null;
         }
-        return channel
-                .call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
-                    private static final long serialVersionUID = 1083377786092322973L;
-
-                    /**
-                     * @return ip address of slave
-                     */
-                    public RemoteServiceResponse call() {
-                        String url = String.format(BASEURL, apiPort) + postUrl;
-                        WebResource service = createClient(url);
-                        ClientResponse clientResponse = null;
-
-                        if (postObject == null) {
-                            clientResponse = service.accept(MediaType.APPLICATION_JSON)
-                                    .type(MediaType.APPLICATION_JSON).post(ClientResponse.class);
-                        } else {
-                            clientResponse = service.accept(MediaType.APPLICATION_JSON)
-                                    .type(MediaType.APPLICATION_JSON).post(ClientResponse.class, postObject);
-                        }
-                        RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
-                        destroyClient();
-                        return response;
-                    }
-                });
+        return channel.call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
+            private static final long serialVersionUID = 1083377786092322973L;
+            
+            /**
+             * @return ip address of slave
+             */
+            public RemoteServiceResponse call() {
+                String url = String.format(BASEURL, apiPort) + postUrl;
+                WebResource service = createClient(url);
+                ClientResponse clientResponse = null;
+                
+                if (postObject == null) {
+                    clientResponse = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
+                            .post(ClientResponse.class);
+                } else {
+                    clientResponse = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
+                            .post(ClientResponse.class, postObject);
+                }
+                RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
+                destroyClient();
+                return response;
+            }
+        });
     }
 }

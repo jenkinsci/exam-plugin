@@ -56,6 +56,11 @@ public class ExamTaskExecutionFile extends ExamTask {
     
     /**
      * Constructor of ExamTaskExecutionFile
+     *
+     * @param examName            examName
+     * @param examReport          examReport
+     * @param pythonName          pythonName
+     * @param systemConfiguration systemConfiguration
      */
     @DataBoundConstructor
     public ExamTaskExecutionFile(String examName, String pythonName, String examReport, String systemConfiguration) {
@@ -117,7 +122,7 @@ public class ExamTaskExecutionFile extends ExamTask {
          *
          * @param value String
          *
-         * @return
+         * @return FormValidation
          */
         public FormValidation doCheckSystemConfiguration(@QueryParameter String value) {
             String newLine = "\r\n";

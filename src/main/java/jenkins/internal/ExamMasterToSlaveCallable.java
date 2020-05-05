@@ -40,9 +40,9 @@ import jenkins.security.MasterToSlaveCallable;
 import javax.ws.rs.core.Response;
 
 /**
- * Calls funktion on Jenkins Agent {@link MasterToSlaveCallable}
+ * Calls function on Jenkins Agent {@link MasterToSlaveCallable}
  *
- * @param <V>
+ * @param <V> object to return
  * @param <T> extends Throwable
  */
 public abstract class ExamMasterToSlaveCallable<V, T extends Throwable> extends MasterToSlaveCallable<V, T> {

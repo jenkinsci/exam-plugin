@@ -57,6 +57,8 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
     
     /**
      * Constructor of ExamModelConfig
+     *
+     * @param modelName String
      */
     @DataBoundConstructor
     public ExamModelConfig(String modelName) {

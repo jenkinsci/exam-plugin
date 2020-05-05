@@ -84,6 +84,12 @@ public class GroovyTask extends Task implements SimpleBuildStep {
     
     /**
      * Constructor of GroovyTask
+     *
+     * @param examName           examName
+     * @param examModel          examModel
+     * @param modelConfiguration modelConfiguration
+     * @param script             script
+     * @param startElement       startElement
      */
     @DataBoundConstructor
     public GroovyTask(String script, String startElement, String examName, String examModel,
@@ -254,7 +260,7 @@ public class GroovyTask extends Task implements SimpleBuildStep {
          *
          * @param value String
          *
-         * @return
+         * @return FormValidation
          */
         public FormValidation doCheckModelConfiguration(@QueryParameter String value) {
             return Util.validateElementForSearch(value);
@@ -266,7 +272,7 @@ public class GroovyTask extends Task implements SimpleBuildStep {
          *
          * @param value String
          *
-         * @return
+         * @return FormValidation
          */
         public FormValidation doCheckScript(@QueryParameter String value) {
             return Util.validateElementForSearch(value);
@@ -278,7 +284,7 @@ public class GroovyTask extends Task implements SimpleBuildStep {
          *
          * @param value String
          *
-         * @return
+         * @return FormValidation
          */
         public FormValidation doCheckStartElement(@QueryParameter String value) {
             return Util.validateElementForSearch(value);

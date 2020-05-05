@@ -96,6 +96,11 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
     
     /**
      * Constructor of ExamTask
+     *
+     * @param examName            examName
+     * @param examReport          examReport
+     * @param pythonName          pythonName
+     * @param systemConfiguration systemConfiguration
      */
     public ExamTask(String examName, String pythonName, String examReport, String systemConfiguration) {
         this.examName = examName;
@@ -402,6 +407,8 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
         
         /**
          * adds a NoReport entry to the ReportConfigs
+         *
+         * @param reports list of ExamReportConfig
          *
          * @return all ExamReportConfig
          */

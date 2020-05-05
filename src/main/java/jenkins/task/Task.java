@@ -165,6 +165,8 @@ public abstract class Task extends Builder implements Serializable {
         
         /**
          * Constructor of this Descriptor
+         *
+         * @param clazz Class
          */
         protected DescriptorTask(Class<? extends Task> clazz) {
             super(clazz);

@@ -111,7 +111,10 @@ public class ExamTaskHelper {
     /**
      * get the TaskListener
      *
-     * @param run
+     * @param run Run
+     *
+     * @throws InterruptedException InterruptedException
+     * @throws IOException          IOException
      */
     public void setRun(Run run) throws IOException, InterruptedException {
         this.run = run;
@@ -123,7 +126,7 @@ public class ExamTaskHelper {
     /**
      * get the TaskListener
      *
-     * @param launcher
+     * @param launcher Launcher
      */
     public void setLauncher(Launcher launcher) {
         this.launcher = launcher;
@@ -132,7 +135,7 @@ public class ExamTaskHelper {
     /**
      * get the TaskListener
      *
-     * @param workspace
+     * @param workspace FilePath
      */
     public void setWorkspace(FilePath workspace) {
         this.workspace = workspace;
@@ -141,7 +144,10 @@ public class ExamTaskHelper {
     /**
      * get the TaskListener
      *
-     * @param taskListener
+     * @param taskListener TaskListener
+     *
+     * @throws InterruptedException InterruptedException
+     * @throws IOException          IOException
      */
     public void setTaskListener(TaskListener taskListener) throws IOException, InterruptedException {
         this.taskListener = taskListener;
@@ -153,12 +159,12 @@ public class ExamTaskHelper {
     /**
      * Resolves the given Python to the path on the target node
      *
-     * @param python
+     * @param python PythonInstallation
      *
      * @return String
      *
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
     public String getPythonExePath(PythonInstallation python) throws IOException, InterruptedException {
         PythonInstallation pythonNode = python.forNode(getNode(), taskListener);
@@ -183,7 +189,7 @@ public class ExamTaskHelper {
      * @param examPluginConfig ExamPluginConfig
      * @param javaOpts         additional java options
      *
-     * @return ArgumentListBuilder
+     * @throws AbortException AbortException
      */
     public void handleAdditionalArgs(String javaOpts, ArgumentListBuilder args, ExamPluginConfig examPluginConfig)
             throws AbortException {
@@ -245,10 +251,10 @@ public class ExamTaskHelper {
     /**
      * copies all reports from the EXAM workspace to the target folder
      *
-     * @param tc
+     * @param tc TestConfiguration
      *
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
     public void copyArtifactsToTarget(TestConfiguration tc) throws IOException, InterruptedException {
         FilePath source = workspace.child("workspace_exam_restApi");
@@ -262,9 +268,9 @@ public class ExamTaskHelper {
     /**
      * Calculate and return the path to the configuration folder of EXAM
      *
-     * @param examTool
+     * @param examTool ExamTool
      *
-     * @return
+     * @return String
      *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
@@ -289,7 +295,7 @@ public class ExamTaskHelper {
     /**
      * returns the node the job is actual running
      *
-     * @return
+     * @return Node
      *
      * @throws AbortException AbortException
      */
@@ -305,13 +311,13 @@ public class ExamTaskHelper {
     /**
      * prepare some configurations and arguments to run EXAM
      *
-     * @param task
-     * @param args
+     * @param task Task
+     * @param args ArgumentListBuilder
      *
      * @return the path to EXAM runnable
      *
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
     public FilePath prepareWorkspace(@Nonnull Task task, ArgumentListBuilder args)
             throws IOException, InterruptedException {
@@ -340,12 +346,12 @@ public class ExamTaskHelper {
     /**
      * returns the tool for EXAM on the actual running node
      *
-     * @param tool
+     * @param tool ExamTool
      *
-     * @return
+     * @return ExamTool
      *
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
     public ExamTool getTool(@Nullable ExamTool tool) throws IOException, InterruptedException {
         Node node = getNode();

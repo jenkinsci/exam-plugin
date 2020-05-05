@@ -60,8 +60,9 @@ public class ClientRequest {
     /**
      * Constructor for REST Api calls to EXAM
      *
-     * @param logger  PrintStream
-     * @param apiPort Port
+     * @param logger   PrintStream
+     * @param apiPort  Port
+     * @param launcher Launcher
      */
     public ClientRequest(PrintStream logger, int apiPort, Launcher launcher) {
         this.apiPort = apiPort;
@@ -94,8 +95,8 @@ public class ClientRequest {
      *
      * @return ExamStatus
      *
-     * @throws AbortException AbortException
-     * @throws IOException    IOException
+     * @throws InterruptedException InterruptedException
+     * @throws IOException          IOException
      */
     @Nullable
     public ExamStatus getStatus() throws IOException, InterruptedException {
@@ -111,8 +112,8 @@ public class ClientRequest {
      *
      * @return ApiVersion
      *
-     * @throws AbortException AbortException
-     * @throws IOException    IOException
+     * @throws InterruptedException InterruptedException
+     * @throws IOException          IOException
      */
     @Nullable
     public ApiVersion getApiVersion() throws IOException, InterruptedException {
@@ -131,6 +132,9 @@ public class ClientRequest {
      * Checks, if the EXAM Client ist responding
      *
      * @return true, is available
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
     public boolean isApiAvailable() throws IOException, InterruptedException {
         boolean isAvailable = true;
@@ -312,9 +316,13 @@ public class ClientRequest {
     /**
      * try to connect to EXAM REST Server within a timeout
      *
-     * @param timeout millis
+     * @param executor Executor
+     * @param timeout  millis
      *
      * @return true, if connected
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
     public boolean connectClient(Executor executor, int timeout) throws IOException, InterruptedException {
         logger.println("connecting to EXAM");
@@ -337,7 +345,11 @@ public class ClientRequest {
     /**
      * Try to disconnect from EXAM Client
      *
-     * @param timeout millis
+     * @param executor Executor
+     * @param timeout  millis
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
      */
     public void disconnectClient(Executor executor, int timeout) throws IOException, InterruptedException {
         if (!clientConnected) {

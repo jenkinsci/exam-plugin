@@ -235,7 +235,7 @@ public class Util {
      * @param text string with variables to replace
      * @param env  environment variables
      *
-     * @return
+     * @return String
      */
     public static String replaceEnvVars(@Nullable String text, @Nullable EnvVars env) {
         if (text == null || text.isEmpty() || env == null || env.isEmpty()) {
@@ -264,8 +264,6 @@ public class Util {
      * @param taskListener       taskListener for logging
      * @param minRequiredVersion minimum Version required
      * @param clientRequest      Instance of clientRequest
-     *
-     * @return
      *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException

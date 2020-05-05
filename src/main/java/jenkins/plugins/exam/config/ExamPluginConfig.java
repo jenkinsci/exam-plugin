@@ -61,19 +61,26 @@ public class ExamPluginConfig extends GlobalConfiguration {
     private int timeout = 300;
     private int licensePort = 0;
     private String licenseHost = "";
-
+    
     /**
      * Constructor of ExamPluginConfig
      */
     public ExamPluginConfig() {
         load();
     }
-
+    
     /**
      * Constructor of ExamPluginConfig
+     *
+     * @param licenseHost   hostname of the license server
+     * @param licensePort   port of the license server
+     * @param modelConfigs  modelConfig
+     * @param port          port for the REST-API
+     * @param reportConfigs reportConfigs
+     * @param timeout       communication timeout in seconds
      */
     public ExamPluginConfig(List<ExamModelConfig> modelConfigs, List<ExamReportConfig> reportConfigs, int port,
-                            int licensePort, int timeout, String licenseHost) {
+            int licensePort, int timeout, String licenseHost) {
         this.modelConfigs = modelConfigs;
         this.reportConfigs = reportConfigs;
         this.licenseHost = licenseHost;
@@ -81,7 +88,7 @@ public class ExamPluginConfig extends GlobalConfiguration {
         this.port = port;
         this.timeout = timeout;
     }
-
+    
     /**
      * Shortcut method for getting instance of {@link ExamPluginConfig}.
      *
@@ -92,62 +99,62 @@ public class ExamPluginConfig extends GlobalConfiguration {
         ExamPluginConfig pluginConfig = ExamPluginConfig.all().get(ExamPluginConfig.class);
         return pluginConfig == null ? ExamPluginConfig.EMPTY_CONFIG : pluginConfig;
     }
-
+    
     public int getPort() {
         return port;
     }
-
+    
     public void setPort(int port) {
         this.port = port;
     }
-
+    
     public int getTimeout() {
         return timeout;
     }
-
+    
     public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
-
+    
     public int getLicensePort() {
         return licensePort;
     }
-
+    
     public void setLicensePort(int licensePort) {
         this.licensePort = licensePort;
     }
-
+    
     public String getLicenseHost() {
         return licenseHost;
     }
-
+    
     public void setLicenseHost(String licenseHost) {
         this.licenseHost = licenseHost;
     }
-
+    
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
         boolean boolSuper = super.configure(req, json);
         save();
         return boolSuper;
     }
-
+    
     public List<ExamModelConfig> getModelConfigs() {
         return modelConfigs;
     }
-
+    
     public void setModelConfigs(List<ExamModelConfig> modelConfigs) {
         this.modelConfigs = modelConfigs;
     }
-
+    
     public List<ExamReportConfig> getReportConfigs() {
         return reportConfigs;
     }
-
+    
     public void setReportConfigs(List<ExamReportConfig> reportConfigs) {
         this.reportConfigs = reportConfigs;
     }
-
+    
     /**
      * To avoid long class name as id in xml tag name and config file
      */
@@ -155,23 +162,24 @@ public class ExamPluginConfig extends GlobalConfiguration {
     public String getId() {
         return EXAM_PLUGIN_CONFIGURATION_ID;
     }
-
+    
     @Override
     @Nonnull
     public String getDisplayName() {
         return "EXAM";
     }
-
+    
     /**
      * Verify every configured Model Connection.
      *
      * @return FormValidation
-     * @throws SOAPException
+     *
+     * @throws SOAPException SOAPException
      */
     public FormValidation doVerifyModelConnections() throws SOAPException {
-
+        
         Map<String, List<String>> status = new HashMap<>();
-
+        
         for (ExamModelConfig mConfig : modelConfigs) {
             String message = DbFactory.testModelConnection(mConfig.getModelName(), mConfig.getTargetEndpoint(),
                     mConfig.getExamVersion());
@@ -180,16 +188,16 @@ public class ExamPluginConfig extends GlobalConfiguration {
             }
             status.get(message).add(mConfig.getName());
         }
-
+        
         StringBuilder sb = new StringBuilder();
-
+        
         Set<String> keys = status.keySet();
         if (keys.size() == 1 && keys.contains("OK")) {
             sb.append("connections OK");
             sb.append("\n");
             return FormValidation.ok(sb.toString());
         }
-
+        
         for (Map.Entry<String, List<String>> entry : status.entrySet()) {
             if (entry.getKey().equalsIgnoreCase("OK")) {
                 continue;
@@ -202,7 +210,7 @@ public class ExamPluginConfig extends GlobalConfiguration {
                 sb.append("\n");
             }
         }
-
+        
         return FormValidation.error(sb.toString());
     }
 }
