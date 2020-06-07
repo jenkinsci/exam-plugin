@@ -147,4 +147,4 @@ result at Jenkins add a junit report step with the following expression:
 
 ## Changelog
 
-[Changelog](doc/CHANGELOG.md)
+[Changelog](./CHANGELOG.md)
