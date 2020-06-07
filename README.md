@@ -1,5 +1,12 @@
+# EXAM plugin
+
 [![](https://ci.jenkins.io/buildStatus/icon?job=Plugins/exam-plugin/master)](https://ci.jenkins.io/job/Plugins/job/exam-plugin/job/master/)
-  
+[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/exam.svg)](https://plugins.jenkins.io/exam)
+[![GitHub release](https://img.shields.io/github/release/jenkinsci/exam-plugin.svg?label=changelog)](https://github.com/jenkinsci/exam-plugin/releases/latest)
+[![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/exam.svg?color=blue)](https://plugins.jenkins.io/exam)
+
+## About this plugin
+
 This plugin integrates the RESTapi of the Testautomation tool EXAM for
 automated test execution. MicroNova EXAM Plugin is available for
 download at: 
@@ -18,14 +25,14 @@ in Hardware-in-the-Loop simulation (HiL), test bench automation and
 industrial automation as well as in embedded development and
 Software-in-the-Loop simulation (SiL).
 
-# Table of contents
+## Table of contents
 - [Requirements](#requirements)
 - [Configuration](#configuration)
     * [Global Tool Configuration](#global-tool-configuration)
     * [System Configuration](#system-configuration)
     * [Job Configuration](#job-configuration)
 
-# Requirements
+## Requirements
 
 - EXAM  
     - EXAM 4.4 - 4.8
@@ -36,9 +43,9 @@ Software-in-the-Loop simulation (SiL).
     - shiningpanda
     - workflow-step-api
 
-# Configuration
+## Configuration
 
-## Global Tool Configuration
+### Global Tool Configuration
 
 For this plugin to be used, an Ant installation must be specified in the
 global Jenkins configuration
@@ -47,7 +54,7 @@ global Jenkins configuration
 
   
 
-## System Configuration
+### System Configuration
 
 | general | |
 | ------------------- | ------------------------------- |
@@ -75,7 +82,7 @@ global Jenkins configuration
 ![System_Configuration_report.png](doc/images/System_Configuration_report.png)
 
 
-## Job Configuration
+### Job Configuration
 
 The EXAM plugin provides 3 build steps.
 
@@ -135,16 +142,16 @@ The EXAM plugin provides 3 build steps.
     ![Job_ExecutionFile.png](doc/images/Job_ExecutionFile.png)
   
 
-#### Junit Report format
+##### Junit Report format
 
 The EXAM reports are converted to standard junit format. To show the
 result at Jenkins add a junit report step with the following expression:
 
     junit 'target/test-reports/**/*.xml'
 
-## License
-[MIT License](./LICENSE.md)
+### License
+[License](./LICENSE.md)
 
-## Changelog
+### Changelog
 
 [Changelog](./CHANGELOG.md)

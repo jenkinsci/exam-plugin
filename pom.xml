@@ -64,11 +64,11 @@
     <name>MicroNova EXAM Plugin</name>
     <description>This plugin integrates the REST API of the Testautomation tool EXAM for automated test execution.
     </description>
-    <url>https://wiki.jenkins.io/display/JENKINS/MicroNova+EXAM+Plugin</url>
+    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
 
     <organization>
         <name>MicroNova AG</name>
-        <url>https://www.exam-ta.de/</url>
+        <url>https://www.micronova.de/testing/exam-testautomation.html</url>
     </organization>
     <licenses>
         <license>
