@@ -28,7 +28,7 @@ Software-in-the-Loop simulation (SiL).
 # Requirements
 
 - EXAM  
-    - EXAM 4.8
+    - EXAM 4.4 - 4.8
     - RESTapi Plugin for EXAM
 
 

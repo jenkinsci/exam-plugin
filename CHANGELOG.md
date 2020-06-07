@@ -4,7 +4,7 @@
 
 ### Added
 * [JENKINS-58411](https://issues.jenkins-ci.org/browse/JENKINS-58411) make connection timeout configurable
-* [JENKINS-61057](https://issues.jenkins-ci.org/browse/JENKINS-61057) execute a GroovyScript
+* [JENKINS-61057](https://issues.jenkins-ci.org/browse/JENKINS-61057) execute a GroovyScript (since EXAM 4.8)
 
 ### Fixed
 * [JENKINS-58412](https://issues.jenkins-ci.org/browse/JENKINS-58412) Job connot be aborted
