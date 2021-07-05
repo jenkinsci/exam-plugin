@@ -1,6 +1,7 @@
 package jenkins.internal.data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Configuration for running a Generate Task in EXAM.
@@ -26,15 +27,15 @@ public class GenerateConfiguration implements Serializable {
     /**
      * List of FrameFunctions (possible values are: ["PRECONDITION_BEFORE", "PRECONDITION_AFTER", "ACTION_BEFORE", "ACTION_AFTER", "POSTCONDITION_BEFORE", "POSTCONDITION_AFTER", "EXPECTED_RESULT_BEFORE", "EXPECTED_RESULT_AFTER", "NUMBERED_FRAME_STEP"])
      */
-    private String frameFunctions;
+    private List<String> frameFunctions;
     /**
      * List of OperationMappings consisting out of UUID, ID or FSN
      */
-    private String mappingList;
+    private List<String> mappingList;
     /**
      * List of TestCaseStates to consider during the generation (has to be one of the following. [NOT_YET_SPECIFIED, SPECIFIED, REVIEWED, NOT_YET_IMPLEMENTED, IMPLEMENTED, PRODUCTIVE, INVALID])
      */
-    private String testCaseStates;
+    private List<String> testCaseStates;
     /**
      * UUID, ID or FSN of the Variant
      */
@@ -74,27 +75,27 @@ public class GenerateConfiguration implements Serializable {
         this.errorHandling = errorHandling;
     }
 
-    public String getFrameFunctions() {
+    public List<String> getFrameFunctions() {
         return frameFunctions;
     }
 
-    public void setFrameFunctions(String frameFunctions) {
+    public void setFrameFunctions(List<String> frameFunctions) {
         this.frameFunctions = frameFunctions;
     }
 
-    public String getMappingList() {
+    public List<String> getMappingList() {
         return mappingList;
     }
 
-    public void setMappingList(String mappingList) {
+    public void setMappingList(List<String> mappingList) {
         this.mappingList = mappingList;
     }
 
-    public String getTestCaseStates() {
+    public List<String> getTestCaseStates() {
         return testCaseStates;
     }
 
-    public void setTestCaseStates(String testCaseStates) {
+    public void setTestCaseStates(List<String> testCaseStates) {
         this.testCaseStates = testCaseStates;
     }
 

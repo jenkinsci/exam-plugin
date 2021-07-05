@@ -14,6 +14,7 @@ import jenkins.internal.Util;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GenerateConfiguration;
 import jenkins.internal.data.ModelConfiguration;
+import jenkins.internal.descriptor.ExamModelDescriptorTask;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.task._exam.Messages;
@@ -25,6 +26,7 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -158,18 +160,20 @@ public class GenerateTask extends Task implements SimpleBuildStep {
      * @param variant            variant
      */
     @DataBoundConstructor
-    public GenerateTask(String examModel, String modelConfiguration, String element, String descriptionSource, boolean documentInReport, String errorHandling, String frameFunctions, String mappingList, String testCaseStates, String variant) {
+    public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource, boolean documentInReport, String errorHandling, String frameFunctions, String mappingList, String testCaseStates, String variant) {
         this.examModel = examModel;
+        this.examName = examName;
         this.modelConfiguration = modelConfiguration;
 
         this.element = element;
         this.descriptionSource = descriptionSource;
         this.documentInReport = documentInReport;
         this.errorHandling = errorHandling;
+        this.variant = variant;
+
         this.frameFunctions = frameFunctions;
         this.mappingList = mappingList;
         this.testCaseStates = testCaseStates;
-        this.variant = variant;
     }
 
     @Override
@@ -203,9 +207,9 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         configuration.setDescriptionSource(getDescriptionSource());
         configuration.setDocumentInReport(isDocumentInReport());
         configuration.setErrorHandling(getErrorHandling());
-        configuration.setFrameFunctions(getFrameFunctions());
-        configuration.setMappingList(getMappingList());
-        configuration.setTestCaseStates(getTestCaseStates());
+        configuration.setFrameFunctions(convertToList(getFrameFunctions()));
+        configuration.setMappingList(convertToList(getMappingList()));
+        configuration.setTestCaseStates(convertToList(getTestCaseStates()));
         configuration.setVariant(getVariant());
 
         return configuration;
@@ -225,16 +229,23 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         return mc;
     }
 
+    private List<String> convertToList(String list) {
+        if (list.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String[] split = list.split(",");
+        return Arrays.asList(split);
+    }
+
     @Extension
     @Symbol("examGenerate")
-    public static class DescriptorGenerateTask extends Task.DescriptorTask {
+    public static class DescriptorGenerateTask extends ExamModelDescriptorTask {
         /**
          * @return the EXAM Groovy display name
          */
         @Nonnull
         public String getDisplayName() {
-            String title = Messages.EXAM_GenerateTask();
-            return title;
+            return Messages.EXAM_GenerateTask();
         }
 
         /**
@@ -242,38 +253,6 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          */
         public DescriptorGenerateTask() {
             load();
-        }
-
-        /**
-         * fills the ListBoxModel with all ExamInstallations
-         *
-         * @return ListBoxModel
-         */
-        public ListBoxModel doFillExamNameItems() {
-            ListBoxModel items = new ListBoxModel();
-            ExamTool[] examTools = getInstallations();
-
-            Arrays.sort(examTools, (ExamTool o1, ExamTool o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
-            for (ExamTool tool : examTools) {
-                items.add(tool.getName(), tool.getName());
-            }
-            return items;
-        }
-
-        /**
-         * fills the ListBoxModel with all ExamModelConfigs
-         *
-         * @return ListBoxModel
-         */
-        public ListBoxModel doFillExamModelItems() {
-            ListBoxModel items = new ListBoxModel();
-            List<ExamModelConfig> models = getModelConfigs();
-            models.sort((ExamModelConfig o1, ExamModelConfig o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
-
-            for (ExamModelConfig model : models) {
-                items.add(model.getDisplayName(), model.getName());
-            }
-            return items;
         }
 
         public FormValidation doCheckElement(@QueryParameter String value) {

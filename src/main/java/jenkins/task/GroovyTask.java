@@ -43,6 +43,7 @@ import jenkins.internal.Util;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GroovyConfiguration;
 import jenkins.internal.data.ModelConfiguration;
+import jenkins.internal.descriptor.ExamModelDescriptorTask;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.task._exam.Messages;
@@ -203,7 +204,7 @@ public class GroovyTask extends Task implements SimpleBuildStep {
      */
     @Extension
     @Symbol("examRun_Groovy")
-    public static class DescriptorGroovyTask extends Task.DescriptorTask {
+    public static class DescriptorGroovyTask extends ExamModelDescriptorTask {
         
         private static final long serialVersionUID = 4277406576918447167L;
         
@@ -221,51 +222,7 @@ public class GroovyTask extends Task implements SimpleBuildStep {
         public DescriptorGroovyTask() {
             load();
         }
-        
-        /**
-         * fills the ListBoxModel with all ExamInstallations
-         *
-         * @return ListBoxModel
-         */
-        public ListBoxModel doFillExamNameItems() {
-            ListBoxModel items = new ListBoxModel();
-            ExamTool[] examTools = getInstallations();
-            
-            Arrays.sort(examTools, (ExamTool o1, ExamTool o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
-            for (ExamTool tool : examTools) {
-                items.add(tool.getName(), tool.getName());
-            }
-            return items;
-        }
-        
-        /**
-         * fills the ListBoxModel with all ExamModelConfigs
-         *
-         * @return ListBoxModel
-         */
-        public ListBoxModel doFillExamModelItems() {
-            ListBoxModel items = new ListBoxModel();
-            List<ExamModelConfig> models = getModelConfigs();
-            models.sort((ExamModelConfig o1, ExamModelConfig o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
-            
-            for (ExamModelConfig model : models) {
-                items.add(model.getDisplayName(), model.getName());
-            }
-            return items;
-        }
-        
-        /**
-         * Validates the parameter ModelConfiguration. Checks if it is an id, uuid or
-         * exam fullscopename
-         *
-         * @param value String
-         *
-         * @return FormValidation
-         */
-        public FormValidation doCheckModelConfiguration(@QueryParameter String value) {
-            return Util.validateElementForSearch(value);
-        }
-        
+
         /**
          * Validates the parameter Script. Checks if it is an id, uuid or
          * exam fullscopename
