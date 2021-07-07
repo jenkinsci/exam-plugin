@@ -160,7 +160,8 @@ public class GenerateTask extends Task implements SimpleBuildStep {
      * @param variant            variant
      */
     @DataBoundConstructor
-    public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource, boolean documentInReport, String errorHandling, String frameFunctions, String mappingList, String testCaseStates, String variant) {
+    public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource,
+            boolean documentInReport, String errorHandling, String frameFunctions, String mappingList, String testCaseStates, String variant) {
         this.examModel = examModel;
         this.examName = examName;
         this.modelConfiguration = modelConfiguration;
