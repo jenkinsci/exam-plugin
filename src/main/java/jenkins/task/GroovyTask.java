@@ -37,14 +37,12 @@ import hudson.model.Executor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.Util;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GroovyConfiguration;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.descriptor.ExamModelDescriptorTask;
-import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.task._exam.Messages;
 import jenkins.tasks.SimpleBuildStep;
@@ -55,8 +53,6 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Exam Groovy launcher.
@@ -64,7 +60,7 @@ import java.util.List;
  * @author koblofsky
  */
 public class GroovyTask extends Task implements SimpleBuildStep {
-    
+
     private static final long serialVersionUID = 2641943348736414442L;
     /**
      * the script, and if specified the startElement, as ID, UUID, or FullScopedName
@@ -72,17 +68,17 @@ public class GroovyTask extends Task implements SimpleBuildStep {
     private String script;
     private String startElement;
     private boolean useStartElement;
-    
+
     /**
      * the modelConfiguration as ID, UUID, or FullScopedName
      */
     private String modelConfiguration;
-    
+
     /**
      * Identifies {@link jenkins.plugins.exam.config.ExamModelConfig} to be used.
      */
     private String examModel;
-    
+
     /**
      * Constructor of GroovyTask
      *
@@ -94,85 +90,85 @@ public class GroovyTask extends Task implements SimpleBuildStep {
      */
     @DataBoundConstructor
     public GroovyTask(String script, String startElement, String examName, String examModel,
-            String modelConfiguration) {
+                      String modelConfiguration) {
         this.script = script;
         this.startElement = startElement;
         this.examName = examName;
         this.examModel = examModel;
         this.modelConfiguration = modelConfiguration;
     }
-    
+
     public String getStartElement() {
         return startElement;
     }
-    
+
     @DataBoundSetter
     public void setUseStartElement(boolean useStartElement) {
         this.useStartElement = useStartElement;
     }
-    
+
     public boolean isUseStartElement() {
         return useStartElement;
     }
-    
+
     @DataBoundSetter
     public void setStartElement(String startElement) {
         this.startElement = startElement;
     }
-    
+
     public String getScript() {
         return script;
     }
-    
+
     @DataBoundSetter
     public void setScript(String script) {
         this.script = script;
     }
-    
+
     public String getModelConfiguration() {
         return modelConfiguration;
     }
-    
+
     @DataBoundSetter
     public void setModelConfiguration(String modelConfiguration) {
         this.modelConfiguration = modelConfiguration;
     }
-    
+
     public String getExamModel() {
         return examModel;
     }
-    
+
     @DataBoundSetter
     public void setExamModel(String examModel) {
         this.examModel = examModel;
     }
-    
+
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-            @Nonnull TaskListener taskListener) throws IOException, InterruptedException {
+                        @Nonnull TaskListener taskListener) throws IOException, InterruptedException {
         Executor runExecutor = run.getExecutor();
         assert runExecutor != null;
-        
+
         // prepare environment
         getTaskHelper().setRun(run);
         getTaskHelper().setWorkspace(workspace);
         getTaskHelper().setLauncher(launcher);
         getTaskHelper().setTaskListener(taskListener);
-        
+
         getTaskHelper().perform(this, launcher, new ApiVersion(1, 0, 2));
     }
-    
+
     protected void doExecuteTask(ClientRequest clientRequest) throws IOException, InterruptedException {
         if (clientRequest.isClientConnected()) {
             ModelConfiguration modelConfig = createModelConfig();
             GroovyConfiguration config = createGroovyConfig();
-            
+
             clientRequest.clearWorkspace(null);
             clientRequest.createExamProject(modelConfig);
             clientRequest.executeGoovyScript(config);
         }
     }
-    
+
     private ModelConfiguration createModelConfig() throws AbortException {
         ModelConfiguration mc = new ModelConfiguration();
         ExamModelConfig m = getModel(examModel);
@@ -183,10 +179,10 @@ public class GroovyTask extends Task implements SimpleBuildStep {
         mc.setModelName(m.getModelName());
         mc.setTargetEndpoint(m.getTargetEndpoint());
         mc.setModelConfigUUID(modelConfiguration);
-        
+
         return mc;
     }
-    
+
     private GroovyConfiguration createGroovyConfig() {
         GroovyConfiguration config = new GroovyConfiguration();
         config.setScript(getScript());
@@ -195,19 +191,19 @@ public class GroovyTask extends Task implements SimpleBuildStep {
         } else {
             config.setStartElement("");
         }
-        
+
         return config;
     }
-    
+
     /**
      * The Descriptor of DescriptorGroovyTask
      */
     @Extension
     @Symbol("examRun_Groovy")
     public static class DescriptorGroovyTask extends ExamModelDescriptorTask {
-        
+
         private static final long serialVersionUID = 4277406576918447167L;
-        
+
         /**
          * @return the EXAM Groovy display name
          */
@@ -215,7 +211,7 @@ public class GroovyTask extends Task implements SimpleBuildStep {
         public String getDisplayName() {
             return Messages.EXAM_RunGroovyTask();
         }
-        
+
         /**
          * Constructor of this Descriptor
          */
@@ -228,19 +224,17 @@ public class GroovyTask extends Task implements SimpleBuildStep {
          * exam fullscopename
          *
          * @param value String
-         *
          * @return FormValidation
          */
         public FormValidation doCheckScript(@QueryParameter String value) {
             return Util.validateElementForSearch(value);
         }
-        
+
         /**
          * Validates the parameter StartElement. Checks if it is an id, uuid or
          * exam fullscopename
          *
          * @param value String
-         *
          * @return FormValidation
          */
         public FormValidation doCheckStartElement(@QueryParameter String value) {

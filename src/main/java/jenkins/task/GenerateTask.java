@@ -1,3 +1,32 @@
+/**
+ * Copyright (c) 2018 MicroNova AG
+ * All rights reserved.
+ * <p>
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ * <p>
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * <p>
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ * <p>
+ * 3. Neither the name of MicroNova AG nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * <p>
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package jenkins.task;
 
 import hudson.AbortException;
@@ -8,14 +37,12 @@ import hudson.model.Executor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.Util;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GenerateConfiguration;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.descriptor.ExamModelDescriptorTask;
-import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.task._exam.Messages;
 import jenkins.tasks.SimpleBuildStep;
@@ -30,6 +57,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Exam Generate Testcase Task
+ */
 public class GenerateTask extends Task implements SimpleBuildStep {
 
     private static final long serialVersionUID = 2641743348736414442L;
@@ -161,7 +191,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
      */
     @DataBoundConstructor
     public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource,
-            boolean documentInReport, String errorHandling, String frameFunctions, String mappingList, String testCaseStates, String variant) {
+                        boolean documentInReport, String errorHandling, String frameFunctions, String mappingList, String testCaseStates, String variant) {
         this.examModel = examModel;
         this.examName = examName;
         this.modelConfiguration = modelConfiguration;
@@ -238,6 +268,9 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         return Arrays.asList(split);
     }
 
+    /**
+     * The Descriptor of the GenerateTask
+     */
     @Extension
     @Symbol("examGenerate")
     public static class DescriptorGenerateTask extends ExamModelDescriptorTask {
@@ -256,6 +289,12 @@ public class GenerateTask extends Task implements SimpleBuildStep {
             load();
         }
 
+        /**
+         * Checks if the Element is a valid EXAM ID,UUID or FSN.
+         *
+         * @param value value
+         * @return If the form is ok
+         */
         public FormValidation doCheckElement(@QueryParameter String value) {
             if (value.isEmpty()) {
                 return FormValidation.ok();
@@ -263,27 +302,51 @@ public class GenerateTask extends Task implements SimpleBuildStep {
             return Util.validateElementForSearch(value);
         }
 
+        /**
+         * Checks if the Input is a valid descriptionSource
+         *
+         * @param value value
+         * @return If the form is ok
+         */
         public FormValidation doCheckDescriptionSource(@QueryParameter String value) {
-            List<String> possible_values = Arrays.asList("BESCHREIBUNG", "DESCRIPTION", "");
-            if (possible_values.contains(value)) {
+            List<String> possibleValues = Arrays.asList("BESCHREIBUNG", "DESCRIPTION", "");
+            if (possibleValues.contains(value)) {
                 return FormValidation.ok();
             }
             return FormValidation.error("Value is not valid");
         }
 
+        /**
+         * Checks if the Input is a valid errorHandling argument.
+         *
+         * @param value value
+         * @return If the form is ok
+         */
         public FormValidation doCheckErrorHandling(@QueryParameter String value) {
-            List<String> possible_values = Arrays.asList("GENERATE_ERROR_STEP", "SKIP_TESTCASE", "ABORT", "");
-            if (possible_values.contains(value)) {
+            List<String> possibleValues = Arrays.asList("GENERATE_ERROR_STEP", "SKIP_TESTCASE", "ABORT", "");
+            if (possibleValues.contains(value)) {
                 return FormValidation.ok();
             }
             return FormValidation.error("Value is not valid");
         }
 
+        /**
+         * Checks if the Input is a valid frameFunction.
+         *
+         * @param value value
+         * @return If the form is ok
+         */
         public FormValidation doCheckFrameFunctions(@QueryParameter String value) {
-            List<String> possible_values = Arrays.asList("PRECONDITION_BEFORE", "PRECONDITION_AFTER", "ACTION_BEFORE", "ACTION_AFTER", "POSTCONDITION_BEFORE", "POSTCONDITION_AFTER", "EXPECTED_RESULT_BEFORE", "EXPECTED_RESULT_AFTER", "NUMBERED_FRAME_STEP");
-            return Util.checkIfStringContainsValues(possible_values, ",", value);
+            List<String> possibleValues = Arrays.asList("PRECONDITION_BEFORE", "PRECONDITION_AFTER", "ACTION_BEFORE", "ACTION_AFTER", "POSTCONDITION_BEFORE", "POSTCONDITION_AFTER", "EXPECTED_RESULT_BEFORE", "EXPECTED_RESULT_AFTER", "NUMBERED_FRAME_STEP");
+            return Util.checkIfStringContainsValues(possibleValues, ",", value);
         }
 
+        /**
+         * Checks if the mappingList is valid.
+         *
+         * @param value value
+         * @return If the form is ok
+         */
         public FormValidation doCheckMappingList(@QueryParameter String value) {
             if (value.isEmpty()) {
                 return FormValidation.ok();
@@ -291,11 +354,23 @@ public class GenerateTask extends Task implements SimpleBuildStep {
             return Util.validateElementForSearch(value);
         }
 
+        /**
+         * Checks if the testCaseStates are valid
+         *
+         * @param value value
+         * @return If the form is ok
+         */
         public FormValidation doCheckTestCaseStates(@QueryParameter String value) {
-            List<String> possible_values = Arrays.asList("NOT_YET_SPECIFIED", "SPECIFIED", "REVIEWED", "NOT_YET_IMPLEMENTED", "IMPLEMENTED", "PRODUCTIVE", "INVALID");
-            return Util.checkIfStringContainsValues(possible_values, ",", value);
+            List<String> possibleValues = Arrays.asList("NOT_YET_SPECIFIED", "SPECIFIED", "REVIEWED", "NOT_YET_IMPLEMENTED", "IMPLEMENTED", "PRODUCTIVE", "INVALID");
+            return Util.checkIfStringContainsValues(possibleValues, ",", value);
         }
 
+        /**
+         * checks if the variant is valid
+         *
+         * @param value value
+         * @return If the form is ok
+         */
         public FormValidation doCheckVariant(@QueryParameter String value) {
             if (value.isEmpty()) {
                 return FormValidation.ok();
