@@ -288,7 +288,6 @@ public class Util {
         if (string.isEmpty()) {
             return FormValidation.ok();
         }
-        boolean valid = true;
         if (string.contains(splitChar)) {
             List<String> values = Arrays.asList(string.split(splitChar));
             for (String part : values) {

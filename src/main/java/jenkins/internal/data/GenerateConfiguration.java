@@ -41,6 +41,9 @@ public class GenerateConfiguration implements Serializable {
      */
     private String variant;
 
+    /**
+     * Constructor
+     */
     public GenerateConfiguration() {}
 
     public String getElement() {

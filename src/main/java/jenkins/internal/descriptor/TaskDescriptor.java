@@ -35,8 +35,14 @@ import jenkins.plugins.exam.config.ExamModelConfig;
 import java.util.List;
 
 public interface TaskDescriptor {
-    
+
+    /**
+     * Exam installations
+     */
     ExamTool[] getInstallations();
-    
+
+    /**
+     * Modelconfigurations
+     */
     List<ExamModelConfig> getModelConfigs();
 }
