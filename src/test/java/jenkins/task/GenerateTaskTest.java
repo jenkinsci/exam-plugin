@@ -16,9 +16,12 @@ import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.task.TestUtil.FakeTaskListener;
 import jenkins.task.TestUtil.TUtil;
 import jenkins.task._exam.Messages;
-import org.apache.xpath.operations.Bool;
 import org.hamcrest.CoreMatchers;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -26,9 +29,9 @@ import org.jvnet.hudson.test.WithoutJenkins;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
-import testData.ServerDispatcher;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,16 +41,12 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-@RunWith(PowerMockRunner.class)
-public class GenerateTaskTest {
+@RunWith(PowerMockRunner.class) @PowerMockIgnore({ "javax.crypto.*" }) public class GenerateTaskTest {
 
-    @Rule
-    JenkinsRule jenkinsRule = new JenkinsRule();
-    @ClassRule
-    public static BuildWatcher buildWatcher = new BuildWatcher();
+    @Rule JenkinsRule jenkinsRule = new JenkinsRule();
+    @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
 
-    @Mock
-    Run runMock;
+    @Mock Run runMock;
 
     /**
      * Exam properties
@@ -78,8 +77,7 @@ public class GenerateTaskTest {
 
     List<File> createdFiles = new ArrayList<>();
 
-    @Before
-    public void setUp() {
+    @Before public void setUp() {
         examName = "examName";
         examModel = "examModel";
         modelConfig = "config";
@@ -96,11 +94,11 @@ public class GenerateTaskTest {
 
         Jenkins instance = jenkinsRule.getInstance();
         examHome = instance == null ? "examHome" : instance.getRootPath().getRemote();
-        testObject = new GenerateTask(examModel, examName, modelConfig, element, descriptionSource, documentInReport, errorHandling, frameFunctions, mappingList, testCaseStates, variant);
+        testObject = new GenerateTask(examModel, examName, modelConfig, element, descriptionSource, documentInReport,
+                errorHandling, frameFunctions, mappingList, testCaseStates, variant);
     }
 
-    @After
-    public void tearDown() {
+    @After public void tearDown() {
         TUtil.cleanUpExamTools(jenkinsRule);
         TUtil.cleanUpPythonInstallations(jenkinsRule);
 
@@ -112,129 +110,94 @@ public class GenerateTaskTest {
         });
     }
 
-    @Test
-    @WithoutJenkins
-    public void testGetElement() {
+    @Test @WithoutJenkins public void testGetElement() {
         Whitebox.setInternalState(testObject, "element", element);
         assertEquals(testObject.getElement(), element);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testSetElement() {
+    @Test @WithoutJenkins public void testSetElement() {
         testObject.setElement(element);
         assertEquals(testObject.getElement(), element);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testGetDescriptionSource() {
+    @Test @WithoutJenkins public void testGetDescriptionSource() {
         Whitebox.setInternalState(testObject, "descriptionSource", descriptionSource);
         assertEquals(testObject.getDescriptionSource(), descriptionSource);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testSetDescriptionSource() {
+    @Test @WithoutJenkins public void testSetDescriptionSource() {
         testObject.setElement(descriptionSource);
         assertEquals(testObject.getDescriptionSource(), descriptionSource);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testGetDocumentInReport() {
+    @Test @WithoutJenkins public void testGetDocumentInReport() {
         Whitebox.setInternalState(testObject, "documentInReport", documentInReport);
         assertEquals(testObject.isDocumentInReport(), documentInReport);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testSetDocumentInReport() {
+    @Test @WithoutJenkins public void testSetDocumentInReport() {
         testObject.setDocumentInReport(documentInReport);
         assertEquals(testObject.isDocumentInReport(), documentInReport);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testGetErrorHandling() {
+    @Test @WithoutJenkins public void testGetErrorHandling() {
         Whitebox.setInternalState(testObject, "errorHandling", errorHandling);
         assertEquals(testObject.getErrorHandling(), errorHandling);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testSetErrorHandling() {
+    @Test @WithoutJenkins public void testSetErrorHandling() {
         testObject.setErrorHandling(errorHandling);
         assertEquals(testObject.getErrorHandling(), errorHandling);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testGetFrameFunctions() {
+    @Test @WithoutJenkins public void testGetFrameFunctions() {
         Whitebox.setInternalState(testObject, "frameFunctions", frameFunctions);
         assertEquals(testObject.getFrameFunctions(), frameFunctions);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testSetFrameFunctions() {
+    @Test @WithoutJenkins public void testSetFrameFunctions() {
         testObject.setErrorHandling(frameFunctions);
         assertEquals(testObject.getFrameFunctions(), frameFunctions);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testGetMappingList() {
+    @Test @WithoutJenkins public void testGetMappingList() {
         Whitebox.setInternalState(testObject, "mappingList", mappingList);
         assertEquals(testObject.getMappingList(), mappingList);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testSetMappingList() {
+    @Test @WithoutJenkins public void testSetMappingList() {
         testObject.setErrorHandling(mappingList);
         assertEquals(testObject.getMappingList(), mappingList);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testGetTestCaseStates() {
+    @Test @WithoutJenkins public void testGetTestCaseStates() {
         Whitebox.setInternalState(testObject, "testCaseStates", testCaseStates);
         assertEquals(testObject.getTestCaseStates(), testCaseStates);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testSetTestCaseStates() {
+    @Test @WithoutJenkins public void testSetTestCaseStates() {
         testObject.setErrorHandling(testCaseStates);
         assertEquals(testObject.getTestCaseStates(), testCaseStates);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testGetVariant() {
+    @Test @WithoutJenkins public void testGetVariant() {
         Whitebox.setInternalState(testObject, "variant", variant);
         assertEquals(testObject.getVariant(), variant);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testSetVariant() {
+    @Test @WithoutJenkins public void testSetVariant() {
         testObject.setErrorHandling(variant);
         assertEquals(testObject.getVariant(), variant);
     }
 
-    @Test
-    @WithoutJenkins
-    public void testSetExamModel() {
+    @Test @WithoutJenkins public void testSetExamModel() {
         testObject.setExamModel(examModel);
         String element = Whitebox.getInternalState(testObject, "examModel");
 
         assertEquals(examModel, element);
     }
 
-    @Test
-    public void testGetExam() {
+    @Test public void testGetExam() {
         assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
                 .getInstallations().length);
         ExamTool newExamTool = TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
@@ -245,13 +208,11 @@ public class GenerateTaskTest {
         assertEquals(newExamTool, setTool);
     }
 
-    @Test
-    public void testGetExamNoExam() {
+    @Test public void testGetExamNoExam() {
         assertNull(testObject.getExam());
     }
 
-    @Test
-    public void testGetModel() {
+    @Test public void testGetModel() {
         ExamModelConfig examModelConfig = testObject.getModel(examModel);
         assertNull(examModelConfig);
 
@@ -269,8 +230,7 @@ public class GenerateTaskTest {
         assertEquals(mod2, examModelConfig);
     }
 
-    @Test
-    public void testPerform_noConfig() throws Exception {
+    @Test public void testPerform_noConfig() throws Exception {
         TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
 
         File file = new File(examHome + File.separator + "EXAM.exe");
@@ -291,8 +251,7 @@ public class GenerateTaskTest {
                         + File.separator + "config.ini")));
     }
 
-    @Test
-    public void testPerform_noTool() throws Exception {
+    @Test public void testPerform_noTool() throws Exception {
         examTestProject = jenkinsRule.createFreeStyleProject();
         examTestProject.getBuildersList().add(testObject);
         FreeStyleBuild build = examTestProject.scheduleBuild2(0).get();
@@ -309,8 +268,7 @@ public class GenerateTaskTest {
         assertThat(log, CoreMatchers.hasItem("ERROR: " + Messages.EXAM_ExecutableNotFound(examName)));
     }
 
-    @Test
-    public void testCreateModelConfig() throws Exception {
+    @Test public void testCreateModelConfig() throws Exception {
         String targetEndpoint = "targetEndpoint";
         ExamModelConfig mod = new ExamModelConfig(examModel);
         mod.setName(examName);
@@ -340,8 +298,7 @@ public class GenerateTaskTest {
         fail();
     }
 
-    @Test
-    public void testCreateGenerateConfig() throws Exception {
+    @Test public void testCreateGenerateConfig() throws Exception {
         GenerateConfiguration expected = new GenerateConfiguration();
         expected.setElement(element);
         expected.setDescriptionSource(descriptionSource);
@@ -374,8 +331,7 @@ public class GenerateTaskTest {
         TUtil.assertGenerateConfig(expected, actual);
     }
 
-    @Test
-    public void testExecuteTask() throws IOException, InterruptedException {
+    @Test public void testExecuteTask() throws IOException, InterruptedException {
         MockitoAnnotations.initMocks(this);
 
         ExamModelConfig mod = new ExamModelConfig(examModel);
