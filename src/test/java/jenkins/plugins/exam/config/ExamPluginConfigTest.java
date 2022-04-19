@@ -4,9 +4,6 @@ import Utils.Mocks;
 import Utils.Whitebox;
 import hudson.DescriptorExtensionList;
 import hudson.model.Descriptor;
-import hudson.util.FormValidation;
-import jakarta.xml.soap.SOAPException;
-import jenkins.internal.DbFactory;
 import jenkins.model.GlobalConfiguration;
 import org.junit.After;
 import org.junit.Before;
@@ -14,17 +11,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
-import org.mockito.BDDMockito;
-import org.mockito.MockedStatic;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 
 public class ExamPluginConfigTest {
 
@@ -188,37 +180,6 @@ public class ExamPluginConfigTest {
         List<ExamReportConfig> setReportConfigs = Whitebox.getInternalState(testObject, "reportConfigs");
 
         assertEquals(testReportConfigs, setReportConfigs);
-    }
-
-    @Test
-    @WithoutJenkins
-    public void doVerifyModelConnections() throws SOAPException {
-        List<ExamModelConfig> configs = new ArrayList<ExamModelConfig>();
-        ExamModelConfig config = new ExamModelConfig("testModel");
-        config.setExamVersion(44);
-        configs.add(config);
-        testObject.setModelConfigs(configs);
-
-        // mock dbfactory class
-        MockedStatic<DbFactory> dbFactoryMockedStatic = Mocks.mockStatic(DbFactory.class);
-        dbFactoryMockedStatic.when(() -> DbFactory.testModelConnection(anyString(), anyString(), anyInt())).thenReturn("OK");
-
-        // first mock result will be ok
-        FormValidation okResult = testObject.doVerifyModelConnections();
-        assertEquals("connections OK<br>", okResult.getMessage());
-
-        // mock it again and return different value
-        BDDMockito.given(DbFactory.testModelConnection(anyString(), anyString(), anyInt()))
-                .willReturn("Wrong WebService!");
-        FormValidation expectedErrorResult = testObject.doVerifyModelConnections();
-
-        assertTrue(expectedErrorResult.getMessage().contains("Wrong WebService!"));
-
-        // mock it again and return different value
-        BDDMockito.given(DbFactory.testModelConnection(anyString(), anyString(), anyInt())).willReturn("ok");
-        FormValidation expetctError = testObject.doVerifyModelConnections();
-
-        assertEquals("", expetctError.getMessage());
     }
 
     @Test

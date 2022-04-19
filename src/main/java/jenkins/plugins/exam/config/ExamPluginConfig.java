@@ -30,15 +30,14 @@
 package jenkins.plugins.exam.config;
 
 import hudson.Extension;
-import hudson.util.FormValidation;
-import jakarta.xml.soap.SOAPException;
-import jenkins.internal.DbFactory;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Global configuration to store all EXAM Models
@@ -164,47 +163,4 @@ public class ExamPluginConfig extends GlobalConfiguration {
         return "EXAM";
     }
 
-    /**
-     * Verify every configured Model Connection.
-     *
-     * @return FormValidation
-     * @throws SOAPException SOAPException
-     */
-    public FormValidation doVerifyModelConnections() throws SOAPException {
-
-        Map<String, List<String>> status = new HashMap<>();
-
-        for (ExamModelConfig mConfig : modelConfigs) {
-            String message = DbFactory.testModelConnection(mConfig.getModelName(), mConfig.getTargetEndpoint(),
-                    mConfig.getExamVersion());
-            if (!status.containsKey(message)) {
-                status.put(message, new ArrayList<>());
-            }
-            status.get(message).add(mConfig.getName());
-        }
-
-        StringBuilder sb = new StringBuilder();
-
-        Set<String> keys = status.keySet();
-        if (keys.size() == 1 && keys.contains("OK")) {
-            sb.append("connections OK");
-            sb.append("\n");
-            return FormValidation.ok(sb.toString());
-        }
-
-        for (Map.Entry<String, List<String>> entry : status.entrySet()) {
-            if (entry.getKey().equalsIgnoreCase("OK")) {
-                continue;
-            }
-            for (String name : entry.getValue()) {
-                sb.append(name);
-                sb.append(" (");
-                sb.append(entry.getKey());
-                sb.append(")");
-                sb.append("\n");
-            }
-        }
-
-        return FormValidation.error(sb.toString());
-    }
 }

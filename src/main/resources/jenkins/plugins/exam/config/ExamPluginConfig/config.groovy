@@ -56,14 +56,6 @@ f.section(title: descriptor.displayName) {
                 add: _("add EXAM model connection"))
     }
 
-    f.block() {
-        f.validateButton(
-                title: _("test model connections"),
-                progress: _("testing..."),
-                method: "verifyModelConnections"
-        )
-    }
-
     f.entry(title: _("EXAM Report Connections")) {
         f.repeatableProperty(
                 field: "reportConfigs",
