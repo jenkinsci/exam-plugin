@@ -1,7 +1,7 @@
 package jenkins.internal.data;
 
+import Utils.Whitebox;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.Arrays;

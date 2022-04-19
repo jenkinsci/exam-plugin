@@ -32,6 +32,7 @@ package jenkins.internal;
 import hudson.AbortException;
 import hudson.Launcher;
 import hudson.model.Executor;
+import jakarta.ws.rs.core.Response;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.ExamStatus;
 import jenkins.internal.data.FilterConfiguration;
@@ -41,7 +42,6 @@ import jenkins.internal.data.TestConfiguration;
 import jenkins.internal.data.TestrunFilter;
 
 import javax.annotation.Nullable;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.PrintStream;
 

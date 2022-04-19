@@ -29,45 +29,45 @@
  */
 package jenkins.task._exam;
 
+import Utils.Whitebox;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 public class ExamConsoleErrorOutTest {
-    
+
     private ExamConsoleErrorOut testObject;
-    
+
     @Before
     public void setUp() {
         testObject = new ExamConsoleErrorOut(null);
-        
+
     }
-    
+
     @Test
     public void eol() throws IOException {
         OutputStream writeMock = Mockito.mock(OutputStream.class);
         ExamConsoleErrorOut obj = new ExamConsoleErrorOut(writeMock);
         String testString = "dfhkjd f akdf la k dhf sd";
         obj.eol(testString.getBytes(StandardCharsets.UTF_8), testString.length());
-        Mockito.verifyZeroInteractions(writeMock);
+        Mockito.verifyNoInteractions(writeMock);
     }
-    
+
     @Test
     public void close() throws IOException {
         testObject.close();
-        
+
         OutputStream stream = new OutputStream() {
             @Override
             public void write(int b) throws IOException {
                 return;
             }
         };
-        
+
         Whitebox.setInternalState(testObject, "out", stream);
         testObject.close();
     }

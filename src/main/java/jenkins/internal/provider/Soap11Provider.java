@@ -29,18 +29,18 @@
  */
 package jenkins.internal.provider;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.Provider;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.ext.Provider;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPConstants;
+import jakarta.xml.soap.SOAPException;
 
 @Provider
-@Consumes({ MediaType.TEXT_XML, "multipart/related" })
-@Produces(MediaType.TEXT_XML)
+@Consumes({SOAPConstants.SOAP_1_1_CONTENT_TYPE})
+@Produces(SOAPConstants.SOAP_1_1_CONTENT_TYPE)
 public class Soap11Provider extends SoapXProvider {
-    
+
     @Override
     public MessageFactory getMessageFactory() throws SOAPException {
         return MessageFactory.newInstance();

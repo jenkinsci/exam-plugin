@@ -29,11 +29,7 @@
  */
 package jenkins.plugins.exam;
 
-import hudson.CopyOnWrite;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.Launcher;
-import hudson.Util;
+import hudson.*;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Node;
 import hudson.model.TaskListener;
@@ -114,7 +110,7 @@ public class ExamTool extends ToolInstallation implements NodeSpecific<ExamTool>
         if (jenkinsInstance == null) {
             return null;
         }
-        return (DescriptorImpl) jenkinsInstance.getDescriptorOrDie(getClass());
+        return (DescriptorImpl) super.getDescriptor();
     }
 
     /**

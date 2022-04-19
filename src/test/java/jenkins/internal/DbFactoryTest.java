@@ -1,28 +1,27 @@
 package jenkins.internal;
 
+import Utils.Whitebox;
+import jakarta.xml.soap.*;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.reflect.Whitebox;
 import testData.SoapServerDispatcher;
 
-import javax.xml.soap.*;
 import java.io.ByteArrayOutputStream;
 
 import static org.junit.Assert.assertEquals;
 
 public class DbFactoryTest {
 
-    @InjectMocks
-    private DbFactory testObject = new DbFactory();
-
     @Mock
     private static MockWebServer server;
     @Mock
     private static SoapServerDispatcher dispatcher;
+    @InjectMocks
+    private DbFactory testObject = new DbFactory();
 
     @BeforeClass
     public static void oneTimeSetup() throws Exception {
@@ -46,7 +45,8 @@ public class DbFactoryTest {
         int examVersion = 44;
         MessageFactory msgFactory = MessageFactory.newInstance();
 
-        SOAPMessage msg = Whitebox.invokeMethod(testObject, "getSoapMessage", modelName, examVersion, msgFactory);
+        Class<?>[] types = new Class<?>[]{String.class, Integer.class, MessageFactory.class};
+        SOAPMessage msg = Whitebox.invokeMethod(testObject, "getSoapMessage", types, modelName, examVersion, msgFactory);
 
         // create parts to compare with
         SOAPMessage messageToCompare = msgFactory.createMessage();
@@ -84,7 +84,8 @@ public class DbFactoryTest {
         int examVersion = 48;
         MessageFactory msgFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
 
-        SOAPMessage msg = Whitebox.invokeMethod(testObject, "getSoapMessage", modelName, examVersion, msgFactory);
+        Class<?>[] types = new Class<?>[]{String.class, Integer.class, MessageFactory.class};
+        SOAPMessage msg = Whitebox.invokeMethod(testObject, "getSoapMessage", types, modelName, examVersion, msgFactory);
 
         // create parts to compare with
         SOAPMessage messageToCompare = msgFactory.createMessage();
@@ -117,61 +118,61 @@ public class DbFactoryTest {
     }
 
     @Test
+    public void testModelConnection44() throws Exception {
+        // Ok response Exam 4.4 (for coverage of SoapProviders)
+        try {
+            String expectedResponseText = "OK";
+            dispatcher.setExpectedResponseValues(expectedResponseText, 200, true);
+            dispatcher.setExamVersion(44);
+            String result = DbFactory.testModelConnection("test", "http://localhost:8085", 44);
+            assertEquals(expectedResponseText, result);
+        } finally {
+            // set dispatcher version back to initial to not influence other Tests.
+            dispatcher.setExamVersion(-1);
+        }
+    }
+
+    @Test
     public void testModelConnection() throws Exception {
         // Ok response
         String expectedResponseText = "OK";
         dispatcher.setExpectedResponseValues(expectedResponseText, 200, true);
-        String result = DbFactory.testModelConnection("test", "http://localhost:8085", 44);
+        String result = DbFactory.testModelConnection("test", "http://localhost:8085", 48);
         assertEquals(expectedResponseText, result);
 
         // all 4 error states
         expectedResponseText = "Wrong WebService!";
         dispatcher.setExpectedResponseValues(expectedResponseText, 200, true);
-        result = DbFactory.testModelConnection("test", "http://localhost:8085", 44);
+        result = DbFactory.testModelConnection("test", "http://localhost:8085", 48);
         assertEquals(expectedResponseText, result);
 
         expectedResponseText = "Model 'test' does not exist on this server.";
         dispatcher.setExpectedResponseValues(expectedResponseText, 200, true);
-        result = DbFactory.testModelConnection("test", "http://localhost:8085", 44);
+        result = DbFactory.testModelConnection("test", "http://localhost:8085", 48);
         assertEquals("Model does not exists", result);
 
         expectedResponseText = "WstxParsingException";
         dispatcher.setExpectedResponseValues(expectedResponseText, 200, true);
-        result = DbFactory.testModelConnection("test", "http://localhost:8085", 44);
+        result = DbFactory.testModelConnection("test", "http://localhost:8085", 48);
         assertEquals(expectedResponseText, result);
 
         expectedResponseText = "Operation not found";
         dispatcher.setExpectedResponseValues(expectedResponseText, 200, true);
-        result = DbFactory.testModelConnection("test", "http://localhost:8085", 44);
+        result = DbFactory.testModelConnection("test", "http://localhost:8085", 48);
         assertEquals(expectedResponseText, result);
-    }
-
-    @Test
-    public void testModelConnection48() {
-        // Ok response Exam 4.8 (for coverage of SoapProviders)
-        try {
-            String expectedResponseText = "OK";
-            dispatcher.setExpectedResponseValues(expectedResponseText, 200, true);
-            dispatcher.setExamVersion(48);
-            String result = DbFactory.testModelConnection("test", "http://localhost:8085", 48);
-            assertEquals(expectedResponseText, result);
-        } catch (Exception e) {
-            // set dispatcher version back to initial to not influence other Tests.
-            dispatcher.setExamVersion(-1);
-        }
     }
 
     @Test(expected = RuntimeException.class)
     public void testModelConnectionEmptyBody() throws Exception {
         String expectedResponseText = "";
         dispatcher.setExpectedResponseValues(expectedResponseText, 200, false);
-        DbFactory.testModelConnection("test", "http://localhost:8085", 44);
+        DbFactory.testModelConnection("test", "http://localhost:8085", 48);
     }
 
     @Test(expected = RuntimeException.class)
     public void testModelConnectionStatusNotOk() throws Exception {
         String expectedResponseText = ".";
         dispatcher.setExpectedResponseValues(expectedResponseText, 404, true);
-        DbFactory.testModelConnection("test", "http://localhost:8085", 44);
+        DbFactory.testModelConnection("test", "http://localhost:8085", 48);
     }
 }

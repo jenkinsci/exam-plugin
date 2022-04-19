@@ -29,15 +29,12 @@
  */
 package jenkins.internal;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
+import jakarta.ws.rs.core.Response;
 import jenkins.security.MasterToSlaveCallable;
+import org.glassfish.jersey.client.JerseyClient;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.client.JerseyWebTarget;
 
-import javax.ws.rs.core.Response;
 
 /**
  * Calls function on Jenkins Agent {@link MasterToSlaveCallable}
@@ -47,29 +44,27 @@ import javax.ws.rs.core.Response;
  */
 public abstract class ExamMasterToSlaveCallable<V, T extends Throwable> extends MasterToSlaveCallable<V, T> {
     private static final long serialVersionUID = -6079064212915937266L;
-    protected Client client;
+    protected JerseyClient client;
     private final static int OK = Response.ok().build().getStatus();
     
-    protected WebResource createClient(String url) {
-        ClientConfig clientConfig = new DefaultClientConfig();
-        clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        client = Client.create(clientConfig);
-        return client.resource(url);
+    protected JerseyWebTarget createClient(String url) {
+        client = JerseyClientBuilder.createClient();
+        return client.target(url);
     }
     
     protected void destroyClient() {
-        client.destroy();
+        client.close();
         client = null;
     }
     
-    protected RemoteServiceResponse getRemoteServiceResponse(ClientResponse clientResponse, Class clazz) {
+    protected RemoteServiceResponse getRemoteServiceResponse(Response clientResponse, Class clazz) {
         Object entity = null;
         String entityString = "";
         if (clientResponse.getStatus() != OK) {
-            entityString = clientResponse.getEntity(String.class);
+            entityString = clientResponse.readEntity(String.class);
         } else {
             if (clazz != null) {
-                entity = clientResponse.getEntity(clazz);
+                entity = clientResponse.readEntity(clazz);
             }
         }
         return new RemoteServiceResponse(clientResponse.getStatus(), entity, entityString);

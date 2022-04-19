@@ -29,16 +29,8 @@
  */
 package jenkins.task;
 
-import hudson.AbortException;
-import hudson.EnvVars;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Proc;
-import hudson.model.Executor;
-import hudson.model.Node;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.*;
+import hudson.model.*;
 import hudson.util.ArgumentListBuilder;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.Remote;
@@ -67,20 +59,48 @@ import java.util.concurrent.TimeUnit;
  * @author Thomas Reinicke
  */
 public class ExamTaskHelper {
-    
+
     private Run run;
     private EnvVars env;
     private Launcher launcher;
     private FilePath workspace;
     private TaskListener taskListener;
-    
+
     /**
      * Constructor for ExamTaskHelper.
      */
     public ExamTaskHelper() {
-    
+
     }
-    
+
+    /**
+     * Backward compatibility by checking the number of parameters
+     */
+    private static ArgumentListBuilder toWindowsCommand(ArgumentListBuilder args) {
+        List<String> arguments = args.toList();
+
+        // branch for core equals or greater than 1.654
+        boolean[] masks = args.toMaskArray();
+        // don't know why are missing single quotes.
+
+        ArgumentListBuilder argsNew = new ArgumentListBuilder();
+        argsNew.add(arguments.get(0), arguments.get(1)); // "cmd.exe", "/C",
+        // ...
+
+        int size = arguments.size();
+        for (int i = 2; i < size; i++) {
+            String arg = arguments.get(i).replaceAll("^(-D[^\" ]+)=$", "$0\"\"");
+
+            if (masks[i]) {
+                argsNew.addMasked(arg);
+            } else {
+                argsNew.add(arg);
+            }
+        }
+
+        return argsNew;
+    }
+
     /**
      * get the environment variables
      *
@@ -89,7 +109,11 @@ public class ExamTaskHelper {
     public EnvVars getEnv() {
         return env;
     }
-    
+
+    public void setEnv(EnvVars env) {
+        this.env = env;
+    }
+
     /**
      * get the Run
      *
@@ -98,21 +122,11 @@ public class ExamTaskHelper {
     public Run getRun() {
         return run;
     }
-    
-    /**
-     * get the TaskListener
-     *
-     * @return TaskListener
-     */
-    public TaskListener getTaskListener() {
-        return taskListener;
-    }
-    
+
     /**
      * get the TaskListener
      *
      * @param run Run
-     *
      * @throws InterruptedException InterruptedException
      * @throws IOException          IOException
      */
@@ -122,30 +136,20 @@ public class ExamTaskHelper {
             this.env = run.getEnvironment(taskListener);
         }
     }
-    
+
     /**
      * get the TaskListener
      *
-     * @param launcher Launcher
+     * @return TaskListener
      */
-    public void setLauncher(Launcher launcher) {
-        this.launcher = launcher;
+    public TaskListener getTaskListener() {
+        return taskListener;
     }
-    
-    /**
-     * get the TaskListener
-     *
-     * @param workspace FilePath
-     */
-    public void setWorkspace(FilePath workspace) {
-        this.workspace = workspace;
-    }
-    
+
     /**
      * get the TaskListener
      *
      * @param taskListener TaskListener
-     *
      * @throws InterruptedException InterruptedException
      * @throws IOException          IOException
      */
@@ -155,14 +159,30 @@ public class ExamTaskHelper {
             this.env = run.getEnvironment(taskListener);
         }
     }
-    
+
+    /**
+     * get the TaskListener
+     *
+     * @param launcher Launcher
+     */
+    public void setLauncher(Launcher launcher) {
+        this.launcher = launcher;
+    }
+
+    /**
+     * get the TaskListener
+     *
+     * @param workspace FilePath
+     */
+    public void setWorkspace(FilePath workspace) {
+        this.workspace = workspace;
+    }
+
     /**
      * Resolves the given Python to the path on the target node
      *
      * @param python PythonInstallation
-     *
      * @return String
-     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -181,78 +201,52 @@ public class ExamTaskHelper {
         }
         return pythonExe;
     }
-    
+
     /**
      * handle and extend the run arguments
      *
      * @param args             run arguments
      * @param examPluginConfig ExamPluginConfig
      * @param javaOpts         additional java options
-     *
      * @throws AbortException AbortException
      */
     public void handleAdditionalArgs(String javaOpts, ArgumentListBuilder args, ExamPluginConfig examPluginConfig)
             throws AbortException {
-        
+
         if (examPluginConfig.getLicenseHost().isEmpty() || examPluginConfig.getLicensePort() == 0) {
             run.setResult(Result.FAILURE);
             throw new AbortException(Messages.EXAM_LicenseServerNotConfigured());
         }
         args.add("--launcher.appendVmargs", "-vmargs", "-DUSE_CONSOLE=true", "-DRESTAPI=true",
                 "-DRESTAPI_PORT=" + examPluginConfig.getPort());
-        
+
         args.add("-DLICENSE_PORT=" + examPluginConfig.getLicensePort(),
                 "-DLICENSE_HOST=" + examPluginConfig.getLicenseHost());
-        
+
         args.add("-Dfile.encoding=UTF-8");
         args.add("-Dsun.jnu.encoding=UTF-8");
-        
+
         if (javaOpts != null) {
-            env.put("JAVA_OPTS", env.expand(javaOpts));
+            String expand = env.expand(javaOpts);
             String[] splittedJavaOpts = javaOpts.split(" ");
+            if (expand != null) {
+                env.put("JAVA_OPTS", expand);
+                splittedJavaOpts = expand.split(" ");
+            }
             args.add(splittedJavaOpts);
         }
-        
+
         if (!launcher.isUnix()) {
             ArgumentListBuilder argsNew = toWindowsCommand(args);
             args.clear();
             args.add(argsNew.toList());
         }
     }
-    
-    /**
-     * Backward compatibility by checking the number of parameters
-     */
-    private static ArgumentListBuilder toWindowsCommand(ArgumentListBuilder args) {
-        List<String> arguments = args.toList();
-        
-        // branch for core equals or greater than 1.654
-        boolean[] masks = args.toMaskArray();
-        // don't know why are missing single quotes.
-        
-        ArgumentListBuilder argsNew = new ArgumentListBuilder();
-        argsNew.add(arguments.get(0), arguments.get(1)); // "cmd.exe", "/C",
-        // ...
-        
-        int size = arguments.size();
-        for (int i = 2; i < size; i++) {
-            String arg = arguments.get(i).replaceAll("^(-D[^\" ]+)=$", "$0\"\"");
-            
-            if (masks[i]) {
-                argsNew.addMasked(arg);
-            } else {
-                argsNew.add(arg);
-            }
-        }
-        
-        return argsNew;
-    }
-    
+
     /**
      * copies all reports from the EXAM workspace to the target folder
      *
      * @param tc TestConfiguration
-     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -264,14 +258,12 @@ public class ExamTaskHelper {
         target = target.child("test-reports").child(tc.getReportProject().getProjectName() + hash);
         source.copyRecursiveTo(target);
     }
-    
+
     /**
      * Calculate and return the path to the configuration folder of EXAM
      *
      * @param examTool ExamTool
-     *
      * @return String
-     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -281,7 +273,7 @@ public class ExamTaskHelper {
         if (relativeDataPath != null && !relativeDataPath.trim().isEmpty()) {
             dataPath = examTool.getHome() + File.separator + relativeDataPath;
         }
-        
+
         String configurationPath = dataPath + File.separator + "configuration";
         File configurationFile = new File(
                 dataPath + File.separator + "configuration" + File.separator + "config.ini");
@@ -291,12 +283,11 @@ public class ExamTaskHelper {
         }
         return configurationPath;
     }
-    
+
     /**
      * returns the node the job is actual running
      *
      * @return Node
-     *
      * @throws AbortException AbortException
      */
     public Node getNode() throws AbortException {
@@ -307,15 +298,13 @@ public class ExamTaskHelper {
         }
         return node;
     }
-    
+
     /**
      * prepare some configurations and arguments to run EXAM
      *
      * @param task Task
      * @param args ArgumentListBuilder
-     *
      * @return the path to EXAM runnable
-     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -328,28 +317,26 @@ public class ExamTaskHelper {
             run.setResult(Result.FAILURE);
             throw new AbortException(Messages.EXAM_ExecutableNotFound(examTool.getName()));
         }
-        
+
         args.add(exe);
-        
+
         FilePath buildFilePath = new FilePath(new File(exe));
-        
+
         String configurationPath = getConfigurationPath(examTool);
         String examWorkspace = workspace + File.separator + "workspace_exam_restApi";
         examWorkspace = examWorkspace.replaceAll("[/\\]]", File.separator);
-        
+
         args.add("-data", examWorkspace);
         args.add("-configuration", configurationPath);
         examTool.buildEnvVars(env);
         return buildFilePath;
     }
-    
+
     /**
      * returns the tool for EXAM on the actual running node
      *
      * @param tool ExamTool
-     *
      * @return ExamTool
-     *
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
@@ -364,24 +351,23 @@ public class ExamTaskHelper {
         }
         return tool;
     }
-    
+
     /**
      * handles and logs the IOExcetion within the EXAM task
      *
      * @param startTime     long
      * @param e             IOException
      * @param installations ExamTool[]
-     *
      * @throws AbortException AbortException
      */
     public void handleIOException(long startTime, IOException e, ExamTool[] installations) throws AbortException {
         hudson.Util.displayIOException(e, taskListener);
-        
+
         String errorMessage = Messages.EXAM_ExecFailed();
         errorMessage += e.getMessage();
         long current = System.currentTimeMillis();
         if ((current - startTime) < 1000) {
-            
+
             if (installations.length == 0)
             // looks like the user didn't configure any EXAM
             // installation
@@ -397,11 +383,11 @@ public class ExamTaskHelper {
         run.setResult(Result.FAILURE);
         throw new AbortException(errorMessage);
     }
-    
+
     private void disconnectAndCloseEXAM(@Nonnull ClientRequest clientRequest, Proc proc, int timeout)
             throws IOException, InterruptedException {
         Executor runExecutor = run.getExecutor();
-        
+
         try {
             clientRequest.disconnectClient(runExecutor, timeout);
         } finally {
@@ -410,29 +396,29 @@ public class ExamTaskHelper {
             }
         }
     }
-    
+
     void perform(@Nonnull Task task, @Nonnull Launcher launcher, ApiVersion minApiVersion)
             throws IOException, InterruptedException {
         ArgumentListBuilder args = new ArgumentListBuilder();
         FilePath buildFilePath = prepareWorkspace(task, args);
-        
+
         Jenkins instanceOrNull = Jenkins.getInstanceOrNull();
         assert instanceOrNull != null;
         ExamPluginConfig examPluginConfig = instanceOrNull.getDescriptorByType(ExamPluginConfig.class);
         handleAdditionalArgs(task.getJavaOpts(), args, examPluginConfig);
-        
+
         long startTime = System.currentTimeMillis();
         try {
             ClientRequest clientRequest = getClientRequest(launcher, examPluginConfig);
             Proc proc = null;
             try (ExamConsoleAnnotator eca = new ExamConsoleAnnotator(taskListener.getLogger(), run.getCharset());
-                    ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(taskListener.getLogger())) {
+                 ExamConsoleErrorOut examErr = new ExamConsoleErrorOut(taskListener.getLogger())) {
                 proc = launcher.launch().cmds(args).envs(getEnv()).pwd(buildFilePath.getParent()).stderr(examErr)
                         .stdout(eca).start();
                 clientRequest.connectClient(run.getExecutor(), task.getTimeout());
                 jenkins.internal.Util.checkMinRestApiVersion(taskListener, minApiVersion, clientRequest);
                 task.doExecuteTask(clientRequest);
-                
+
             } catch (IOException e) {
                 failTask("ERROR: " + e.toString());
             } finally {
@@ -447,7 +433,7 @@ public class ExamTaskHelper {
             printResult();
         }
     }
-    
+
     @Nonnull
     private ClientRequest getClientRequest(@Nonnull Launcher launcher, ExamPluginConfig examPluginConfig)
             throws IOException, InterruptedException {
@@ -459,14 +445,14 @@ public class ExamTaskHelper {
         }
         return clientRequest;
     }
-    
+
     private void printResult() {
         Result result = run.getResult();
         if (result != null) {
             taskListener.getLogger().println(result.toString());
         }
     }
-    
+
     private void failTask(String exceptionMessage) throws AbortException {
         run.setResult(Result.FAILURE);
         throw new AbortException(exceptionMessage);

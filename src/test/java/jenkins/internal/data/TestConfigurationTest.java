@@ -29,35 +29,32 @@
  */
 package jenkins.internal.data;
 
+import Utils.Whitebox;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class TestConfigurationTest {
 
-    private TestConfiguration testObject;
     private final static String TESTSTRING = "myTestString";
-    private RestAPILogLevelEnum testLevel;
     private final static ModelConfiguration MODELCONFIG = new ModelConfiguration() {{
         setModelName(TESTSTRING);
         setTargetEndpoint(TESTSTRING);
         setProjectName(TESTSTRING);
     }};
-
     private final static ReportConfiguration REPORTCONFIG = new ReportConfiguration() {{
         setProjectName(TESTSTRING);
         setDbHost(TESTSTRING);
         setDbSchema(TESTSTRING);
     }};
+    private TestConfiguration testObject;
+    private RestAPILogLevelEnum testLevel;
 
     @Before
     public void setUp() throws Exception {

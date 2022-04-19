@@ -29,14 +29,15 @@
  */
 package jenkins.internal;
 
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 import hudson.Launcher;
 import hudson.remoting.VirtualChannel;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.glassfish.jersey.client.JerseyWebTarget;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -75,8 +76,8 @@ public class RemoteService implements Serializable {
              */
             public RemoteServiceResponse call() {
                 String url = String.format(BASEURL, apiPort) + postUrl;
-                WebResource service = createClient(url);
-                ClientResponse clientResponse = service.get(ClientResponse.class);
+                JerseyWebTarget service = createClient(url);
+                Response clientResponse = service.request(MediaType.APPLICATION_JSON).get();
                 RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
                 destroyClient();
                 return response;
@@ -110,9 +111,9 @@ public class RemoteService implements Serializable {
              */
             public RemoteServiceResponse call() {
                 String url = String.format(BASEURL, apiPort) + postUrl;
-                WebResource service = createClient(url);
-                ClientResponse clientResponse = service.accept(MediaType.APPLICATION_JSON)
-                        .type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+                JerseyWebTarget service = createClient(url);
+                Response clientResponse = service.request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                        .get();
                 RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
                 destroyClient();
                 return response;
@@ -148,15 +149,15 @@ public class RemoteService implements Serializable {
              */
             public RemoteServiceResponse call() {
                 String url = String.format(BASEURL, apiPort) + postUrl;
-                WebResource service = createClient(url);
-                ClientResponse clientResponse = null;
+                JerseyWebTarget service = createClient(url);
+                Response clientResponse = null;
                 
                 if (postObject == null) {
-                    clientResponse = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
-                            .post(ClientResponse.class);
+                    clientResponse = service.request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                            .post(Entity.text(""));
                 } else {
-                    clientResponse = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON)
-                            .post(ClientResponse.class, postObject);
+                    clientResponse = service.request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                            .post(Entity.entity(postObject,MediaType.APPLICATION_JSON));
                 }
                 RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
                 destroyClient();

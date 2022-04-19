@@ -1,16 +1,10 @@
 package testData;
 
+import jakarta.xml.soap.*;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.RecordedRequest;
 
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.Name;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPFactory;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -47,12 +41,12 @@ public class SoapServerDispatcher extends Dispatcher {
         this.sendBody = sendBody;
     }
 
-    public void setResponseStatus(int status) {
-        this.responseStatus = status;
-    }
-
     public int getResponseStatus() {
         return this.responseStatus;
+    }
+
+    public void setResponseStatus(int status) {
+        this.responseStatus = status;
     }
 
     public void setExamVersion(int examVersion) {
@@ -73,11 +67,11 @@ public class SoapServerDispatcher extends Dispatcher {
             System.out.println(e.getMessage());
         }
 
-        if (examVersion != -1 && examVersion >= 48) {
-            return new MockResponse().addHeader("Content-Type", "application/soap+xml").setResponseCode(responseStatus)
+        if (examVersion != -1 && examVersion < 48) {
+            return new MockResponse().addHeader("Content-Type", SOAPConstants.SOAP_1_1_CONTENT_TYPE).setResponseCode(responseStatus)
                     .setBody(message);
         }
-        return new MockResponse().addHeader("Content-Type", "text/xml").setResponseCode(responseStatus)
+        return new MockResponse().addHeader("Content-Type", SOAPConstants.SOAP_1_2_CONTENT_TYPE).setResponseCode(responseStatus)
                 .setBody(message);
     }
 

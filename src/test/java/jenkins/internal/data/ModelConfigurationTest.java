@@ -29,16 +29,16 @@
  */
 package jenkins.internal.data;
 
+import Utils.Whitebox;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import static org.junit.Assert.assertEquals;
 
 public class ModelConfigurationTest {
 
-    private ModelConfiguration testObject;
     private final static String TESTSTRING = "myTestString";
+    private ModelConfiguration testObject;
 
     @Before
     public void setUp() {

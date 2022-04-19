@@ -29,26 +29,26 @@
  */
 package jenkins.task._exam;
 
+import Utils.Whitebox;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 public class ExamConsoleAnnotatorTest {
-    
+
     private ExamConsoleAnnotator testObject;
     private String pauseString = "-- begin listing genericProperties --";
     private String resumeString = "-- end listing genericProperties --";
-    
+
     @Before
     public void setUp() {
         testObject = new ExamConsoleAnnotator(null, StandardCharsets.UTF_8);
     }
-    
+
     @Test
     public void eol() throws IOException {
         OutputStream writeMock = Mockito.mock(OutputStream.class);
@@ -59,7 +59,7 @@ public class ExamConsoleAnnotatorTest {
         Mockito.verify(writeMock).write(expected.getBytes(StandardCharsets.UTF_8));
         Mockito.verify(writeMock).write(testString.getBytes(StandardCharsets.UTF_8), 0, testString.length());
     }
-    
+
     @Test
     public void eol_pause() throws IOException {
         OutputStream writeMock = Mockito.mock(OutputStream.class);
@@ -74,18 +74,18 @@ public class ExamConsoleAnnotatorTest {
         Mockito.verify(writeMock).write(testString.getBytes(StandardCharsets.UTF_8), 0, testString.length());
         Mockito.verifyNoMoreInteractions(writeMock);
     }
-    
+
     @Test
     public void close() throws IOException {
         testObject.close();
-        
+
         OutputStream stream = new OutputStream() {
             @Override
             public void write(int b) throws IOException {
                 return;
             }
         };
-        
+
         Whitebox.setInternalState(testObject, "out", stream);
         testObject.close();
     }
