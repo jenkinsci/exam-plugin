@@ -16,7 +16,7 @@ pipeline{
         'com.cloudbees.jenkins.plugins.customtools.CustomTool' 'curl'
     }
     environment {
-        SCANCODE_PATH = tool name: 'scancode', type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
+        CURL_PATH = tool name: 'curl', type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
     }
     options {
         disableConcurrentBuilds()
@@ -30,7 +30,7 @@ pipeline{
 					configFileProvider([configFile(fileId: 'JENKINS', targetLocation: 'settings.xml', variable: 'settings')]) {
                         bat """
                             set jenkinsCiOpts=--batch-mode --show-version --errors --no-transfer-progress --update-snapshots -Dmaven.test.failure.ignore -Dspotbugs.failOnError=false -Dcheckstyle.failOnViolation=false -Dcheckstyle.failsOnError=false
-                            set opts=-Dts.user=%ts_user% -Dts.url=\"%ts.url%\" -Dts.apikey=%ts_key% -Dcurl.path=\"%SCANCODE_PATH%\\curl.exe\" -Dts.branch=${branch} -Dbuild.time=${now}
+                            set opts=-Dts.user=%ts_user% -Dts.url=\"%ts.url%\" -Dts.apikey=%ts_key% -Dcurl.path=\"%CURL_PATH%\\curl.exe\" -Dts.branch=${branch} -Dbuild.time=${now}
                             
                             set profiles=-Penable-jacoco,teamscale
                             
