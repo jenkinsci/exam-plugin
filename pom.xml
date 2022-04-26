@@ -279,11 +279,6 @@
                         <version>1.7</version>
                         <dependencies>
                             <dependency>
-                                <groupId>org.jacoco</groupId>
-                                <artifactId>org.jacoco.ant</artifactId>
-                                <version>0.5.6.201201232323</version>
-                            </dependency>
-                            <dependency>
                                 <groupId>ant-contrib</groupId>
                                 <artifactId>ant-contrib</artifactId>
                                 <version>20020829</version>
@@ -292,7 +287,7 @@
                         <executions>
                             <execution>
                                 <id>jacoco-report</id>
-                                <phase>post-integration-test</phase>
+                                <phase>verify</phase>
                                 <goals>
                                     <goal>run</goal>
                                 </goals>
