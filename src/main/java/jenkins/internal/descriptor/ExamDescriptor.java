@@ -35,9 +35,17 @@ import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 import java.util.List;
 
 public interface ExamDescriptor extends TaskDescriptor {
-    
+
+    /**
+     * Python Installations
+     * @return Array of python installations
+     */
     PythonInstallation[] getPythonInstallations();
-    
+
+    /**
+     * Reportconfigs
+     * @return List of reportConfigs
+     */
     List<ExamReportConfig> getReportConfigs();
     
 }

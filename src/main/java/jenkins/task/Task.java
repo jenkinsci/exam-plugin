@@ -151,7 +151,7 @@ public abstract class Task extends Builder implements Serializable {
     /**
      * The Descriptor of DescriptorExamTask
      */
-    protected static class DescriptorTask extends BuildStepDescriptor<Builder>
+    public static class DescriptorTask extends BuildStepDescriptor<Builder>
             implements TaskDescriptor, Serializable {
         
         private static final long serialVersionUID = 3498164788527439572L;

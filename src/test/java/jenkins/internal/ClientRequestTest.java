@@ -55,6 +55,13 @@ import static org.mockito.Mockito.*;
 
 public class ClientRequestTest {
 
+    @Rule
+    public JenkinsRule jenkinsRule = new JenkinsRule();
+
+    private Launcher.LocalLauncher launcher;
+
+    private Random random = new Random();
+
     private static int apiPort = 8085;
     @Mock
     private static MockWebServer server;
@@ -62,10 +69,6 @@ public class ClientRequestTest {
     private static ServerDispatcher dispatcher;
     @Rule
     public final ExpectedException exception = ExpectedException.none();
-    @Rule
-    public JenkinsRule jenkinsRule = new JenkinsRule();
-    private Launcher.LocalLauncher launcher;
-    private Random random = new Random();
     @Mock
     private ClientRequest testObject;
     @Mock
@@ -242,7 +245,7 @@ public class ClientRequestTest {
             testObject.executeGoovyScript(null);
             verify(printMock).println("executing Groovy Script");
         } catch (IOException | InterruptedException e) {
-            assertTrue("Exception was thronw: " + e.toString(), false);
+            assertTrue("Exception was thrown: " + e.toString(), false);
         }
     }
 
@@ -251,6 +254,25 @@ public class ClientRequestTest {
         dispatcher.removeResponse("/examRest/groovy/executeGroovyScript");
         exception.expect(IOException.class);
         testObject.executeGoovyScript(null);
+        verify(printMock).println("executing Groovy Script");
+    }
+
+    @Test
+    @WithoutJenkins
+    public void generateTestcases() {
+        try {
+            testObject.generateTestcases(null);
+            verify(printMock).println("generating Testcases");
+        } catch (Exception e) {
+            fail("Exception was thrown: " + e.toString());
+        }
+    }
+
+    @Test
+    public void generateTestcasesWithException() throws IOException, InterruptedException {
+        dispatcher.removeResponse("/examRest/TCG/generate");
+        exception.expect(IOException.class);
+        testObject.generateTestcases(null);
         verify(printMock).println("executing Groovy Script");
     }
 
