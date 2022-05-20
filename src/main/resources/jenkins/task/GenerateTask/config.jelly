@@ -28,9 +28,50 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:e="/lib/form/exam">
 
     <st:include page="/jenkins/task/ExamSubmodules/Modeler/configGenerateModel.jelly" class="jenkins.task.GenerateTask"/>
-    <st:include page="/jenkins/task/ExamSubmodules/Generate/config.jelly" class="jenkins.task.GenerateTask"/>
+
+
+    <j:set var="helpPath" value="/plugin/exam/help/task/ExamSubModules/Generate"/>
+
+    <f:section title="${%Groovy Configuration}">
+        <f:entry title="${%Element}" field="element" help="${helpPath}/help-element.html">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="${%Description Source}" field="descriptionSource" help="${helpPath}/help-descriptionSource.html">
+            <f:select default="${descriptor.getDefaultDescriptionSource()}" />
+        </f:entry>
+        <f:entry title="${%Document in Report}" field="documentInReport" help="${helpPath}/help-documentInReport.html">
+            <f:checkbox/>
+        </f:entry>
+        <f:entry title="${%Error Handling}" field="errorHandling" help="${helpPath}/help-errorHandling.html">
+            <f:select default="${descriptor.getDefaultErrorHandling()}"/>
+        </f:entry>
+        <f:entry title="${%Frame Steps}" field="frameSteps" help="${helpPath}/help-frameSteps.html">
+            <select class="jenkins-input" name="frameSteps" multiple="true" size="5">
+                <j:forEach var="it" items="${descriptor.doFillFrameStepsItems()}">
+                    <option value="${it.toString()}" selected="${instance.isFrameStepsSelected(it.toString()) ? 'selected' : null}">${it.toString()}</option>
+                </j:forEach>
+            </select>
+        </f:entry>
+
+        <f:entry title="${%Mapping List}" field="mappingList" help="${helpPath}/help-mappingList.html">
+            <!-- TODO prüfung der Liste ähnlich wie bei ModelConfiguration
+            TODO in REST API schauen, ob eine Mischung der Typen verarbeitet werden kann
+            -->
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="${%TestCase States}" field="testCaseStates" help="${helpPath}/help-testCaseStates.html">
+            <select class="jenkins-input" name="testCaseStates" multiple="true" size="5" default="${descriptor.getDefaultTestCaseStates}">
+                <j:forEach var="it" items="${descriptor.doFillTestCaseStatesItems()}">
+                    <option value="${it.toString()}" selected="${instance.isTestCaseStateSelected(it.toString()) ? 'selected' : null}">${it.getName()}</option>
+                </j:forEach>
+            </select>
+        </f:entry>
+        <f:entry title="${%Variant}" field="variant" help="${helpPath}/help-variant.html">
+            <f:textbox/>
+        </f:entry>
+    </f:section>
 
 </j:jelly>

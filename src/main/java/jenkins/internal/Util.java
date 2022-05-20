@@ -45,6 +45,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -275,31 +276,4 @@ public class Util {
         }
     }
 
-    /**
-     * checks if a String consists of the given values separated by a given char.
-     * an empty String is also valid.
-     *
-     * @param possibleValues List of values that are valid.
-     * @param splitChar      character to split
-     * @param string         the String to check
-     * @return FormValidation
-     */
-    public static FormValidation checkIfStringContainsValues(List<String> possibleValues, String splitChar, String string) {
-        if (string.isEmpty()) {
-            return FormValidation.ok();
-        }
-        if (string.contains(splitChar)) {
-            List<String> values = Arrays.asList(string.split(splitChar));
-            for (String part : values) {
-                if (!possibleValues.contains(part.trim())) {
-                    return FormValidation.error("Value is not valid");
-                }
-            }
-        } else {
-            if (!possibleValues.contains(string)) {
-                return FormValidation.error("Value is not valid");
-            }
-        }
-        return FormValidation.ok();
-    }
 }

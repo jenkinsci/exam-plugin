@@ -4,6 +4,7 @@ import Utils.Mocks;
 import hudson.model.Executor;
 import jakarta.ws.rs.core.Response;
 import jenkins.internal.data.ExamStatus;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,6 +30,12 @@ public class ClientRequestStaticTest {
     @Before
     public void setUp() {
         testObject = new ClientRequest(System.out, 0, null);
+    }
+
+    @After
+    public void tearDown() {
+        testObject = null;
+        Mocks.resetMocks();
     }
 
     @Test

@@ -102,9 +102,11 @@ public class ClientRequestTest {
 
     @After
     public void tearDown() throws Exception {
+        if(server != null) {
+            server.shutdown();
+        }
         launcher = null;
         Whitebox.setInternalState(testObject, "clientConnected", false);
-        server.shutdown();
     }
 
     @Test
@@ -596,6 +598,10 @@ public class ClientRequestTest {
 
         clearInvocations(printMock);
         testObject.executeGoovyScript(null);
+        verify(printMock).println("WARNING: no EXAM connected");
+
+        clearInvocations(printMock);
+        testObject.generateTestcases(null);
         verify(printMock).println("WARNING: no EXAM connected");
     }
 

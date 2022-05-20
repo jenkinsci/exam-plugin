@@ -36,13 +36,19 @@ import hudson.Launcher;
 import hudson.model.Executor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.util.ComboBoxModel;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.Util;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GenerateConfiguration;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.descriptor.ExamModelDescriptorTask;
+import jenkins.internal.enumeration.DescriptionSource;
+import jenkins.internal.enumeration.ErrorHandling;
+import jenkins.internal.enumeration.StepType;
+import jenkins.internal.enumeration.TestCaseState;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.task._exam.Messages;
 import jenkins.tasks.SimpleBuildStep;
@@ -80,14 +86,17 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     private String descriptionSource;
     private boolean documentInReport;
     private String errorHandling;
-    private String frameFunctions;
+    private String[] frameSteps;
     private String mappingList;
-    private String testCaseStates;
+    private String[] testCaseStates;
     private String variant;
+
+    private TestCaseState enumTCS;
 
     public String getElement() {
         return element;
     }
+
 
     @DataBoundSetter
     public void setElement(String element) {
@@ -121,13 +130,13 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         this.errorHandling = errorHandling;
     }
 
-    public String getFrameFunctions() {
-        return frameFunctions;
+    public String[] getFrameSteps() {
+        return frameSteps;
     }
 
     @DataBoundSetter
-    public void setFrameFunctions(String frameFunctions) {
-        this.frameFunctions = frameFunctions;
+    public void setFrameSteps(String[] frameSteps) {
+        this.frameSteps = frameSteps;
     }
 
     public String getMappingList() {
@@ -139,13 +148,18 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         this.mappingList = mappingList;
     }
 
-    public String getTestCaseStates() {
+    public String[] getTestCaseStates() {
         return testCaseStates;
     }
 
     @DataBoundSetter
-    public void setTestCaseStates(String testCaseStates) {
-        this.testCaseStates = testCaseStates;
+    public void setTestCaseStates(String[] testCaseStates) {
+        if(testCaseStates.length == 0){
+            DescriptorGenerateTask descriptor = (DescriptorGenerateTask) getDescriptor();
+            this.testCaseStates = new String[]{descriptor.getDefaultTestCaseStates()};
+        } else {
+            this.testCaseStates = testCaseStates;
+        }
     }
 
     public String getVariant() {
@@ -184,14 +198,14 @@ public class GenerateTask extends Task implements SimpleBuildStep {
      * @param descriptionSource  descriptionSource
      * @param documentInReport   documentInReport
      * @param errorHandling      errorHandling
-     * @param frameFunctions     frameFunctions
+     * @param frameSteps     frameFunctions
      * @param mappingList        mappingList
      * @param testCaseStates     testCaseStates
      * @param variant            variant
      */
     @DataBoundConstructor
     public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource,
-                        boolean documentInReport, String errorHandling, String frameFunctions, String mappingList, String testCaseStates, String variant) {
+                        boolean documentInReport, String errorHandling, String[] frameSteps, String mappingList, String[] testCaseStates, String variant) {
         this.examModel = examModel;
         this.examName = examName;
         this.modelConfiguration = modelConfiguration;
@@ -202,9 +216,9 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         this.errorHandling = errorHandling;
         this.variant = variant;
 
-        this.frameFunctions = frameFunctions;
+        this.frameSteps = frameSteps;
         this.mappingList = mappingList;
-        this.testCaseStates = testCaseStates;
+        setTestCaseStates(testCaseStates);
     }
 
     @Override
@@ -238,9 +252,9 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         configuration.setDescriptionSource(getDescriptionSource());
         configuration.setDocumentInReport(isDocumentInReport());
         configuration.setErrorHandling(getErrorHandling());
-        configuration.setFrameFunctions(convertToList(getFrameFunctions()));
+        configuration.setFrameFunctions(Arrays.asList(getFrameSteps()));
         configuration.setMappingList(convertToList(getMappingList()));
-        configuration.setTestCaseStates(convertToList(getTestCaseStates()));
+        configuration.setTestCaseStates(Arrays.asList(getTestCaseStates()));
         configuration.setVariant(getVariant());
 
         return configuration;
@@ -261,19 +275,29 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     }
 
     private List<String> convertToList(String list) {
-        if (list.isEmpty()) {
+        if (list == null || list.trim().isEmpty()) {
             return new ArrayList<>();
         }
         String[] split = list.split(",");
         return Arrays.asList(split);
     }
 
+    public boolean isTestCaseStateSelected(String value){
+        return Arrays.asList(this.testCaseStates).contains(value);
+    }
+
+    public boolean isFrameStepsSelected(String value){
+        return Arrays.asList(this.frameSteps).contains(value);
+    }
+
     /**
      * The Descriptor of the GenerateTask
      */
     @Extension
-    @Symbol("examGenerate")
+    @Symbol("examTCG")
     public static class DescriptorGenerateTask extends ExamModelDescriptorTask {
+
+
         /**
          * @return the EXAM Groovy display name
          */
@@ -289,6 +313,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
             load();
         }
 
+
         /**
          * Checks if the Element is a valid EXAM ID,UUID or FSN.
          *
@@ -296,49 +321,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          * @return If the form is ok
          */
         public FormValidation doCheckElement(@QueryParameter String value) {
-            if (value.isEmpty()) {
-                return FormValidation.ok();
-            }
             return Util.validateElementForSearch(value);
-        }
-
-        /**
-         * Checks if the Input is a valid descriptionSource
-         *
-         * @param value value
-         * @return If the form is ok
-         */
-        public FormValidation doCheckDescriptionSource(@QueryParameter String value) {
-            List<String> possibleValues = Arrays.asList("BESCHREIBUNG", "DESCRIPTION", "");
-            if (possibleValues.contains(value)) {
-                return FormValidation.ok();
-            }
-            return FormValidation.error("Value is not valid");
-        }
-
-        /**
-         * Checks if the Input is a valid errorHandling argument.
-         *
-         * @param value value
-         * @return If the form is ok
-         */
-        public FormValidation doCheckErrorHandling(@QueryParameter String value) {
-            List<String> possibleValues = Arrays.asList("GENERATE_ERROR_STEP", "SKIP_TESTCASE", "ABORT", "");
-            if (possibleValues.contains(value)) {
-                return FormValidation.ok();
-            }
-            return FormValidation.error("Value is not valid");
-        }
-
-        /**
-         * Checks if the Input is a valid frameFunction.
-         *
-         * @param value value
-         * @return If the form is ok
-         */
-        public FormValidation doCheckFrameFunctions(@QueryParameter String value) {
-            List<String> possibleValues = Arrays.asList("PRECONDITION_BEFORE", "PRECONDITION_AFTER", "ACTION_BEFORE", "ACTION_AFTER", "POSTCONDITION_BEFORE", "POSTCONDITION_AFTER", "EXPECTED_RESULT_BEFORE", "EXPECTED_RESULT_AFTER", "NUMBERED_FRAME_STEP");
-            return Util.checkIfStringContainsValues(possibleValues, ",", value);
         }
 
         /**
@@ -355,17 +338,6 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         }
 
         /**
-         * Checks if the testCaseStates are valid
-         *
-         * @param value value
-         * @return If the form is ok
-         */
-        public FormValidation doCheckTestCaseStates(@QueryParameter String value) {
-            List<String> possibleValues = Arrays.asList("NOT_YET_SPECIFIED", "SPECIFIED", "REVIEWED", "NOT_YET_IMPLEMENTED", "IMPLEMENTED", "PRODUCTIVE", "INVALID");
-            return Util.checkIfStringContainsValues(possibleValues, ",", value);
-        }
-
-        /**
          * checks if the variant is valid
          *
          * @param value value
@@ -376,6 +348,68 @@ public class GenerateTask extends Task implements SimpleBuildStep {
                 return FormValidation.ok();
             }
             return Util.validateElementForSearch(value);
+        }
+
+        /**
+         * @return the default errorHandle
+         */
+        public String getDefaultErrorHandling() {
+            return ErrorHandling.GENERATE_ERROR_STEP.name();
+        }
+
+        /**
+         * fills the ListBoxModel ErrorHandle with all ErrorHandless
+         *
+         * @return ListBoxModel
+         */
+        public ListBoxModel doFillDescriptionSourceItems() {
+            ListBoxModel items = new ListBoxModel();
+            for (DescriptionSource descriptionSource : DescriptionSource.values()) {
+                items.add(descriptionSource.getDisplayString(), descriptionSource.name());
+            }
+            return items;
+        }
+
+        /**
+         * @return the default description source
+         */
+        public String getDefaultDescriptionSource() {
+            return DescriptionSource.BESCHREIBUNG.name();
+        }
+
+        /**
+         * fills the ListBoxModel ErrorHandle with all ErrorHandless
+         *
+         * @return ListBoxModel
+         */
+        public ListBoxModel doFillErrorHandlingItems() {
+            ListBoxModel items = new ListBoxModel();
+            for (ErrorHandling errorHandle : ErrorHandling.values()) {
+                items.add(errorHandle.displayString(), errorHandle.name());
+            }
+            return items;
+        }
+
+        /**
+         * @return all TestCaseStates
+         */
+        public TestCaseState[] doFillTestCaseStatesItems() {
+            return TestCaseState.values();
+        }
+
+        /**
+         * @return the default errorHandle
+         */
+        public String getDefaultTestCaseStates() {
+            return TestCaseState.NOT_YET_IMPLEMENTED.toString();
+        }
+
+
+        /**
+         * @return all StepType
+         */
+        public StepType[] doFillFrameStepsItems() {
+            return StepType.values();
         }
     }
 }

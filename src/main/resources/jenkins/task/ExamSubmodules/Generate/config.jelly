@@ -37,22 +37,39 @@
             <f:textbox/>
         </f:entry>
         <f:entry title="${%Description Source}" field="descriptionSource" help="${helpPath}/help-descriptionSource.html">
-            <f:textbox/>
+            <f:select default="${descriptor.getDefaultDescriptionSource()}" />
         </f:entry>
         <f:entry title="${%Document in Report}" field="documentInReport" help="${helpPath}/help-documentInReport.html">
             <f:checkbox/>
         </f:entry>
         <f:entry title="${%Error Handling}" field="errorHandling" help="${helpPath}/help-errorHandling.html">
-            <f:textbox/>
+            <f:select default="${descriptor.getDefaultErrorHandling()}"/>
         </f:entry>
-        <f:entry title="${%Frame Functions}" field="frameFunctions" help="${helpPath}/help-frameFunctions.html">
+        <f:entry title="${%Frame Steps}" field="frameSteps" help="${helpPath}/help-frameSteps.html">
+            <!-- TODO multi select
+            -->
             <f:textbox/>
         </f:entry>
         <f:entry title="${%Mapping List}" field="mappingList" help="${helpPath}/help-mappingList.html">
+            <!-- TODO prüfung der Liste ähnlich wie bei ModelConfiguration
+            TODO in REST API schauen, ob eine Mischung der Typen verarbeitet werden kann
+            -->
             <f:textbox/>
         </f:entry>
-        <f:entry title="${%Testcase States}" field="testCaseStates" help="${helpPath}/help-testCaseStates.html">
-            <f:textbox/>
+        <f:entry title="${%TestCase States}" field="testCaseStates" help="${helpPath}/help-testCaseStates.html">
+            <select multiple="true">
+                <j:choose><option value="${it.element}">__${instance.testCaseStates}--${it.name}</option></j:choose>
+                <j:forEach var="testCaseState" items="${descriptor.getTestCaseStates()}">
+                    <j:choose>
+                        <j:when test="${descriptor.isTestCaseStateSelected(testCaseState)}">
+                             <option value="${testCaseState.getLiteral()}" selected="selected">${testCaseState.getName()}</option>
+                        </j:when>
+                        <j:otherwise>
+                            <option value="${testCaseState.getLiteral()}">${testCaseState.getName()}</option>
+                        </j:otherwise>
+                    </j:choose>
+                </j:forEach>
+            </select>
         </f:entry>
         <f:entry title="${%Variant}" field="variant" help="${helpPath}/help-variant.html">
             <f:textbox/>

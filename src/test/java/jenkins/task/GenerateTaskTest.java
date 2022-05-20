@@ -35,6 +35,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -43,8 +44,10 @@ import static org.junit.Assert.*;
 @RunWith(MockitoJUnitRunner.class)
 public class GenerateTaskTest {
 
-    @Rule JenkinsRule jenkinsRule = new JenkinsRule();
-    @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
+    @Rule
+    public JenkinsRule jenkinsRule = new JenkinsRule();
+    @ClassRule
+    public static BuildWatcher buildWatcher = new BuildWatcher();
 
     @Mock Run runMock;
 
@@ -54,7 +57,7 @@ public class GenerateTaskTest {
     private String examName;
     private String examModel;
     private String examHome;
-    private String modelConfig;
+    private String modelConfiguration;
     private String examRelativePath;
 
     /**
@@ -70,9 +73,9 @@ public class GenerateTaskTest {
     private String descriptionSource;
     private boolean documentInReport;
     private String errorHandling;
-    private String frameFunctions;
+    private String[] frameFunctions;
     private String mappingList;
-    private String testCaseStates;
+    private String[] testCaseStates;
     private String variant;
 
     List<File> createdFiles = new ArrayList<>();
@@ -80,21 +83,21 @@ public class GenerateTaskTest {
     @Before public void setUp() {
         examName = "examName";
         examModel = "examModel";
-        modelConfig = "config";
+        modelConfiguration = "config";
         examRelativePath = "examRelativePath";
 
         element = "testElement";
         descriptionSource = "descSource";
         documentInReport = true;
         errorHandling = "error";
-        frameFunctions = "frame";
+        frameFunctions = new String[]{"frame"};
         mappingList = "mList";
-        testCaseStates = "tCStates";
+        testCaseStates = new String[]{"tCStates"};
         variant = "var";
 
         Jenkins instance = jenkinsRule.getInstance();
         examHome = instance == null ? "examHome" : instance.getRootPath().getRemote();
-        testObject = new GenerateTask(examModel, examName, modelConfig, element, descriptionSource, documentInReport,
+        testObject = new GenerateTask(examModel, examName, modelConfiguration, element, descriptionSource, documentInReport,
                 errorHandling, frameFunctions, mappingList, testCaseStates, variant);
     }
 
@@ -126,8 +129,9 @@ public class GenerateTaskTest {
     }
 
     @Test @WithoutJenkins public void testSetDescriptionSource() {
-        testObject.setElement(descriptionSource);
-        assertEquals(testObject.getDescriptionSource(), descriptionSource);
+        testObject.setDescriptionSource(descriptionSource);
+        Object internalState = Whitebox.getInternalState(testObject, "descriptionSource");
+        assertEquals(descriptionSource, internalState);
     }
 
     @Test @WithoutJenkins public void testGetDocumentInReport() {
@@ -137,7 +141,8 @@ public class GenerateTaskTest {
 
     @Test @WithoutJenkins public void testSetDocumentInReport() {
         testObject.setDocumentInReport(documentInReport);
-        assertEquals(testObject.isDocumentInReport(), documentInReport);
+        Object internalState = Whitebox.getInternalState(testObject, "documentInReport");
+        assertEquals(documentInReport, internalState);
     }
 
     @Test @WithoutJenkins public void testGetErrorHandling() {
@@ -147,17 +152,19 @@ public class GenerateTaskTest {
 
     @Test @WithoutJenkins public void testSetErrorHandling() {
         testObject.setErrorHandling(errorHandling);
-        assertEquals(testObject.getErrorHandling(), errorHandling);
+        Object internalState = Whitebox.getInternalState(testObject, "errorHandling");
+        assertEquals(errorHandling, internalState);
     }
 
     @Test @WithoutJenkins public void testGetFrameFunctions() {
-        Whitebox.setInternalState(testObject, "frameFunctions", frameFunctions);
-        assertEquals(testObject.getFrameFunctions(), frameFunctions);
+        Whitebox.setInternalState(testObject, "frameSteps", frameFunctions);
+        assertArrayEquals(testObject.getFrameSteps(), frameFunctions);
     }
 
     @Test @WithoutJenkins public void testSetFrameFunctions() {
-        testObject.setErrorHandling(frameFunctions);
-        assertEquals(testObject.getFrameFunctions(), frameFunctions);
+        testObject.setFrameSteps(frameFunctions);
+        Object[] internalState = Whitebox.getInternalState(testObject, "frameSteps");
+        assertArrayEquals(frameFunctions, internalState);
     }
 
     @Test @WithoutJenkins public void testGetMappingList() {
@@ -166,18 +173,20 @@ public class GenerateTaskTest {
     }
 
     @Test @WithoutJenkins public void testSetMappingList() {
-        testObject.setErrorHandling(mappingList);
-        assertEquals(testObject.getMappingList(), mappingList);
+        testObject.setMappingList(mappingList);
+        Object internalState = Whitebox.getInternalState(testObject, "mappingList");
+        assertEquals(mappingList, internalState);
     }
 
     @Test @WithoutJenkins public void testGetTestCaseStates() {
         Whitebox.setInternalState(testObject, "testCaseStates", testCaseStates);
-        assertEquals(testObject.getTestCaseStates(), testCaseStates);
+        assertArrayEquals(testObject.getTestCaseStates(), testCaseStates);
     }
 
     @Test @WithoutJenkins public void testSetTestCaseStates() {
-        testObject.setErrorHandling(testCaseStates);
-        assertEquals(testObject.getTestCaseStates(), testCaseStates);
+        testObject.setTestCaseStates(testCaseStates);
+        Object internalState = Whitebox.getInternalState(testObject, "testCaseStates");
+        assertEquals(testCaseStates, internalState);
     }
 
     @Test @WithoutJenkins public void testGetVariant() {
@@ -186,8 +195,26 @@ public class GenerateTaskTest {
     }
 
     @Test @WithoutJenkins public void testSetVariant() {
-        testObject.setErrorHandling(variant);
-        assertEquals(testObject.getVariant(), variant);
+        testObject.setVariant(variant);
+        Object internalState = Whitebox.getInternalState(testObject, "variant");
+        assertEquals(variant, internalState);
+    }
+
+
+    @Test @WithoutJenkins public void testGetModelConfiguration() {
+        Whitebox.setInternalState(testObject, "modelConfiguration", modelConfiguration);
+        assertEquals(modelConfiguration, testObject.getModelConfiguration());
+    }
+    @Test @WithoutJenkins public void testSetModelConfiguration() {
+        testObject.setModelConfiguration(modelConfiguration);
+        Object internalState = Whitebox.getInternalState(testObject, "modelConfiguration");
+
+        assertEquals(modelConfiguration, internalState);
+    }
+
+    @Test @WithoutJenkins public void testGetExamModel() {
+        Whitebox.setInternalState(testObject, "examModel", examModel);
+        assertEquals(examModel, testObject.getExamModel());
     }
 
     @Test @WithoutJenkins public void testSetExamModel() {
@@ -242,7 +269,7 @@ public class GenerateTaskTest {
         examTestProject.getBuildersList().add(testObject);
         FreeStyleBuild build = examTestProject.scheduleBuild2(0).get();
         Result buildResult = build.getResult();
-        assertEquals("FAILURE", buildResult.toString());
+        assertEquals(Result.FAILURE, buildResult);
 
         List<String> log = build.getLog(1000);
         String workspacePath = jenkinsRule.getInstance().getRootPath().getRemote();
@@ -256,14 +283,14 @@ public class GenerateTaskTest {
         examTestProject.getBuildersList().add(testObject);
         FreeStyleBuild build = examTestProject.scheduleBuild2(0).get();
         Result buildResult = build.getResult();
-        assertEquals("FAILURE", buildResult.toString());
+        assertEquals(Result.FAILURE, buildResult);
         List<String> log = build.getLog(1000);
         assertThat(log, CoreMatchers.hasItem("ERROR: examTool is null"));
 
         TUtil.createAndRegisterExamTool(jenkinsRule, examName, "", examRelativePath);
         build = examTestProject.scheduleBuild2(0).get();
         buildResult = build.getResult();
-        assertEquals("FAILURE", buildResult.toString());
+        assertEquals(Result.FAILURE, buildResult);
         log = build.getLog(1000);
         assertThat(log, CoreMatchers.hasItem("ERROR: " + Messages.EXAM_ExecutableNotFound(examName)));
     }
@@ -277,14 +304,14 @@ public class GenerateTaskTest {
         mod.setTargetEndpoint(targetEndpoint);
         testObject.getDescriptor().getModelConfigs().add(mod);
         Whitebox.setInternalState(testObject, "examModel", examName);
-        Whitebox.setInternalState(testObject, "modelConfiguration", modelConfig);
+        Whitebox.setInternalState(testObject, "modelConfiguration", modelConfiguration);
         ModelConfiguration actual = Whitebox.invokeMethod(testObject, "createModelConfig");
 
         ModelConfiguration expected = new ModelConfiguration();
         expected.setModelName(examModel);
         expected.setProjectName(examName);
         expected.setTargetEndpoint(targetEndpoint);
-        expected.setModelConfigUUID(modelConfig);
+        expected.setModelConfigUUID(modelConfiguration);
 
         TUtil.assertModelConfig(expected, actual);
 
@@ -305,16 +332,16 @@ public class GenerateTaskTest {
         expected.setDocumentInReport(documentInReport);
         expected.setErrorHandling(errorHandling);
         expected.setVariant(variant);
-        expected.setFrameFunctions(Collections.singletonList(frameFunctions));
+        expected.setFrameFunctions(Arrays.asList(frameFunctions));
         expected.setMappingList(Collections.singletonList(mappingList));
-        expected.setTestCaseStates(Collections.singletonList(testCaseStates));
+        expected.setTestCaseStates(Arrays.asList(testCaseStates));
 
         Whitebox.setInternalState(testObject, "element", element);
         Whitebox.setInternalState(testObject, "descriptionSource", descriptionSource);
         Whitebox.setInternalState(testObject, "documentInReport", documentInReport);
         Whitebox.setInternalState(testObject, "errorHandling", errorHandling);
         Whitebox.setInternalState(testObject, "variant", variant);
-        Whitebox.setInternalState(testObject, "frameFunctions", frameFunctions);
+        Whitebox.setInternalState(testObject, "frameSteps", frameFunctions);
         Whitebox.setInternalState(testObject, "mappingList", mappingList);
         Whitebox.setInternalState(testObject, "testCaseStates", testCaseStates);
 
@@ -332,7 +359,7 @@ public class GenerateTaskTest {
     }
 
     @Test public void testExecuteTask() throws IOException, InterruptedException {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
 
         ExamModelConfig mod = new ExamModelConfig(examModel);
         mod.setName(examModel);
@@ -355,5 +382,17 @@ public class GenerateTaskTest {
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.times(1)).createExamProject(Mockito.any());
         Mockito.verify(clientRequestMock, Mockito.times(1)).generateTestcases(Mockito.any());
+    }
+
+    @Test
+    @WithoutJenkins
+    public void testConvertToList() throws Exception {
+        List<String> list = Whitebox.invokeMethod(testObject, "convertToList", "");
+        assertTrue(list.isEmpty());
+
+        list = Whitebox.invokeMethod(testObject, "convertToList", "test_1,test_2");
+        assertEquals(2, list.size());
+        assertTrue(list.contains("test_1"));
+        assertTrue(list.contains("test_2"));
     }
 }
