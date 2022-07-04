@@ -83,15 +83,17 @@ public class GenerateTask extends Task implements SimpleBuildStep {
      * {@link jenkins.internal.data.GenerateConfiguration} properties.
      */
     private String element;
+    private boolean overwriteDescriptionSource;
     private String descriptionSource;
     private boolean documentInReport;
     private String errorHandling;
+    private boolean overwriteFrameSteps;
     private String[] frameSteps;
+    private boolean overwriteMappingList;
     private String mappingList;
     private String[] testCaseStates;
     private String variant;
 
-    private TestCaseState enumTCS;
 
     public String getElement() {
         return element;
@@ -103,6 +105,39 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         this.element = element;
     }
 
+    public boolean getOverwriteDescriptionSource() {
+        return overwriteDescriptionSource;
+    }
+
+    @DataBoundSetter
+    public void setOverwriteDescriptionSource(boolean overwriteDescriptionSource) {
+        this.overwriteDescriptionSource = overwriteDescriptionSource;
+    }
+
+    public boolean getDocumentInReport() {
+        return documentInReport;
+    }
+
+    public boolean getOverwriteFrameSteps() {
+        return overwriteFrameSteps;
+    }
+
+    public boolean getOverwriteMappingList() {
+        return overwriteMappingList;
+    }
+
+    @DataBoundSetter
+    public void setOverwriteMappingList(boolean overwriteMappingList) {
+        this.overwriteMappingList = overwriteMappingList;
+    }
+
+    @DataBoundSetter
+    public void setOverwriteFrameSteps(boolean overwriteFrameSteps) {
+        this.overwriteFrameSteps = overwriteFrameSteps;
+    }
+
+
+
     public String getDescriptionSource() {
         return descriptionSource;
     }
@@ -110,10 +145,6 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     @DataBoundSetter
     public void setDescriptionSource(String descriptionSource) {
         this.descriptionSource = descriptionSource;
-    }
-
-    public boolean isDocumentInReport() {
-        return documentInReport;
     }
 
     @DataBoundSetter
@@ -249,10 +280,13 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     private GenerateConfiguration createGenerateConfig() {
         GenerateConfiguration configuration = new GenerateConfiguration();
         configuration.setElement(getElement());
+        configuration.setOverwriteDescriptionSource(getOverwriteDescriptionSource());
         configuration.setDescriptionSource(getDescriptionSource());
-        configuration.setDocumentInReport(isDocumentInReport());
+        configuration.setDocumentInReport(getDocumentInReport());
         configuration.setErrorHandling(getErrorHandling());
+        configuration.setOverwriteFrameSteps(getOverwriteFrameSteps());
         configuration.setFrameFunctions(Arrays.asList(getFrameSteps()));
+        configuration.setOverwriteMappingList(getOverwriteMappingList());
         configuration.setMappingList(convertToList(getMappingList()));
         configuration.setTestCaseStates(Arrays.asList(getTestCaseStates()));
         configuration.setVariant(getVariant());
@@ -324,6 +358,24 @@ public class GenerateTask extends Task implements SimpleBuildStep {
             return Util.validateElementForSearch(value);
         }
 
+
+        private ExamModelConfig getModel(String name) {
+            for (ExamModelConfig mConfig : getModelConfigs()) {
+                if (mConfig.getName().equalsIgnoreCase(name)) {
+                    return mConfig;
+                }
+            }
+            return null;
+        }
+
+        public FormValidation doCheckExamModel(@QueryParameter String value) {
+            ExamModelConfig m = getModel(value);
+            if(m.getExamVersion() < 50){
+                return FormValidation.error(Messages.TCG_EXAM_MIN_VERSION());
+            }
+            return FormValidation.ok();
+        }
+
         /**
          * Checks if the mappingList is valid.
          *
@@ -331,10 +383,17 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          * @return If the form is ok
          */
         public FormValidation doCheckMappingList(@QueryParameter String value) {
+            FormValidation ok = FormValidation.ok();
             if (value.isEmpty()) {
-                return FormValidation.ok();
+                return ok;
             }
-            return Util.validateElementForSearch(value);
+            for(String elmt : value.split(",")){
+                FormValidation elmtValid = Util.validateElementForSearch(elmt);
+                if(!ok.equals(elmtValid)){
+                    return elmtValid;
+                }
+            }
+            return ok;
         }
 
         /**
@@ -374,7 +433,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          * @return the default description source
          */
         public String getDefaultDescriptionSource() {
-            return DescriptionSource.BESCHREIBUNG.name();
+            return DescriptionSource.DESCRIPTION.name();
         }
 
         /**

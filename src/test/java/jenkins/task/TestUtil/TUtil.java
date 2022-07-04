@@ -1,5 +1,7 @@
 package jenkins.task.TestUtil;
 
+import Utils.Whitebox;
+import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.internal.data.GenerateConfiguration;
 import jenkins.internal.data.GroovyConfiguration;
@@ -11,6 +13,7 @@ import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.plugins.exam.config.ExamReportConfig;
 import jenkins.plugins.shiningpanda.tools.PythonInstallation;
 import jenkins.task.TestrunFilter;
+import jenkins.task._exam.Messages;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.ArrayList;
@@ -216,5 +219,40 @@ public class TUtil {
             return;
         }
         fail();
+    }
+
+
+    // HELP METHOD
+    public static void doCheckSearchElement(Object targetClass, String method, String input, boolean errorExpected) throws Exception {
+        String newLine = "\r\n";
+        String expectedErrorMsg =
+                Messages.EXAM_RegExUuid() + newLine + Messages.EXAM_RegExId() + newLine + Messages.EXAM_RegExFsn()
+                        + newLine;
+
+        FormValidation validResult = Whitebox.invokeMethod(targetClass, method, input);
+
+        if(errorExpected) {
+            assertEquals(FormValidation.error(expectedErrorMsg).getMessage(), validResult.getMessage());
+        } else {
+            assertEquals(FormValidation.ok(), validResult);
+        }
+    }
+
+    public static void doCheckValidSearchElement(Object targetClass, String method) throws Exception {
+        String validFSN = "name.of.my.package";
+        String validID = generateValidId();
+        String validUUID = generateValidUuid(false);
+
+        String invalidFSN = "#IAmAlsoNoPythonConformName";
+        String invalidID = "123456";
+        String invalidUUID = "61b56acdbe4247a9e04400144f6890f"; // to short
+
+        doCheckSearchElement(targetClass, method, validFSN, false);
+        doCheckSearchElement(targetClass, method, validID, false);
+        doCheckSearchElement(targetClass, method, validUUID, false);
+
+        doCheckSearchElement(targetClass, method, invalidFSN, true);
+        doCheckSearchElement(targetClass, method, invalidID, true);
+        doCheckSearchElement(targetClass, method, invalidUUID, true);
     }
 }

@@ -126,17 +126,17 @@ public class GroovyTaskDescriptorTest {
 
     @Test
     public void testDoCheckModelConfiguration() throws Exception {
-        doCheckValid("doCheckModelConfiguration");
+        TUtil.doCheckValidSearchElement(testObjectDescriptor, "doCheckModelConfiguration");
     }
 
     @Test
     public void testDoCheckScript() throws Exception {
-        doCheckValid("doCheckScript");
+        TUtil.doCheckValidSearchElement(testObjectDescriptor, "doCheckScript");
     }
 
     @Test
     public void testDoCheckStartElement() throws Exception {
-        doCheckValid("doCheckStartElement");
+        TUtil.doCheckValidSearchElement(testObjectDescriptor, "doCheckStartElement");
     }
 
     @Test
@@ -144,20 +144,4 @@ public class GroovyTaskDescriptorTest {
         assertTrue(testObjectDescriptor.isApplicable(freeStyleProject.getClass()));
     }
 
-    // HELP METHOD
-    private void doCheckValid(String method) throws Exception {
-        String newLine = "\r\n";
-        String expectedErrorMsg =
-                Messages.EXAM_RegExUuid() + newLine + Messages.EXAM_RegExId() + newLine + Messages.EXAM_RegExFsn()
-                        + newLine;
-
-        String invalidString = "#IAmAlsoNoPythonConformName";
-        String validString = TUtil.generateValidId();
-
-        FormValidation fv_invalidResult = Whitebox.invokeMethod(testObjectDescriptor, method, invalidString);
-        FormValidation fv_validResult = Whitebox.invokeMethod(testObjectDescriptor, method, validString);
-
-        assertEquals(FormValidation.error(expectedErrorMsg).getMessage(), fv_invalidResult.getMessage());
-        assertEquals(FormValidation.ok(), fv_validResult);
-    }
 }

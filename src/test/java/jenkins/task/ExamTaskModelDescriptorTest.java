@@ -81,32 +81,12 @@ public class ExamTaskModelDescriptorTest {
 
     @Test
     public void doCheckExecutionFile() throws Exception {
-        doCheckValid("doCheckExecutionFile");
+        TUtil.doCheckValidSearchElement(testObjectDescriptor, "doCheckExecutionFile");
     }
 
     @Test
     public void doCheckSystemConfiguration() throws Exception {
-        doCheckValid("doCheckSystemConfiguration");
+        TUtil.doCheckValidSearchElement(testObjectDescriptor, "doCheckSystemConfiguration");
     }
 
-    //#region Helpermethod
-
-    private void doCheckValid(String method) throws Exception {
-        String newLine = "\r\n";
-        String expectedErrorMsg =
-                Messages.EXAM_RegExUuid() + newLine + Messages.EXAM_RegExId() + newLine + Messages.EXAM_RegExFsn()
-                        + newLine;
-
-        String invalidString = "#IAmAlsoNoPythonConformName";
-        String validString = TUtil.generateValidId();
-
-        FormValidation fv_invalidResult = Whitebox.invokeMethod(testObjectDescriptor, method, invalidString);
-        FormValidation fv_validResult = Whitebox.invokeMethod(testObjectDescriptor, method, validString);
-
-        assertEquals(FormValidation.error(expectedErrorMsg).getMessage(), fv_invalidResult.getMessage());
-        assertEquals(FormValidation.ok(), fv_validResult);
-
-    }
-
-    //#endregion
 }

@@ -33,6 +33,7 @@ import hudson.*;
 import hudson.model.*;
 import hudson.util.ArgumentListBuilder;
 import jenkins.internal.ClientRequest;
+import jenkins.internal.Compatibility;
 import jenkins.internal.Remote;
 import jenkins.internal.Util;
 import jenkins.internal.data.ApiVersion;
@@ -416,7 +417,7 @@ public class ExamTaskHelper {
                 proc = launcher.launch().cmds(args).envs(getEnv()).pwd(buildFilePath.getParent()).stderr(examErr)
                         .stdout(eca).start();
                 clientRequest.connectClient(run.getExecutor(), task.getTimeout());
-                jenkins.internal.Util.checkMinRestApiVersion(taskListener, minApiVersion, clientRequest);
+                Compatibility.checkMinRestApiVersion(taskListener, minApiVersion, clientRequest);
                 task.doExecuteTask(clientRequest);
 
             } catch (IOException e) {

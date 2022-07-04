@@ -37,6 +37,7 @@ import hudson.model.TaskListener;
 import hudson.tools.ToolInstallation;
 import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
+import jenkins.internal.Compatibility;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.FilterConfiguration;
 import jenkins.internal.data.ReportConfiguration;
@@ -278,7 +279,10 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
         Executor runExecutor = getTaskHelper().getRun().getExecutor();
         TaskListener listener = getTaskHelper().getTaskListener();
         if (clientRequest.isClientConnected()) {
+
             TestConfiguration tc = createTestConfiguration(getTaskHelper().getEnv());
+            Compatibility.checkTestConfig(listener, tc, clientRequest);
+
             tc.setPythonPath(pythonExe);
             FilterConfiguration fc = new FilterConfiguration();
 

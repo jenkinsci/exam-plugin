@@ -273,7 +273,7 @@ public class UtilTest {
         when(clientRequestMock.getApiVersion()).thenReturn(new ApiVersion(2, 2, 2));
         exception.expect(AbortException.class);
         exception.expectMessage(version.toString());
-        Util.checkMinRestApiVersion(taskListenerMock, version, clientRequestMock);
+        Compatibility.checkMinRestApiVersion(taskListenerMock, version, clientRequestMock);
     }
 
     @Test
@@ -283,10 +283,10 @@ public class UtilTest {
         when(taskListenerMock.getLogger()).thenReturn(System.out);
         ClientRequest clientRequestMock = mock(ClientRequest.class, "ClientRequestMock");
         when(clientRequestMock.getApiVersion()).thenReturn(new ApiVersion(2, 2, 2));
-        Util.checkMinRestApiVersion(taskListenerMock, new ApiVersion(1, 2, 2), clientRequestMock);
-        Util.checkMinRestApiVersion(taskListenerMock, new ApiVersion(2, 1, 2), clientRequestMock);
-        Util.checkMinRestApiVersion(taskListenerMock, new ApiVersion(2, 2, 1), clientRequestMock);
-        Util.checkMinRestApiVersion(taskListenerMock, new ApiVersion(2, 2, 2), clientRequestMock);
+        Compatibility.checkMinRestApiVersion(taskListenerMock, new ApiVersion(1, 2, 2), clientRequestMock);
+        Compatibility.checkMinRestApiVersion(taskListenerMock, new ApiVersion(2, 1, 2), clientRequestMock);
+        Compatibility.checkMinRestApiVersion(taskListenerMock, new ApiVersion(2, 2, 1), clientRequestMock);
+        Compatibility.checkMinRestApiVersion(taskListenerMock, new ApiVersion(2, 2, 2), clientRequestMock);
     }
 
     @Test

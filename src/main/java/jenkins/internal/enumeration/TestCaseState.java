@@ -1,8 +1,8 @@
 /*
  * TestCaseState.java
- * 
+ *
  * Created on 01.08.2013
- * 
+ *
  * Copyright (C) 2013-2023 Volkswagen AG, All rights reserved.
  */
 package jenkins.internal.enumeration;
@@ -237,6 +237,15 @@ public enum TestCaseState {
 
     /** @generated */
     public String getLiteral() {
+        return this.literal;
+    }
+
+    /**
+     * Returns the literal value of the enumerator, which is its string representation.
+     * @generated
+     */
+    @Override
+    public String toString() {
         return this.literal;
     }
 } // TestCaseState

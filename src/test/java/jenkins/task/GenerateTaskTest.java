@@ -4,6 +4,7 @@ import Utils.Whitebox;
 import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Proc;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
@@ -11,6 +12,7 @@ import hudson.model.Run;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.data.GenerateConfiguration;
 import jenkins.internal.data.ModelConfiguration;
+import jenkins.internal.enumeration.TestCaseState;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
@@ -70,10 +72,13 @@ public class GenerateTaskTest {
      * Test properties
      */
     private String element;
+    private boolean overwriteDescriptionSource;
     private String descriptionSource;
     private boolean documentInReport;
     private String errorHandling;
-    private String[] frameFunctions;
+    private boolean overwriteFrameSteps;
+    private String[] frameSteps;
+    private boolean overwriteMappingList;
     private String mappingList;
     private String[] testCaseStates;
     private String variant;
@@ -90,7 +95,7 @@ public class GenerateTaskTest {
         descriptionSource = "descSource";
         documentInReport = true;
         errorHandling = "error";
-        frameFunctions = new String[]{"frame"};
+        frameSteps = new String[]{"frame"};
         mappingList = "mList";
         testCaseStates = new String[]{"tCStates"};
         variant = "var";
@@ -98,7 +103,7 @@ public class GenerateTaskTest {
         Jenkins instance = jenkinsRule.getInstance();
         examHome = instance == null ? "examHome" : instance.getRootPath().getRemote();
         testObject = new GenerateTask(examModel, examName, modelConfiguration, element, descriptionSource, documentInReport,
-                errorHandling, frameFunctions, mappingList, testCaseStates, variant);
+                errorHandling, frameSteps, mappingList, testCaseStates, variant);
     }
 
     @After public void tearDown() {
@@ -134,15 +139,36 @@ public class GenerateTaskTest {
         assertEquals(descriptionSource, internalState);
     }
 
-    @Test @WithoutJenkins public void testGetDocumentInReport() {
-        Whitebox.setInternalState(testObject, "documentInReport", documentInReport);
-        assertEquals(testObject.isDocumentInReport(), documentInReport);
+    @Test @WithoutJenkins public void testGetDocumentInReport() throws Exception {
+        testGetBoolean("documentInReport", "getDocumentInReport");
     }
 
-    @Test @WithoutJenkins public void testSetDocumentInReport() {
-        testObject.setDocumentInReport(documentInReport);
-        Object internalState = Whitebox.getInternalState(testObject, "documentInReport");
-        assertEquals(documentInReport, internalState);
+    @Test @WithoutJenkins public void testSetDocumentInReport() throws Exception {
+        testSetBoolean("documentInReport", "setDocumentInReport");
+    }
+
+    @Test @WithoutJenkins public void testGetOverwriteDescriptionSource() throws Exception {
+        testGetBoolean("overwriteDescriptionSource","getOverwriteDescriptionSource");
+    }
+
+    @Test @WithoutJenkins public void testSetOverwriteDescriptionSource() throws Exception {
+        testSetBoolean("overwriteDescriptionSource", "setOverwriteDescriptionSource");
+    }
+
+    @Test @WithoutJenkins public void testGetOverwriteFrameSteps() throws Exception {
+        testGetBoolean("overwriteFrameSteps", "getOverwriteFrameSteps");
+    }
+
+    @Test @WithoutJenkins public void testSetOverwriteFrameSteps() throws Exception {
+        testSetBoolean("overwriteFrameSteps", "setOverwriteFrameSteps");
+    }
+
+    @Test @WithoutJenkins public void testGetOverwriteMappingList() throws Exception {
+        testGetBoolean("overwriteMappingList", "getOverwriteMappingList");
+    }
+
+    @Test @WithoutJenkins public void testSetOverwriteMappingList() throws Exception {
+        testSetBoolean("overwriteMappingList", "setOverwriteMappingList");
     }
 
     @Test @WithoutJenkins public void testGetErrorHandling() {
@@ -157,14 +183,14 @@ public class GenerateTaskTest {
     }
 
     @Test @WithoutJenkins public void testGetFrameFunctions() {
-        Whitebox.setInternalState(testObject, "frameSteps", frameFunctions);
-        assertArrayEquals(testObject.getFrameSteps(), frameFunctions);
+        Whitebox.setInternalState(testObject, "frameSteps", frameSteps);
+        assertArrayEquals(testObject.getFrameSteps(), frameSteps);
     }
 
     @Test @WithoutJenkins public void testSetFrameFunctions() {
-        testObject.setFrameSteps(frameFunctions);
+        testObject.setFrameSteps(frameSteps);
         Object[] internalState = Whitebox.getInternalState(testObject, "frameSteps");
-        assertArrayEquals(frameFunctions, internalState);
+        assertArrayEquals(frameSteps, internalState);
     }
 
     @Test @WithoutJenkins public void testGetMappingList() {
@@ -183,10 +209,15 @@ public class GenerateTaskTest {
         assertArrayEquals(testObject.getTestCaseStates(), testCaseStates);
     }
 
-    @Test @WithoutJenkins public void testSetTestCaseStates() {
+    @Test public void testSetTestCaseStates() {
         testObject.setTestCaseStates(testCaseStates);
-        Object internalState = Whitebox.getInternalState(testObject, "testCaseStates");
-        assertEquals(testCaseStates, internalState);
+        Object[] internalState = Whitebox.getInternalState(testObject, "testCaseStates");
+        assertArrayEquals(testCaseStates, internalState);
+
+        testObject.setTestCaseStates(new String[]{});
+        internalState = Whitebox.getInternalState(testObject, "testCaseStates");
+        assertEquals(1, internalState.length);
+        assertEquals(TestCaseState.NOT_YET_IMPLEMENTED.toString(), internalState[0]);
     }
 
     @Test @WithoutJenkins public void testGetVariant() {
@@ -332,7 +363,7 @@ public class GenerateTaskTest {
         expected.setDocumentInReport(documentInReport);
         expected.setErrorHandling(errorHandling);
         expected.setVariant(variant);
-        expected.setFrameFunctions(Arrays.asList(frameFunctions));
+        expected.setFrameFunctions(Arrays.asList(frameSteps));
         expected.setMappingList(Collections.singletonList(mappingList));
         expected.setTestCaseStates(Arrays.asList(testCaseStates));
 
@@ -341,7 +372,7 @@ public class GenerateTaskTest {
         Whitebox.setInternalState(testObject, "documentInReport", documentInReport);
         Whitebox.setInternalState(testObject, "errorHandling", errorHandling);
         Whitebox.setInternalState(testObject, "variant", variant);
-        Whitebox.setInternalState(testObject, "frameSteps", frameFunctions);
+        Whitebox.setInternalState(testObject, "frameSteps", frameSteps);
         Whitebox.setInternalState(testObject, "mappingList", mappingList);
         Whitebox.setInternalState(testObject, "testCaseStates", testCaseStates);
 
@@ -394,5 +425,39 @@ public class GenerateTaskTest {
         assertEquals(2, list.size());
         assertTrue(list.contains("test_1"));
         assertTrue(list.contains("test_2"));
+    }
+
+    @Test
+    @WithoutJenkins
+    public void testIsTestCaseStateSelected() {
+        assertTrue(testObject.isTestCaseStateSelected(testCaseStates[0]));
+        assertFalse(testObject.isTestCaseStateSelected("nothing"));
+    }
+
+    @Test
+    @WithoutJenkins
+    public void testIsFrameStepsSelected() {
+        assertTrue(testObject.isFrameStepsSelected(frameSteps[0]));
+        assertFalse(testObject.isFrameStepsSelected("nothing"));
+    }
+
+    private void testSetBoolean(String varName, String methodName) throws Exception {
+        Whitebox.invokeMethod(testObject, methodName, Boolean.TYPE,true);
+        boolean internalState = Whitebox.getInternalState(testObject, varName);
+        assertTrue(internalState);
+
+        Whitebox.invokeMethod(testObject, methodName, Boolean.TYPE,false);
+        internalState = Whitebox.getInternalState(testObject, varName);
+        assertFalse(internalState);
+    }
+
+    private void testGetBoolean(String varName, String methodName) throws Exception {
+        Whitebox.setInternalState(testObject, varName, true);
+        boolean value = Whitebox.invokeMethod(testObject, methodName);
+        assertTrue(value);
+
+        Whitebox.setInternalState(testObject, varName, false);
+        value = Whitebox.invokeMethod(testObject, methodName);
+        assertFalse(value);
     }
 }
