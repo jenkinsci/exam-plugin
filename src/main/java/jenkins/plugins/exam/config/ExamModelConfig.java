@@ -52,7 +52,7 @@ public class ExamModelConfig extends AbstractDescribableImpl<ExamModelConfig> {
      */
     protected String name;
     private String modelName;
-    private int examVersion;
+    private int examVersion = 0;
     private String targetEndpoint = TARGET_ENDPOINT;
 
     /**

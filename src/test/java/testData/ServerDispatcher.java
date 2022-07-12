@@ -50,7 +50,12 @@ public class ServerDispatcher extends Dispatcher {
     
     public void setDefaults() {
         clearAllResponse();
-        
+
+        setResponse("/examRest/workspace/apiVersion",
+                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache")
+                        .setBody("{\"major\":\"1\",\"minor\":\"0\",\"fix\":0"));
+
         setResponse("/examRest/testrun/status",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache")

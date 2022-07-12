@@ -10,19 +10,23 @@ import java.io.IOException;
 
 public class Compatibility {
 
+    private static ApiVersion clientApiVersion;
+
 
     /**
-     * Checks whether the REST-API of EXAM has the minimum required version
+     * returns the actual client api Version
      *
-     * @param taskListener       taskListener for logging
-     * @param minRequiredVersion minimum Version required
-     * @param clientRequest      Instance of clientRequest
-     * @throws IOException          IOException
-     * @throws InterruptedException InterruptedException
+     * @return ApiVersion
      */
-    public static void checkMinRestApiVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion,
-                                              @Nonnull ClientRequest clientRequest) throws IOException, InterruptedException {
-        checkMinRestApiVersion(taskListener, minRequiredVersion, "EXAM REST-API", clientRequest);
+    public static ApiVersion getClientApiVersion() {
+        return clientApiVersion;
+    }
+
+    /**
+     * @param clientApiVersion
+     */
+    public static void setClientApiVersion(ApiVersion clientApiVersion) {
+        Compatibility.clientApiVersion = clientApiVersion;
     }
 
     /**
@@ -30,13 +34,25 @@ public class Compatibility {
      *
      * @param taskListener       taskListener for logging
      * @param minRequiredVersion minimum Version required
-     * @param clientRequest      Instance of clientRequest
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
-    private static void checkMinRestApiVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion, String text,
-                                              @Nonnull ClientRequest clientRequest) throws IOException, InterruptedException {
-        ApiVersion actualRestVersion = clientRequest.getApiVersion();
+    public static void checkMinRestApiVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion)
+            throws IOException {
+        checkMinRestApiVersion(taskListener, minRequiredVersion, "EXAM REST-API");
+    }
+
+    /**
+     * Checks whether the REST-API of EXAM has the minimum required version
+     *
+     * @param taskListener       taskListener for logging
+     * @param minRequiredVersion minimum Version required
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
+     */
+    private static void checkMinRestApiVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion,
+                                               String text) throws IOException {
+        ApiVersion actualRestVersion = getClientApiVersion();
         String sApiVersion = (actualRestVersion == null) ? "unknown" : actualRestVersion.toString();
         taskListener.getLogger().println("EXAM api version: " + sApiVersion);
         if (actualRestVersion == null || minRequiredVersion.compareTo(actualRestVersion) > 0) {
@@ -50,11 +66,16 @@ public class Compatibility {
         }
     }
 
-    public static void checkTestConfig(TaskListener listener, TestConfiguration tc, ClientRequest clientRequest) throws IOException, InterruptedException {
+    public static void checkTestConfig(TaskListener listener, TestConfiguration tc) throws IOException {
 
         String modelConfigUUID = tc.getModelProject().getModelConfigUUID();
         if(!Util.isUuidValid(modelConfigUUID)) {
-            checkMinRestApiVersion(listener, new ApiVersion(2, 0, 0), "ModelConfig with name", clientRequest);
+            checkMinRestApiVersion(listener, new ApiVersion(2, 0, 0), "ModelConfig with name");
         }
+    }
+
+    public static boolean isVersionHigher200(){
+        ApiVersion minApiVersion = new ApiVersion(2, 0, 0);
+        return minApiVersion.compareTo(getClientApiVersion()) <= 0;
     }
 }

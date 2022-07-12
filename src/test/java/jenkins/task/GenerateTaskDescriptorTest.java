@@ -175,7 +175,7 @@ public class GenerateTaskDescriptorTest {
 
     @Test
     public void testGetDefaultTestCaseStates() {
-        assertEquals(TestCaseState.NOT_YET_IMPLEMENTED.name(), testObjectDescriptor.getDefaultTestCaseStates());
+        assertEquals(TestCaseState.NOT_YET_IMPLEMENTED.toString(), testObjectDescriptor.getDefaultTestCaseStates());
     }
 
     @Test
@@ -208,6 +208,21 @@ public class GenerateTaskDescriptorTest {
     }
 
 
+    @Test
+    public void testDoCheckExamModel() throws Exception {
+        fillExamModel("testModel", 50);
+        FormValidation validResult = Whitebox.invokeMethod(testObjectDescriptor, "doCheckExamModel", "testModel");
+        assertEquals(FormValidation.ok(), validResult);
+
+        fillExamModel("testModel", 49);
+        String expectedErrorMsg = Messages.TCG_EXAM_MIN_VERSION();
+        validResult = Whitebox.invokeMethod(testObjectDescriptor, "doCheckExamModel", "testModel");
+        assertEquals(FormValidation.error(expectedErrorMsg).getMessage(), validResult.getMessage());
+
+        validResult = Whitebox.invokeMethod(testObjectDescriptor, "doCheckExamModel", "ModelNotIncluded");
+        assertEquals(FormValidation.error(expectedErrorMsg).getMessage(), validResult.getMessage());
+    }
+
     // HELP METHOD
     private void doCheckValidList(String method) throws Exception {
         String validFSN = "name.of.my.package";
@@ -222,6 +237,19 @@ public class GenerateTaskDescriptorTest {
     }
 
     // HELP METHOD
+
+    private void fillExamModel(String name, int version){
+        ExamPluginConfig descriptor = (ExamPluginConfig) jenkinsRule.getInstance()
+                .getDescriptor(ExamPluginConfig.class);
+        List<ExamModelConfig> modelConfigs = new ArrayList<>();
+        ExamModelConfig modelConfig = new ExamModelConfig(name);
+        modelConfig.setName(name);
+        modelConfig.setExamVersion(version);
+        modelConfigs.add(modelConfig);
+
+        descriptor.setModelConfigs(modelConfigs);
+    }
+
     private void doCheckInvalidList(String method) throws Exception {
         String invalidFSN = "#IAmAlsoNoPythonConformName";
         String invalidID = "123456";

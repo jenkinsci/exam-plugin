@@ -1,8 +1,10 @@
 package jenkins.internal;
 
 import Utils.Mocks;
+import Utils.Whitebox;
 import hudson.model.Executor;
 import jakarta.ws.rs.core.Response;
+import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.ExamStatus;
 import org.junit.After;
 import org.junit.Before;
@@ -11,6 +13,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
@@ -40,6 +43,8 @@ public class ClientRequestStaticTest {
 
     @Test
     public void isApiAvailable() throws Exception {
+        Compatibility.setClientApiVersion(new ApiVersion(2,0,0));
+        Whitebox.setInternalState(testObject, "clientConnected" ,true);
         remoteServiceMockedStatic = Mocks.mockStatic(RemoteService.class);
         remoteServiceMockedStatic.when(() -> RemoteService.getJSON(any(), anyInt(), anyString(), any()))
                 .thenThrow(new InterruptedException());

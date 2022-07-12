@@ -1,5 +1,6 @@
 package jenkins.task;
 
+import Utils.Mocks;
 import Utils.Whitebox;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -8,6 +9,8 @@ import hudson.Launcher;
 import hudson.model.*;
 import hudson.util.Secret;
 import jenkins.internal.ClientRequest;
+import jenkins.internal.Compatibility;
+import jenkins.internal.RemoteService;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.model.Jenkins;
@@ -24,6 +27,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.io.File;
@@ -70,6 +74,7 @@ public class ExamTaskTest {
 
     @After
     public void tearDown() {
+        Mocks.resetMocks();
         testObject = null;
         for (File file : createdFiles) {
             if (file.exists()) {
@@ -627,6 +632,8 @@ public class ExamTaskTest {
         when(taskHelperMock.getEnv()).thenReturn(new EnvVars());
         when(taskHelperMock.getTaskListener()).thenReturn(new FakeTaskListener());
         Whitebox.setInternalState(testObject, "taskHelper", taskHelperMock);
+
+        Mocks.mockStatic(Compatibility.class);
 
         ClientRequest clientRequestMock = mock(ClientRequest.class, "clientRequestMock");
         when(clientRequestMock.isClientConnected()).thenReturn(Boolean.FALSE);

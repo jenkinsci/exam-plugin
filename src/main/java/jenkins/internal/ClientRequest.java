@@ -132,6 +132,7 @@ public class ClientRequest {
         try {
             getStatus();
             clientConnected = true;
+            Compatibility.setClientApiVersion(getApiVersion());
         } catch (Exception e) {
             if (e instanceof InterruptedException) {
                 throw e;
@@ -291,8 +292,13 @@ public class ClientRequest {
             return;
         }
         logger.println("stopping testrun");
-        RemoteServiceResponse response = RemoteService
-                .post(launcher, apiPort, "/testrun/stop?timeout=300", null, null);
+        RemoteServiceResponse response;
+        if(Compatibility.isVersionHigher200()){
+            response = RemoteService.put(launcher, apiPort, "/testrun/stop?timeout=300");
+        } else {
+            response = RemoteService
+                    .post(launcher, apiPort, "/testrun/stop?timeout=300", null,null);
+        }
         handleResponseError(response);
     }
 
@@ -316,8 +322,12 @@ public class ClientRequest {
             logger.println("deleting project and pcode for project \"" + projectName + "\" from EXAM workspace");
             postUrl = "/workspace/delete?projectName=" + projectName;
         }
-
-        RemoteServiceResponse response = RemoteService.get(launcher, apiPort, postUrl, null);
+        RemoteServiceResponse response;
+        if(Compatibility.isVersionHigher200()){
+            response = RemoteService.delete(launcher, apiPort, postUrl);
+        } else {
+            response = RemoteService.get(launcher, apiPort, postUrl, null);
+        }
         handleResponseError(response);
     }
 

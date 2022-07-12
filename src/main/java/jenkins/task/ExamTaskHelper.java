@@ -417,7 +417,7 @@ public class ExamTaskHelper {
                 proc = launcher.launch().cmds(args).envs(getEnv()).pwd(buildFilePath.getParent()).stderr(examErr)
                         .stdout(eca).start();
                 clientRequest.connectClient(run.getExecutor(), task.getTimeout());
-                Compatibility.checkMinRestApiVersion(taskListener, minApiVersion, clientRequest);
+                Compatibility.checkMinRestApiVersion(taskListener, minApiVersion);
                 task.doExecuteTask(clientRequest);
 
             } catch (IOException e) {

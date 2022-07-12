@@ -370,7 +370,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
 
         public FormValidation doCheckExamModel(@QueryParameter String value) {
             ExamModelConfig m = getModel(value);
-            if(m.getExamVersion() < 50){
+            if(m == null || m.getExamVersion() < 50){
                 return FormValidation.error(Messages.TCG_EXAM_MIN_VERSION());
             }
             return FormValidation.ok();

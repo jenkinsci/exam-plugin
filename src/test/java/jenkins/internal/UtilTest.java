@@ -265,45 +265,4 @@ public class UtilTest {
         actual = Util.replaceEnvVars(actual, env);
         assertEquals(expected, actual);
     }
-
-    private void checkMinRestApiVersionException(ApiVersion version) throws IOException, InterruptedException {
-        FakeTaskListener taskListenerMock = mock(FakeTaskListener.class);
-        when(taskListenerMock.getLogger()).thenReturn(System.out);
-        ClientRequest clientRequestMock = mock(ClientRequest.class, "ClientRequestMock");
-        when(clientRequestMock.getApiVersion()).thenReturn(new ApiVersion(2, 2, 2));
-        exception.expect(AbortException.class);
-        exception.expectMessage(version.toString());
-        Compatibility.checkMinRestApiVersion(taskListenerMock, version, clientRequestMock);
-    }
-
-    @Test
-    @WithoutJenkins
-    public void checkMinRestApiVersion() throws IOException, InterruptedException {
-        FakeTaskListener taskListenerMock = mock(FakeTaskListener.class);
-        when(taskListenerMock.getLogger()).thenReturn(System.out);
-        ClientRequest clientRequestMock = mock(ClientRequest.class, "ClientRequestMock");
-        when(clientRequestMock.getApiVersion()).thenReturn(new ApiVersion(2, 2, 2));
-        Compatibility.checkMinRestApiVersion(taskListenerMock, new ApiVersion(1, 2, 2), clientRequestMock);
-        Compatibility.checkMinRestApiVersion(taskListenerMock, new ApiVersion(2, 1, 2), clientRequestMock);
-        Compatibility.checkMinRestApiVersion(taskListenerMock, new ApiVersion(2, 2, 1), clientRequestMock);
-        Compatibility.checkMinRestApiVersion(taskListenerMock, new ApiVersion(2, 2, 2), clientRequestMock);
-    }
-
-    @Test
-    @WithoutJenkins
-    public void checkMinRestApiVersionExceptionMajor() throws IOException, InterruptedException {
-        checkMinRestApiVersionException(new ApiVersion(3, 2, 2));
-    }
-
-    @Test
-    @WithoutJenkins
-    public void checkMinRestApiVersionExceptionMinor() throws IOException, InterruptedException {
-        checkMinRestApiVersionException(new ApiVersion(2, 3, 2));
-    }
-
-    @Test
-    @WithoutJenkins
-    public void checkMinRestApiVersionExceptionFix() throws IOException, InterruptedException {
-        checkMinRestApiVersionException(new ApiVersion(2, 2, 3));
-    }
 }

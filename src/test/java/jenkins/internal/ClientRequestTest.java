@@ -302,8 +302,15 @@ public class ClientRequestTest {
     public void clearWorkspace() {
         try {
             String strAll = "deleting all projects and pcode from EXAM workspace";
+            Compatibility.setClientApiVersion(new ApiVersion(2,0,0));
             testObject.clearWorkspace(null);
             verify(printMock).println(strAll);
+
+            Compatibility.setClientApiVersion(new ApiVersion(1,0,0));
+            clearInvocations(printMock);
+            testObject.clearWorkspace("");
+            verify(printMock).println(strAll);
+
             clearInvocations(printMock);
             testObject.clearWorkspace("");
             verify(printMock).println(strAll);
@@ -350,7 +357,7 @@ public class ClientRequestTest {
 
         Whitebox.setInternalState(testObject, "clientConnected", true);
         clearInvocations(printMock);
-        dispatcher.removeResponse("/examRest/testrun/status");
+        dispatcher.removeResponse("/examRest/workspace/apiVersion");
         testObject.disconnectClient(executor, 1);
         verify(printMock).println("disconnect from EXAM");
         verify(printMock, never()).println("ERROR: EXAM does not shutdown in 1s");

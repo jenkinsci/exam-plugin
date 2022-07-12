@@ -281,7 +281,7 @@ public abstract class ExamTask extends Task implements SimpleBuildStep {
         if (clientRequest.isClientConnected()) {
 
             TestConfiguration tc = createTestConfiguration(getTaskHelper().getEnv());
-            Compatibility.checkTestConfig(listener, tc, clientRequest);
+            Compatibility.checkTestConfig(listener, tc);
 
             tc.setPythonPath(pythonExe);
             FilterConfiguration fc = new FilterConfiguration();

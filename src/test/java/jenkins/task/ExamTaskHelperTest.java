@@ -148,7 +148,7 @@ public class ExamTaskHelperTest {
     }
 
     @Test
-    public void perform_exception() throws IOException, InterruptedException, SAXException {
+    public void perform_exception() throws IOException, InterruptedException {
         when(taskMock.getExam()).thenReturn(toolMock);
         when(toolMock.getExecutable(any())).thenReturn(pathToExe);
         when(toolMock.forNode(any(), any())).thenReturn(toolMock);
@@ -161,7 +161,8 @@ public class ExamTaskHelperTest {
 
         MockedStatic<RemoteService> remoteServiceMocked = Mocks.mockStatic(RemoteService.class);
         remoteServiceMocked.when(() -> RemoteService.getJSON(any(), anyInt(), anyString(), any()))
-                .thenReturn(new RemoteServiceResponse(Response.ok().build().getStatus(), status, ""));
+                .thenReturn(new RemoteServiceResponse(Response.ok().build().getStatus(), status, "")).thenReturn(
+                        new RemoteServiceResponse(Response.ok().build().getStatus(), new ApiVersion(1, 0, 0), ""));
 
         Task.DescriptorTask descriptorTaskMock = mock(Task.DescriptorTask.class);
         when(descriptorTaskMock.getInstallations()).thenReturn(new ExamTool[]{});
@@ -576,7 +577,8 @@ public class ExamTaskHelperTest {
         assertEquals(8085, clientRequest.getApiPort());
 
         remoteServiceMocked.when(() -> RemoteService.getJSON(any(), anyInt(), any(), any()))
-                .thenReturn(new RemoteServiceResponse(Response.ok().build().getStatus(), status, ""));
+                .thenReturn(new RemoteServiceResponse(Response.ok().build().getStatus(), status, "")).thenReturn(
+                        new RemoteServiceResponse(Response.ok().build().getStatus(), new ApiVersion(1, 0, 0), ""));
         thrown.expect(AbortException.class);
         thrown.expectMessage("ERROR: EXAM is already running");
         Whitebox.invokeMethod(testObject, "getClientRequest", types, launcher, pluginMock);

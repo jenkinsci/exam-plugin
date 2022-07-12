@@ -143,4 +143,40 @@ public class GenerateConfigurationTest {
         testObject.setTestCaseStates(Collections.singletonList(TEST_STRING));
         assertTrue(Collections.singletonList(TEST_STRING).equals(testObject.getTestCaseStates()));
     }
+
+    @Test
+    public void testGetOverwriteDescriptionSource() {
+        Whitebox.setInternalState(testObject, "overwriteDescriptionSource", true);
+        assertTrue(testObject.getOverwriteDescriptionSource());
+    }
+
+    @Test
+    public void testSetOverwriteDescriptionSource() {
+        testObject.setOverwriteDescriptionSource(true);
+        assertTrue(testObject.getOverwriteDescriptionSource());
+    }
+
+    @Test
+    public void testGetOverwriteFrameSteps() {
+        Whitebox.setInternalState(testObject, "overwriteFrameSteps", true);
+        assertTrue(testObject.isOverwriteFrameSteps());
+    }
+
+    @Test
+    public void testSetOverwriteFrameSteps() {
+        testObject.setOverwriteFrameSteps(true);
+        assertTrue(testObject.isOverwriteFrameSteps());
+    }
+
+    @Test
+    public void testGetOverwriteMappingList() {
+        Whitebox.setInternalState(testObject, "overwriteMappingList", true);
+        assertTrue(testObject.isOverwriteMappingList());
+    }
+
+    @Test
+    public void testSetOverwriteMappingList() {
+        testObject.setOverwriteMappingList(true);
+        assertTrue(testObject.isOverwriteMappingList());
+    }
 }

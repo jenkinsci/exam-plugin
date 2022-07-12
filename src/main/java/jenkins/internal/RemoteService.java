@@ -67,7 +67,7 @@ public class RemoteService implements Serializable {
         if (channel == null) {
             return null;
         }
-        
+
         return channel.call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
             private static final long serialVersionUID = -7246380216097840885L;
             
@@ -84,7 +84,77 @@ public class RemoteService implements Serializable {
             }
         });
     }
-    
+
+    /**
+     * @param launcher Launcher
+     * @param apiPort  port of REST-API
+     * @param postUrl  postfix for api url
+     *
+     * @return RemoteServiceResponse
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
+     */
+    @Nullable
+    public static RemoteServiceResponse delete(@Nonnull Launcher launcher, int apiPort, @Nonnull String postUrl)
+            throws IOException, InterruptedException {
+        VirtualChannel channel = launcher.getChannel();
+        if (channel == null) {
+            return null;
+        }
+
+        return channel.call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
+            private static final long serialVersionUID = -7246380216097840885L;
+
+            /**
+             * @return ip address of slave
+             */
+            public RemoteServiceResponse call() {
+                String url = String.format(BASEURL, apiPort) + postUrl;
+                JerseyWebTarget service = createClient(url);
+                Response clientResponse = service.request(MediaType.APPLICATION_JSON).delete();
+                RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, null);
+                destroyClient();
+                return response;
+            }
+        });
+    }
+
+    /**
+     * @param launcher Launcher
+     * @param apiPort  port of REST-API
+     * @param postUrl  postfix for api url
+     *
+     * @return RemoteServiceResponse
+     *
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
+     */
+    @Nullable
+    public static RemoteServiceResponse put(@Nonnull Launcher launcher, int apiPort, @Nonnull String postUrl)
+            throws IOException, InterruptedException {
+        VirtualChannel channel = launcher.getChannel();
+        if (channel == null) {
+            return null;
+        }
+
+        return channel.call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
+            private static final long serialVersionUID = -7246380216097840885L;
+
+            /**
+             * @return ip address of slave
+             */
+            public RemoteServiceResponse call() {
+                String url = String.format(BASEURL, apiPort) + postUrl;
+                JerseyWebTarget service = createClient(url);
+                Response clientResponse = service.request(MediaType.APPLICATION_JSON).put(Entity.text(""));
+                RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, null);
+                destroyClient();
+                return response;
+            }
+        });
+    }
+
     /**
      * @param launcher Launcher
      * @param apiPort  port of REST-API
@@ -105,7 +175,7 @@ public class RemoteService implements Serializable {
         }
         return channel.call(new ExamMasterToSlaveCallable<RemoteServiceResponse, IOException>() {
             private static final long serialVersionUID = -7246380216097840887L;
-            
+
             /**
              * @return ip address of slave
              */
@@ -117,7 +187,7 @@ public class RemoteService implements Serializable {
                 RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
                 destroyClient();
                 return response;
-                
+
             }
         });
     }
