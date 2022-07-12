@@ -29,14 +29,12 @@
  */
 package jenkins.task;
 
-import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Executor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.util.ComboBoxModel;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
@@ -69,15 +67,6 @@ import java.util.List;
 public class GenerateTask extends Task implements SimpleBuildStep {
 
     private static final long serialVersionUID = 2641743348736414442L;
-
-    /**
-     * the modelConfiguration as ID, UUID, or FullScopedName
-     */
-    private String modelConfiguration;
-    /**
-     * Identifies {@link jenkins.plugins.exam.config.ExamModelConfig} to be used.
-     */
-    private String examModel;
 
     /**
      * {@link jenkins.internal.data.GenerateConfiguration} properties.
@@ -294,20 +283,6 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         return configuration;
     }
 
-    private ModelConfiguration createModelConfig() throws AbortException {
-        ModelConfiguration mc = new ModelConfiguration();
-        ExamModelConfig m = getModel(examModel);
-        if (m == null) {
-            throw new AbortException("ERROR: no model configured with name: " + examModel);
-        }
-        mc.setProjectName(m.getName());
-        mc.setModelName(m.getModelName());
-        mc.setTargetEndpoint(m.getTargetEndpoint());
-        mc.setModelConfigUUID(modelConfiguration);
-
-        return mc;
-    }
-
     private List<String> convertToList(String list) {
         if (list == null || list.trim().isEmpty()) {
             return new ArrayList<>();
@@ -368,6 +343,12 @@ public class GenerateTask extends Task implements SimpleBuildStep {
             return null;
         }
 
+        /**
+         * Checks if the ExamModels version ich at minimim 5.0.
+         *
+         * @param value value
+         * @return If the form is ok
+         */
         public FormValidation doCheckExamModel(@QueryParameter String value) {
             ExamModelConfig m = getModel(value);
             if(m == null || m.getExamVersion() < 50){

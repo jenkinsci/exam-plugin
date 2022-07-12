@@ -29,7 +29,6 @@
  */
 package jenkins.task;
 
-import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -43,7 +42,6 @@ import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GroovyConfiguration;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.descriptor.ExamModelDescriptorTask;
-import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.task._exam.Messages;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
@@ -68,16 +66,6 @@ public class GroovyTask extends Task implements SimpleBuildStep {
     private String script;
     private String startElement;
     private boolean useStartElement;
-
-    /**
-     * the modelConfiguration as ID, UUID, or FullScopedName
-     */
-    private String modelConfiguration;
-
-    /**
-     * Identifies {@link jenkins.plugins.exam.config.ExamModelConfig} to be used.
-     */
-    private String examModel;
 
     /**
      * Constructor of GroovyTask
@@ -167,20 +155,6 @@ public class GroovyTask extends Task implements SimpleBuildStep {
             clientRequest.createExamProject(modelConfig);
             clientRequest.executeGoovyScript(config);
         }
-    }
-
-    private ModelConfiguration createModelConfig() throws AbortException {
-        ModelConfiguration mc = new ModelConfiguration();
-        ExamModelConfig m = getModel(examModel);
-        if (m == null) {
-            throw new AbortException("ERROR: no model configured with name: " + examModel);
-        }
-        mc.setProjectName(m.getName());
-        mc.setModelName(m.getModelName());
-        mc.setTargetEndpoint(m.getTargetEndpoint());
-        mc.setModelConfigUUID(modelConfiguration);
-
-        return mc;
     }
 
     private GroovyConfiguration createGroovyConfig() {

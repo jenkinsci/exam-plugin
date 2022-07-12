@@ -1,7 +1,10 @@
 package jenkins.task;
 
 import Utils.Whitebox;
+import hudson.AbortException;
+import jenkins.internal.data.ModelConfiguration;
 import jenkins.plugins.exam.ExamTool;
+import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.task.TestUtil.FakeExamTask;
 import jenkins.task.TestUtil.TUtil;
@@ -9,6 +12,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
 
@@ -19,6 +23,9 @@ public class TaskTest {
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
 
+    @Rule
+    public ExpectedException exceptionRule = ExpectedException.none();
+
     private Task testObject;
     private String examName;
     private String pythonName;
@@ -26,15 +33,23 @@ public class TaskTest {
     private String examSysConfig;
     private String examHome;
     private String examRelativePath;
+    private String targetEndpoint;
+    private int examVersion;
+    private String examModel;
+    private String modelConfig;
 
     @Before
     public void setUp() {
+        modelConfig = "ITest";
+        examModel = "examModel";
         examName = "EXAM";
         pythonName = "Python-2.7";
         examReport = "examReport";
         examSysConfig = "testExamSystemConfig";
         examHome = "examHome";
         examRelativePath = "examRelativePath";
+        targetEndpoint = "testTargetEndpoint";
+        examVersion = 48;
         testObject = new FakeExamTask(examName, pythonName, examReport, examSysConfig);
     }
 
@@ -121,5 +136,34 @@ public class TaskTest {
     @Test
     public void getExam_noExamRegisterd() {
         assertNull(testObject.getExam());
+    }
+
+
+    @Test
+    public void testCreateModelConfig() throws Exception {
+
+        ExamModelConfig mod = new ExamModelConfig(examModel);
+        mod.setName(examName);
+        mod.setModelName(examModel);
+        mod.setExamVersion(examVersion);
+        mod.setTargetEndpoint(targetEndpoint);
+        testObject.getDescriptor().getModelConfigs().add(mod);
+        Whitebox.setInternalState(testObject, "examModel", examName);
+        Whitebox.setInternalState(testObject, "modelConfiguration", modelConfig);
+        ModelConfiguration actual = Whitebox.invokeMethod(testObject, "createModelConfig");
+
+        ModelConfiguration expected = new ModelConfiguration();
+        expected.setModelName(examModel);
+        expected.setProjectName(examName);
+        expected.setTargetEndpoint(targetEndpoint);
+        expected.setModelConfigUUID(modelConfig);
+
+        TUtil.assertModelConfig(expected, actual);
+
+        testObject.getDescriptor().getModelConfigs().clear();
+
+        exceptionRule.expect(AbortException.class);
+        exceptionRule.expectMessage("ERROR: no model configured with name: " + examName);
+        Whitebox.invokeMethod(testObject, "createModelConfig");
     }
 }

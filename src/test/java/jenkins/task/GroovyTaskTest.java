@@ -1,7 +1,6 @@
 package jenkins.task;
 
 import Utils.Whitebox;
-import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.FreeStyleBuild;
@@ -10,7 +9,6 @@ import hudson.model.Result;
 import hudson.model.Run;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.data.GroovyConfiguration;
-import jenkins.internal.data.ModelConfiguration;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
@@ -57,8 +55,6 @@ public class GroovyTaskTest {
     private String examHome;
     private String examRelativePath;
     private String modelConfig;
-    private String targetEndpoint;
-    private int examVersion;
 
     @Before
     public void setUp() {
@@ -68,8 +64,6 @@ public class GroovyTaskTest {
         examName = "examName";
         examModel = "examModel";
         examRelativePath = "examRelativePath";
-        targetEndpoint = "testTargetEndpoint";
-        examVersion = 48;
         Jenkins instance = jenkinsRule.getInstance();
         examHome = instance == null ? "examHome" : instance.getRootPath().getRemote();
         testObject = new GroovyTask(script, startElement, examName, examModel, modelConfig);
@@ -332,33 +326,6 @@ public class GroovyTaskTest {
     }
 
     @Test
-    public void testCreateModelConfig() throws Exception {
-        ExamModelConfig mod = new ExamModelConfig(examModel);
-        mod.setName(examName);
-        mod.setModelName(examModel);
-        mod.setExamVersion(examVersion);
-        mod.setTargetEndpoint(targetEndpoint);
-        testObject.getDescriptor().getModelConfigs().add(mod);
-        Whitebox.setInternalState(testObject, "examModel", examName);
-        Whitebox.setInternalState(testObject, "modelConfiguration", modelConfig);
-        ModelConfiguration actual = Whitebox.invokeMethod(testObject, "createModelConfig");
-
-        ModelConfiguration expected = new ModelConfiguration();
-        expected.setModelName(examModel);
-        expected.setProjectName(examName);
-        expected.setTargetEndpoint(targetEndpoint);
-        expected.setModelConfigUUID(modelConfig);
-
-        assertModelConfig(expected, actual);
-
-        testObject.getDescriptor().getModelConfigs().clear();
-
-        exceptionRule.expect(AbortException.class);
-        exceptionRule.expectMessage("ERROR: no model configured with name: " + examName);
-        Whitebox.invokeMethod(testObject, "createModelConfig");
-    }
-
-    @Test
     public void testCreateGroovyConfig() throws Exception {
         GroovyConfiguration expected = new GroovyConfiguration();
         expected.setStartElement(startElement);
@@ -368,7 +335,7 @@ public class GroovyTaskTest {
         Whitebox.setInternalState(testObject, "startElement", startElement);
         Whitebox.setInternalState(testObject, "useStartElement", true);
         GroovyConfiguration actual = Whitebox.invokeMethod(testObject, "createGroovyConfig");
-        assertGroovyConfig(expected, actual);
+        TUtil.assertGroovyConfig(expected, actual);
 
         Whitebox.setInternalState(testObject, "script", "anotherScript");
         Whitebox.setInternalState(testObject, "useStartElement", false);
@@ -376,7 +343,7 @@ public class GroovyTaskTest {
         actual = Whitebox.invokeMethod(testObject, "createGroovyConfig");
         expected.setScript("anotherScript");
         expected.setStartElement("");
-        assertGroovyConfig(expected, actual);
+        TUtil.assertGroovyConfig(expected, actual);
     }
 
     @Test
@@ -411,25 +378,5 @@ public class GroovyTaskTest {
         assertEquals("FAILURE", buildResult.toString());
         List<String> log = build.getLog(1000);
         assertThat(log, CoreMatchers.hasItem(logContains));
-    }
-
-    private void assertGroovyConfig(GroovyConfiguration c1, GroovyConfiguration c2) {
-        if (c1 != null && c2 != null) {
-            assertEquals(c1.getScript(), c2.getScript());
-            assertEquals(c1.getStartElement(), c2.getStartElement());
-            return;
-        }
-        fail();
-    }
-
-    private void assertModelConfig(ModelConfiguration mc1, ModelConfiguration mc2) {
-        if (mc1 != null & mc2 != null) {
-            assertEquals(mc1.getModelName(), mc2.getModelName());
-            assertEquals(mc1.getProjectName(), mc2.getProjectName());
-            assertEquals(mc1.getTargetEndpoint(), mc2.getTargetEndpoint());
-            assertEquals(mc1.getModelConfigUUID(), mc2.getModelConfigUUID());
-            return;
-        }
-        fail();
     }
 }

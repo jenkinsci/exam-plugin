@@ -324,6 +324,7 @@ public class ClientRequestTest {
 
     @Test
     public void clearWorkspaceWithException() throws IOException, InterruptedException {
+        Compatibility.setClientApiVersion(new ApiVersion(2,0,0));
         dispatcher.clearAllResponse();
         exception.expect(IOException.class);
         testObject.clearWorkspace("");

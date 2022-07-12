@@ -29,24 +29,17 @@
  */
 package jenkins.internal;
 
-import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.model.Node;
-import hudson.model.TaskListener;
 import hudson.util.FormValidation;
-import jenkins.internal.data.ApiVersion;
 import jenkins.internal.enumeration.PythonWords;
 import jenkins.model.Jenkins;
 import jenkins.task._exam.Messages;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

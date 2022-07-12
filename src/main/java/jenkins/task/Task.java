@@ -29,11 +29,13 @@
  */
 package jenkins.task;
 
+import hudson.AbortException;
 import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import jenkins.internal.ClientRequest;
+import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.descriptor.TaskDescriptor;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
@@ -54,10 +56,20 @@ public abstract class Task extends Builder implements Serializable {
      * JAVA_OPTS if not null.
      */
     private String javaOpts;
+
+    /**
+     * the modelConfiguration as ID, UUID, or FullScopedName
+     */
+    protected String modelConfiguration;
+
     /**
      * Identifies {@link ExamTool} to be used.
      */
     protected String examName;
+    /**
+     * Identifies {@link jenkins.plugins.exam.config.ExamModelConfig} to be used.
+     */
+    protected String examModel;
     /**
      * timeout if not null.
      */
@@ -146,6 +158,21 @@ public abstract class Task extends Builder implements Serializable {
             }
         }
         return null;
+    }
+
+
+    protected ModelConfiguration createModelConfig() throws AbortException {
+        ModelConfiguration mc = new ModelConfiguration();
+        ExamModelConfig m = getModel(examModel);
+        if (m == null) {
+            throw new AbortException("ERROR: no model configured with name: " + examModel);
+        }
+        mc.setProjectName(m.getName());
+        mc.setModelName(m.getModelName());
+        mc.setTargetEndpoint(m.getTargetEndpoint());
+        mc.setModelConfigUUID(modelConfiguration);
+
+        return mc;
     }
     
     /**

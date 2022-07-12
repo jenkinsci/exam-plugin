@@ -1,17 +1,14 @@
 package jenkins.task;
 
 import Utils.Whitebox;
-import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Proc;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.data.GenerateConfiguration;
-import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.enumeration.TestCaseState;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
@@ -20,11 +17,7 @@ import jenkins.task.TestUtil.FakeTaskListener;
 import jenkins.task.TestUtil.TUtil;
 import jenkins.task._exam.Messages;
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -72,13 +65,10 @@ public class GenerateTaskTest {
      * Test properties
      */
     private String element;
-    private boolean overwriteDescriptionSource;
     private String descriptionSource;
     private boolean documentInReport;
     private String errorHandling;
-    private boolean overwriteFrameSteps;
     private String[] frameSteps;
-    private boolean overwriteMappingList;
     private String mappingList;
     private String[] testCaseStates;
     private String variant;
@@ -324,36 +314,6 @@ public class GenerateTaskTest {
         assertEquals(Result.FAILURE, buildResult);
         log = build.getLog(1000);
         assertThat(log, CoreMatchers.hasItem("ERROR: " + Messages.EXAM_ExecutableNotFound(examName)));
-    }
-
-    @Test public void testCreateModelConfig() throws Exception {
-        String targetEndpoint = "targetEndpoint";
-        ExamModelConfig mod = new ExamModelConfig(examModel);
-        mod.setName(examName);
-        mod.setModelName(examModel);
-        mod.setExamVersion(49);
-        mod.setTargetEndpoint(targetEndpoint);
-        testObject.getDescriptor().getModelConfigs().add(mod);
-        Whitebox.setInternalState(testObject, "examModel", examName);
-        Whitebox.setInternalState(testObject, "modelConfiguration", modelConfiguration);
-        ModelConfiguration actual = Whitebox.invokeMethod(testObject, "createModelConfig");
-
-        ModelConfiguration expected = new ModelConfiguration();
-        expected.setModelName(examModel);
-        expected.setProjectName(examName);
-        expected.setTargetEndpoint(targetEndpoint);
-        expected.setModelConfigUUID(modelConfiguration);
-
-        TUtil.assertModelConfig(expected, actual);
-
-        try {
-            testObject.getDescriptor().getModelConfigs().clear();
-            Whitebox.invokeMethod(testObject, "createModelConfig");
-        } catch (AbortException e) {
-            assertEquals("ERROR: no model configured with name: " + examName, e.getMessage());
-            return;
-        }
-        fail();
     }
 
     @Test public void testCreateGenerateConfig() throws Exception {
