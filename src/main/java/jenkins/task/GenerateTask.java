@@ -77,10 +77,10 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     private boolean documentInReport;
     private String errorHandling;
     private boolean overwriteFrameSteps;
-    private String[] frameSteps;
+    private List<String> frameSteps;
     private boolean overwriteMappingList;
     private String mappingList;
-    private String[] testCaseStates;
+    private List<String> testCaseStates;
     private String variant;
 
 
@@ -150,12 +150,12 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         this.errorHandling = errorHandling;
     }
 
-    public String[] getFrameSteps() {
+    public List<String> getFrameSteps() {
         return frameSteps;
     }
 
     @DataBoundSetter
-    public void setFrameSteps(String[] frameSteps) {
+    public void setFrameSteps(List<String> frameSteps) {
         this.frameSteps = frameSteps;
     }
 
@@ -168,15 +168,15 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         this.mappingList = mappingList;
     }
 
-    public String[] getTestCaseStates() {
+    public List<String> getTestCaseStates() {
         return testCaseStates;
     }
 
     @DataBoundSetter
-    public void setTestCaseStates(String[] testCaseStates) {
-        if(testCaseStates.length == 0){
+    public void setTestCaseStates(List<String> testCaseStates) {
+        if(testCaseStates.isEmpty()){
             DescriptorGenerateTask descriptor = (DescriptorGenerateTask) getDescriptor();
-            this.testCaseStates = new String[]{descriptor.getDefaultTestCaseStates()};
+            this.testCaseStates = descriptor.getDefaultTestCaseStates();
         } else {
             this.testCaseStates = testCaseStates;
         }
@@ -225,7 +225,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
      */
     @DataBoundConstructor
     public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource,
-                        boolean documentInReport, String errorHandling, String[] frameSteps, String mappingList, String[] testCaseStates, String variant) {
+                        boolean documentInReport, String errorHandling, List<String> frameSteps, String mappingList, List<String> testCaseStates, String variant) {
         this.examModel = examModel;
         this.examName = examName;
         this.modelConfiguration = modelConfiguration;
@@ -274,10 +274,10 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         configuration.setDocumentInReport(getDocumentInReport());
         configuration.setErrorHandling(getErrorHandling());
         configuration.setOverwriteFrameSteps(getOverwriteFrameSteps());
-        configuration.setFrameFunctions(Arrays.asList(getFrameSteps()));
+        configuration.setFrameFunctions(getFrameSteps());
         configuration.setOverwriteMappingList(getOverwriteMappingList());
         configuration.setMappingList(convertToList(getMappingList()));
-        configuration.setTestCaseStates(Arrays.asList(getTestCaseStates()));
+        configuration.setTestCaseStates(getTestCaseStates());
         configuration.setVariant(getVariant());
 
         return configuration;
@@ -292,11 +292,11 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     }
 
     public boolean isTestCaseStateSelected(String value){
-        return Arrays.asList(this.testCaseStates).contains(value);
+        return this.testCaseStates.contains(value);
     }
 
     public boolean isFrameStepsSelected(String value){
-        return Arrays.asList(this.frameSteps).contains(value);
+        return this.frameSteps.contains(value);
     }
 
     /**
@@ -440,8 +440,10 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         /**
          * @return the default errorHandle
          */
-        public String getDefaultTestCaseStates() {
-            return TestCaseState.NOT_YET_IMPLEMENTED.toString();
+        public List<String> getDefaultTestCaseStates() {
+            List<String> list = new ArrayList<>();
+            list.add(TestCaseState.NOT_YET_IMPLEMENTED.toString());
+            return list;
         }
 
 

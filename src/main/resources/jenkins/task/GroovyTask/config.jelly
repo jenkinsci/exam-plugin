@@ -32,5 +32,6 @@
 
     <st:include page="/jenkins/task/ExamSubmodules/Modeler/configGroovyModel.jelly" class="jenkins.task.GroovyTask"/>
     <st:include page="/jenkins/task/ExamSubmodules/Groovy/config.jelly" class="jenkins.task.GroovyTask"/>
+    <st:include page="/jenkins/task/ExamSubmodules/configAdvanced.jelly" class="jenkins.task.ExamTask"/>
 
 </j:jelly>

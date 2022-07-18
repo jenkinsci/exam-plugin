@@ -68,9 +68,9 @@ public class GenerateTaskTest {
     private String descriptionSource;
     private boolean documentInReport;
     private String errorHandling;
-    private String[] frameSteps;
+    private List<String> frameSteps;
     private String mappingList;
-    private String[] testCaseStates;
+    private List<String> testCaseStates;
     private String variant;
 
     List<File> createdFiles = new ArrayList<>();
@@ -85,9 +85,11 @@ public class GenerateTaskTest {
         descriptionSource = "descSource";
         documentInReport = true;
         errorHandling = "error";
-        frameSteps = new String[]{"frame"};
+        frameSteps = new ArrayList<>();
+        frameSteps.add("frame");
         mappingList = "mList";
-        testCaseStates = new String[]{"tCStates"};
+        testCaseStates = new ArrayList<>();
+        testCaseStates.add("tCStates");
         variant = "var";
 
         Jenkins instance = jenkinsRule.getInstance();
@@ -174,13 +176,13 @@ public class GenerateTaskTest {
 
     @Test @WithoutJenkins public void testGetFrameFunctions() {
         Whitebox.setInternalState(testObject, "frameSteps", frameSteps);
-        assertArrayEquals(testObject.getFrameSteps(), frameSteps);
+        assertArrayEquals(testObject.getFrameSteps().toArray(), frameSteps.toArray());
     }
 
     @Test @WithoutJenkins public void testSetFrameFunctions() {
         testObject.setFrameSteps(frameSteps);
-        Object[] internalState = Whitebox.getInternalState(testObject, "frameSteps");
-        assertArrayEquals(frameSteps, internalState);
+        List<String> internalState = Whitebox.getInternalState(testObject, "frameSteps");
+        assertArrayEquals(frameSteps.toArray(), internalState.toArray());
     }
 
     @Test @WithoutJenkins public void testGetMappingList() {
@@ -196,18 +198,18 @@ public class GenerateTaskTest {
 
     @Test @WithoutJenkins public void testGetTestCaseStates() {
         Whitebox.setInternalState(testObject, "testCaseStates", testCaseStates);
-        assertArrayEquals(testObject.getTestCaseStates(), testCaseStates);
+        assertArrayEquals(testObject.getTestCaseStates().toArray(), testCaseStates.toArray());
     }
 
     @Test public void testSetTestCaseStates() {
         testObject.setTestCaseStates(testCaseStates);
-        Object[] internalState = Whitebox.getInternalState(testObject, "testCaseStates");
-        assertArrayEquals(testCaseStates, internalState);
+        List<String> internalState = Whitebox.getInternalState(testObject, "testCaseStates");
+        assertArrayEquals(testCaseStates.toArray(), internalState.toArray());
 
-        testObject.setTestCaseStates(new String[]{});
+        testObject.setTestCaseStates(new ArrayList<>());
         internalState = Whitebox.getInternalState(testObject, "testCaseStates");
-        assertEquals(1, internalState.length);
-        assertEquals(TestCaseState.NOT_YET_IMPLEMENTED.toString(), internalState[0]);
+        assertEquals(1, internalState.size());
+        assertEquals(TestCaseState.NOT_YET_IMPLEMENTED.toString(), internalState.get(0));
     }
 
     @Test @WithoutJenkins public void testGetVariant() {
@@ -323,9 +325,9 @@ public class GenerateTaskTest {
         expected.setDocumentInReport(documentInReport);
         expected.setErrorHandling(errorHandling);
         expected.setVariant(variant);
-        expected.setFrameFunctions(Arrays.asList(frameSteps));
+        expected.setFrameFunctions(frameSteps);
         expected.setMappingList(Collections.singletonList(mappingList));
-        expected.setTestCaseStates(Arrays.asList(testCaseStates));
+        expected.setTestCaseStates(testCaseStates);
 
         Whitebox.setInternalState(testObject, "element", element);
         Whitebox.setInternalState(testObject, "descriptionSource", descriptionSource);
@@ -390,14 +392,14 @@ public class GenerateTaskTest {
     @Test
     @WithoutJenkins
     public void testIsTestCaseStateSelected() {
-        assertTrue(testObject.isTestCaseStateSelected(testCaseStates[0]));
+        assertTrue(testObject.isTestCaseStateSelected(testCaseStates.get(0)));
         assertFalse(testObject.isTestCaseStateSelected("nothing"));
     }
 
     @Test
     @WithoutJenkins
     public void testIsFrameStepsSelected() {
-        assertTrue(testObject.isFrameStepsSelected(frameSteps[0]));
+        assertTrue(testObject.isFrameStepsSelected(frameSteps.get(0)));
         assertFalse(testObject.isFrameStepsSelected("nothing"));
     }
 

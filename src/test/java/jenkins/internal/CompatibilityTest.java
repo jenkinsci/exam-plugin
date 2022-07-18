@@ -105,6 +105,9 @@ public class CompatibilityTest {
         ModelConfiguration mc = new ModelConfiguration();
         mc.setModelConfigUUID("configName");
         TestConfiguration tc = new TestConfiguration();
+
+        Compatibility.checkTestConfig(taskListenerMock,tc);
+
         tc.setModelProject(mc);
 
         Compatibility.checkTestConfig(taskListenerMock,tc);

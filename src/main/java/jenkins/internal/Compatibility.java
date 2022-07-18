@@ -107,6 +107,10 @@ public class Compatibility {
      */
     public static void checkTestConfig(TaskListener listener, TestConfiguration tc) throws IOException {
 
+        if(tc.getModelProject() == null){
+            return;
+        }
+
         String modelConfigUUID = tc.getModelProject().getModelConfigUUID();
         if(!Util.isUuidValid(modelConfigUUID)) {
             checkMinRestApiVersion(listener, new ApiVersion(2, 0, 0), "ModelConfig with name");

@@ -221,13 +221,13 @@ public class RemoteService implements Serializable {
                 String url = String.format(BASEURL, apiPort) + postUrl;
                 JerseyWebTarget service = createClient(url);
                 Response clientResponse = null;
-                
+
                 if (postObject == null) {
                     clientResponse = service.request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                             .post(Entity.text(""));
                 } else {
                     clientResponse = service.request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-                            .post(Entity.entity(postObject,MediaType.APPLICATION_JSON));
+                            .post(Entity.json(postObject));
                 }
                 RemoteServiceResponse response = getRemoteServiceResponse(clientResponse, clazz);
                 destroyClient();

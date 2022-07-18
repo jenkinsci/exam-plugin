@@ -37,9 +37,9 @@ public class GenerateTaskDescriptorTest {
     private String descriptionSource;
     private boolean documentInReport;
     private String errorHandling;
-    private String[] frameFunctions;
+    private List<String> frameFunctions;
     private String mappingList;
-    private String[] testCaseStates;
+    private List<String> testCaseStates;
     private String variant;
 
     @Before
@@ -52,9 +52,11 @@ public class GenerateTaskDescriptorTest {
         descriptionSource = "descSource";
         documentInReport = true;
         errorHandling = "error";
-        frameFunctions = new String[]{"frame"};
+        frameFunctions = new ArrayList<>();
+        frameFunctions.add("frame");
         mappingList = "mList";
-        testCaseStates = new String[]{"tCStates"};
+        testCaseStates = new ArrayList<>();
+        testCaseStates.add("tCStates");
         variant = "var";
         freeStyleProject = jenkinsRule.createFreeStyleProject();
         testObject = new GenerateTask(examModel, examName, modelConfiguration, element, descriptionSource, documentInReport,

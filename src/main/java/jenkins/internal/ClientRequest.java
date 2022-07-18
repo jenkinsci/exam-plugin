@@ -419,7 +419,7 @@ public class ClientRequest {
                 breakAfter--;
                 testDetected = "TestRun".equalsIgnoreCase(status.getJobName());
                 if (!testDetected && breakAfter <= 0) {
-                    logger.println("No Testrun detected");
+                    logger.printf("No Testrun detected after %sms", breakAfter);
                     break;
                 }
                 if (testDetected) {
