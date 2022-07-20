@@ -309,5 +309,31 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>sources</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                            <configuration>
+                                <classifier>sources</classifier>
+                                <includeScope>runtime</includeScope>
+                                <includeTypes></includeTypes>
+                                <outputDirectory>${project.basedir}/sources</outputDirectory>
+                            </configuration>
+                        <executions>
+                            <execution>
+                                <id>runtime</id>
+                                <phase>process-sources</phase>
+                                <goals>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>
