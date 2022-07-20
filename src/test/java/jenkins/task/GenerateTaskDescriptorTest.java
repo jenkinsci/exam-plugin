@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class GenerateTaskDescriptorTest {
 
@@ -177,7 +178,7 @@ public class GenerateTaskDescriptorTest {
 
     @Test
     public void testGetDefaultTestCaseStates() {
-        assertEquals(TestCaseState.NOT_YET_IMPLEMENTED.toString(), testObjectDescriptor.getDefaultTestCaseStates());
+        assertArrayEquals(new String[]{TestCaseState.NOT_YET_IMPLEMENTED.toString()},testObjectDescriptor.getDefaultTestCaseStates().toArray());
     }
 
     @Test
