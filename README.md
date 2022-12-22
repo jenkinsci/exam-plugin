@@ -36,7 +36,7 @@ Software-in-the-Loop simulation (SiL).
 
 - EXAM  
     - min. v4.4
-    - RESTapi Plugin for EXAM
+    - REST-API Plugin for EXAM
 
 
 - Jenkins-Plugins

@@ -1,5 +1,15 @@
 #Changelog
 
+## 1.2.0 (2022-12-22)
+
+### Added
+* compatibility with EXAM REST-API 1.2.0
+* dokumentation is moved to Github
+* execute TCG of EXAM 
+
+### removed
+* Test Model Connection with Soap
+
 ## 1.1.1 (2020-05-05)
 
 ### Added
