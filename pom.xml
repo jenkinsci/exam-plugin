@@ -38,7 +38,7 @@
     <name>MicroNova EXAM Plugin</name>
     <description>This plugin integrates the REST API of the Testautomation tool EXAM for automated test execution.
     </description>
-    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+    <url>https://github.com/jenkinsci/exam-plugin</url>
     <organization>
         <name>MicroNova AG</name>
         <url>https://www.micronova.de/testing/exam-testautomation.html</url>
@@ -76,10 +76,10 @@
     -->
     <!-- Assuming you want to host on @jenkinsci:-->
     <scm>
-        <connection>scm:git:https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:https://github.com/jenkinsci/${project.artifactId}-plugin.git
+        <connection>scm:git:https://github.com/jenkinsci/exam-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/jenkinsci/exam-plugin.git
         </developerConnection>
-        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+        <url>https://github.com/jenkinsci/exam-plugin</url>
         <tag>HEAD</tag>
     </scm>
     <repositories>
