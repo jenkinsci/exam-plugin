@@ -23,17 +23,16 @@
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
         <version>4.40</version>
-        <relativePath/>
+        <relativePath />
     </parent>
     <artifactId>de.micronova.jenkins.exam</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.0</version>
     <packaging>hpi</packaging>
     <name>MicroNova EXAM Plugin</name>
     <description>This plugin integrates the REST API of the Testautomation tool EXAM for automated test execution.
@@ -80,7 +79,7 @@
         <developerConnection>scm:git:https://github.com/jenkinsci/exam-plugin.git
         </developerConnection>
         <url>https://github.com/jenkinsci/exam-plugin</url>
-        <tag>HEAD</tag>
+        <tag>de.micronova.jenkins.exam-1.2.0</tag>
     </scm>
     <repositories>
         <repository>
@@ -293,13 +292,13 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                        <echo message="${ts.url}/p/${ts.project}/external-report?format=JACOCO&amp;adjusttimestamp=true&amp;partition=${project.artifactId}&amp;message=JaCoCo_${project.artifactId}&amp;t=${ts.branch}:${build.time}"/>
+                                        <echo message="${ts.url}/p/${ts.project}/external-report?format=JACOCO&amp;adjusttimestamp=true&amp;partition=${project.artifactId}&amp;message=JaCoCo_${project.artifactId}&amp;t=${ts.branch}:${build.time}" />
                                         <exec dir="${project.basedir}/target/site/jacoco" executable="${curl.path}">
-                                            <arg value="-X"/>
-                                            <arg value="POST"/>
-                                            <arg value="-u${ts.user}:${ts.apikey}"/>
-                                            <arg value="-Freport=@jacoco.xml"/>
-                                            <arg value="${ts.url}/p/${ts.project}/external-report?format=JACOCO&amp;adjusttimestamp=true&amp;partition=${project.artifactId}&amp;message=JaCoCo_${project.artifactId}&amp;t=${ts.branch}:${build.time}"/>
+                                            <arg value="-X" />
+                                            <arg value="POST" />
+                                            <arg value="-u${ts.user}:${ts.apikey}" />
+                                            <arg value="-Freport=@jacoco.xml" />
+                                            <arg value="${ts.url}/p/${ts.project}/external-report?format=JACOCO&amp;adjusttimestamp=true&amp;partition=${project.artifactId}&amp;message=JaCoCo_${project.artifactId}&amp;t=${ts.branch}:${build.time}" />
                                         </exec>
                                     </target>
                                 </configuration>
@@ -319,7 +318,7 @@
                             <configuration>
                                 <classifier>sources</classifier>
                                 <includeScope>runtime</includeScope>
-                                <includeTypes></includeTypes>
+                                <includeTypes />
                                 <outputDirectory>${project.basedir}/sources</outputDirectory>
                             </configuration>
                         <executions>
