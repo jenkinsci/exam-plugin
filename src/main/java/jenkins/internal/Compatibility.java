@@ -55,7 +55,7 @@ public class Compatibility {
     }
 
     /**
-     * @param clientApiVersion
+     * @param clientApiVersion ApiVersion
      */
     public static void setClientApiVersion(ApiVersion clientApiVersion) {
         Compatibility.clientApiVersion = clientApiVersion;
@@ -67,7 +67,6 @@ public class Compatibility {
      * @param taskListener       taskListener for logging
      * @param minRequiredVersion minimum Version required
      * @throws IOException          IOException
-     * @throws InterruptedException InterruptedException
      */
     public static void checkMinRestApiVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion)
             throws IOException {
@@ -80,7 +79,6 @@ public class Compatibility {
      * @param taskListener       taskListener for logging
      * @param minRequiredVersion minimum Version required
      * @throws IOException          IOException
-     * @throws InterruptedException InterruptedException
      */
     private static void checkMinRestApiVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion,
                                                String text) throws IOException {
@@ -103,7 +101,6 @@ public class Compatibility {
      * Checks whether TestConfig ist compatible with the REST API version
      *
      * @throws IOException          IOException
-     * @throws InterruptedException InterruptedException
      */
     public static void checkTestConfig(TaskListener listener, TestConfiguration tc) throws IOException {
 
