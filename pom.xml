@@ -76,8 +76,8 @@
     -->
     <!-- Assuming you want to host on @jenkinsci:-->
     <scm>
-        <connection>scm:git:https://github.com/jenkinsci/exam-plugin.git</connection>
-        <developerConnection>scm:git:https://github.com/jenkinsci/exam-plugin.git
+        <connection>scm:git:git@github.com:jenkinsci/exam-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:jenkinsci/exam-plugin.git
         </developerConnection>
         <url>https://github.com/jenkinsci/exam-plugin</url>
         <tag>HEAD</tag>
