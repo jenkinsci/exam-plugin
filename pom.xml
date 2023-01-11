@@ -32,7 +32,7 @@
         <relativePath />
     </parent>
     <artifactId>de.micronova.jenkins.exam</artifactId>
-    <version>1.2.1-SNAPSHOT</version>
+    <version>1.2.1</version>
     <packaging>hpi</packaging>
     <name>MicroNova EXAM Plugin</name>
     <description>This plugin integrates the REST API of the Testautomation tool EXAM for automated test execution.
@@ -79,7 +79,7 @@
         <developerConnection>scm:git:git@github.com:jenkinsci/exam-plugin.git
         </developerConnection>
         <url>https://github.com/jenkinsci/exam-plugin</url>
-        <tag>HEAD</tag>
+        <tag>de.micronova.jenkins.exam-1.2.1</tag>
     </scm>
     <repositories>
         <repository>
