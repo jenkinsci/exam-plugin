@@ -1,8 +1,8 @@
 package jenkins.plugins.exam.config;
 
-import com.gargoylesoftware.htmlunit.html.HtmlButton;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlButton;
+import org.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlPage;
 import hudson.util.FormValidation;
 import jenkins.internal.enumeration.DbKind;
 import jenkins.task.TestUtil.TUtil;
