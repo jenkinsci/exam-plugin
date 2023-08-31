@@ -42,7 +42,7 @@ import java.util.Map;
 
 public class ServerDispatcher extends Dispatcher {
 
-    private ApiVersion tcgversion = new ApiVersion(2, 0, 3);
+    private ApiVersion tcgVersion = new ApiVersion(2, 0, 3);
     private Map<String, MockResponse> mResponse;
 
     public ServerDispatcher() throws JsonProcessingException {
@@ -93,10 +93,10 @@ public class ServerDispatcher extends Dispatcher {
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache"));
         ObjectMapper mapper = new ObjectMapper();
-        String tcgVersion = mapper.writeValueAsString(tcgversion);
+        String version = mapper.writeValueAsString(tcgVersion);
         setResponse("/examRest/TCG/apiVersion",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
-                        .addHeader("Cache-Control", "no-cache").setBody(tcgVersion));
+                        .addHeader("Cache-Control", "no-cache").setBody(version));
 
         setResponse("/examRest/workspace/delete", new MockResponse().setResponseCode(200));
         setResponse("/examRest/workspace/shutdown", new MockResponse().setResponseCode(200));

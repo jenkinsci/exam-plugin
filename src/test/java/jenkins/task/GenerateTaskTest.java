@@ -438,7 +438,7 @@ public class GenerateTaskTest {
         Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.TRUE);
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.times(1)).createExamProject(Mockito.any());
-        Mockito.verify(clientRequestMock, Mockito.times(1)).generateTestcases(Mockito.any(), false);
+        Mockito.verify(clientRequestMock, Mockito.times(1)).generateTestcases(Mockito.any(), Mockito.anyBoolean());
     }
 
     @Test

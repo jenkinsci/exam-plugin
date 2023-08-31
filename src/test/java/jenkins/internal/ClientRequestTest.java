@@ -48,6 +48,7 @@ import testData.ServerDispatcher;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Collections;
 import java.util.Random;
 
 import static org.junit.Assert.*;
@@ -75,7 +76,7 @@ public class ClientRequestTest {
     private PrintStream printMock;
 
     @BeforeClass
-    public static void oneTimeSetup() {
+    public static void oneTimeSetup() throws Exception {
         dispatcher = new ServerDispatcher();
     }
 
@@ -274,7 +275,21 @@ public class ClientRequestTest {
     @WithoutJenkins
     public void generateTestcasesNewApi() {
         try {
-            testObject.generateTestcases(null, true);
+            GenerateConfiguration config = getGenerateConfiguration();
+
+            testObject.generateTestcases(config, true);
+            RecordedRequest latestRequest = server.takeRequest();
+            String body = latestRequest.getBody().readUtf8();
+
+            // any of those properties are not supposed to be in the JSON due to api changes with 2.0.3
+            assertFalse(body.contains("overwriteDescriptionSource"));
+            assertFalse(body.contains("overwriteFrameSteps"));
+            assertFalse(body.contains("overwriteMappingList"));
+            // following properties are supposed to be contained
+            assertTrue(body.contains("descriptionSource"));
+            assertTrue(body.contains("frameFunctions"));
+            assertTrue(body.contains("mappingList"));
+
             verify(printMock).println("generating Testcases");
         } catch (Exception e) {
             fail("Exception was thrown: " + e.toString());
@@ -654,9 +669,9 @@ public class ClientRequestTest {
             assertTrue("Exception was thrown: " + e.toString(), false);
         }
         assertNotNull(apiVersion);
-        assertEquals(2, apiVersion.getFix());
+        assertEquals(2, apiVersion.getMajor());
         assertEquals(0, apiVersion.getMinor());
-        assertEquals(3, apiVersion.getMajor());
+        assertEquals(3, apiVersion.getFix());
     }
 
     // Note:
@@ -717,4 +732,20 @@ public class ClientRequestTest {
         assertEquals(path + testReportProject, requestRoute);
         assertEquals("", requestBody);
     }
+
+    private static GenerateConfiguration getGenerateConfiguration() {
+        GenerateConfiguration config = new GenerateConfiguration();
+        config.setElement("testElement");
+        config.setOverwriteDescriptionSource(true);
+        config.setDescriptionSource("DESCRIPTION");
+        config.setDocumentInReport(false);
+        config.setErrorHandling("errorHandling");
+        config.setOverwriteFrameSteps(true);
+        config.setFrameFunctions(Collections.singletonList("ACTION_BEFORE"));
+        config.setOverwriteMappingList(true);
+        config.setMappingList(Collections.singletonList("test"));
+        config.setVariant("variant");
+        return config;
+    }
+
 }
