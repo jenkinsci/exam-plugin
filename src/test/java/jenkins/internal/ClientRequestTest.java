@@ -271,6 +271,17 @@ public class ClientRequestTest {
     }
 
     @Test
+    @WithoutJenkins
+    public void generateTestcasesNewApi() {
+        try {
+            testObject.generateTestcases(null, true);
+            verify(printMock).println("generating Testcases");
+        } catch (Exception e) {
+            fail("Exception was thrown: " + e.toString());
+        }
+    }
+
+    @Test
     public void generateTestcasesWithException() throws IOException, InterruptedException {
         dispatcher.removeResponse("/examRest/TCG/generate");
         exception.expect(IOException.class);

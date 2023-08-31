@@ -87,12 +87,13 @@ public class CompatibilityTest {
         when(taskListenerMock.getLogger()).thenReturn(System.out);
         ApiVersion tcgVersion = new ApiVersion(2, 1, 3);
         ApiVersion minVersion = new ApiVersion(1, 1, 1);
+        String message = "minVersion: %s, tcgVersion: %s";
 
-        assertTrue(Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, tcgVersion));
-        assertTrue(Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 1)));
-        assertTrue(Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 1)));
-        assertFalse(Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 2)));
-        assertFalse(Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 0)));
+        assertTrue(String.format(message, minVersion, tcgVersion), Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, tcgVersion));
+        assertTrue(String.format(message, minVersion, tcgVersion), Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 1)));
+        assertTrue(String.format(message, minVersion, tcgVersion), Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 1)));
+        assertTrue(String.format(message, minVersion, tcgVersion), Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 2)));
+        assertFalse(String.format(message, minVersion, tcgVersion), Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 0)));
     }
 
     @Test
