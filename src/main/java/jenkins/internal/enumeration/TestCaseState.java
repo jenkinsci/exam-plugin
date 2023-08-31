@@ -48,7 +48,7 @@ public enum TestCaseState {
      * generated
      * ordered
      */
-    NOT_YET_SPECIFIED(1, "NotYetSpecified", "notSpec"),
+    NOT_YET_SPECIFIED(1, "Not_Yet_Specified", "Not_Yet_Specified"),
 
     /**
      * The '<em><b>Specified</b></em>' literal object, whose name, value and literal are
@@ -60,7 +60,7 @@ public enum TestCaseState {
      * generated
      * ordered
      */
-    SPECIFIED(2, "Specified", "spec"),
+    SPECIFIED(2, "Specified", "Specified"),
 
     /**
      * The '<em><b>Reviewed</b></em>' literal object, whose name, value and literal are
@@ -72,7 +72,7 @@ public enum TestCaseState {
      * generated
      * ordered
      */
-    REVIEWED(3, "Reviewed", "reviewd"),
+    REVIEWED(3, "Reviewed", "Reviewed"),
 
     /**
      * The '<em><b>Not Yet Implemented</b></em>' literal object, whose name, value and literal are
@@ -83,7 +83,7 @@ public enum TestCaseState {
      * generated
      * ordered
      */
-    NOT_YET_IMPLEMENTED(4, "NotYetImplemented", "notImpl"),
+    NOT_YET_IMPLEMENTED(4, "Not_Yet_Implemented", "Not_Yet_Implemented"),
 
     /**
      * The '<em><b>Implemented</b></em>' literal object, whose name, value and literal are
@@ -95,7 +95,7 @@ public enum TestCaseState {
      * generated
      * ordered
      */
-    IMPLEMENTED(5, "Implemented", "impl"),
+    IMPLEMENTED(5, "Implemented", "Implemented"),
 
     /**
      * The '<em><b>Productive</b></em>' literal object, whose name, value and literal are
@@ -106,7 +106,7 @@ public enum TestCaseState {
      * generated
      * ordered
      */
-    PRODUCTIVE(6, "Productive", "product"),
+    PRODUCTIVE(6, "Productive", "Productive"),
 
     /**
      * The '<em><b>Invalid</b></em>' literal object, whose name, value and literal are
@@ -118,7 +118,7 @@ public enum TestCaseState {
      * generated
      * ordered
      */
-    INVALID(7, "Invalid", "inv");
+    INVALID(7, "Invalid", "Invalid");
 
     /**
      * The '<em><b>Not Yet Specified</b></em>' literal value, which is 1.

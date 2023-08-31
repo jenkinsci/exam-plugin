@@ -38,6 +38,7 @@ import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
+import jenkins.internal.Compatibility;
 import jenkins.internal.Util;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GenerateConfiguration;
@@ -126,7 +127,6 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     }
 
 
-
     public String getDescriptionSource() {
         return descriptionSource;
     }
@@ -174,7 +174,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
 
     @DataBoundSetter
     public void setTestCaseStates(List<String> testCaseStates) {
-        if(testCaseStates.isEmpty()){
+        if (testCaseStates.isEmpty()) {
             DescriptorGenerateTask descriptor = (DescriptorGenerateTask) getDescriptor();
             this.testCaseStates = descriptor.getDefaultTestCaseStates();
         } else {
@@ -218,7 +218,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
      * @param descriptionSource  descriptionSource
      * @param documentInReport   documentInReport
      * @param errorHandling      errorHandling
-     * @param frameSteps     frameFunctions
+     * @param frameSteps         frameFunctions
      * @param mappingList        mappingList
      * @param testCaseStates     testCaseStates
      * @param variant            variant
@@ -248,7 +248,11 @@ public class GenerateTask extends Task implements SimpleBuildStep {
             GenerateConfiguration generateConfiguration = createGenerateConfig();
 
             clientRequest.createExamProject(modelConfig);
-            clientRequest.generateTestcases(generateConfiguration);
+            // check tcg api version
+            ApiVersion tcgVersion = clientRequest.getTCGVersion();
+            TaskListener listener = getTaskHelper().getTaskListener();
+            boolean isApiCompatible = Compatibility.checkMinTCGVersion(listener, new ApiVersion(2, 0, 3), tcgVersion);
+            clientRequest.generateTestcases(generateConfiguration, isApiCompatible);
         }
     }
 
@@ -291,11 +295,11 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         return Arrays.asList(split);
     }
 
-    public boolean isTestCaseStateSelected(String value){
+    public boolean isTestCaseStateSelected(String value) {
         return this.testCaseStates.contains(value);
     }
 
-    public boolean isFrameStepsSelected(String value){
+    public boolean isFrameStepsSelected(String value) {
         return this.frameSteps.contains(value);
     }
 
@@ -351,7 +355,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          */
         public FormValidation doCheckExamModel(@QueryParameter String value) {
             ExamModelConfig m = getModel(value);
-            if(m == null || m.getExamVersion() < 50){
+            if (m == null || m.getExamVersion() < 50) {
                 return FormValidation.error(Messages.TCG_EXAM_MIN_VERSION());
             }
             return FormValidation.ok();
@@ -368,9 +372,9 @@ public class GenerateTask extends Task implements SimpleBuildStep {
             if (value.isEmpty()) {
                 return ok;
             }
-            for(String elmt : value.split(",")){
+            for (String elmt : value.split(",")) {
                 FormValidation elmtValid = Util.validateElementForSearch(elmt);
-                if(!ok.equals(elmtValid)){
+                if (!ok.equals(elmtValid)) {
                     return elmtValid;
                 }
             }

@@ -29,9 +29,13 @@
  */
 package jenkins.internal;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.AbortException;
 import hudson.Launcher;
 import hudson.model.Executor;
+import jakarta.json.Json;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import jenkins.internal.data.*;
 
@@ -251,14 +255,42 @@ public class ClientRequest {
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
-    public void generateTestcases(GenerateConfiguration generateConfiguration) throws IOException, InterruptedException {
+    public void generateTestcases(GenerateConfiguration generateConfiguration, boolean isNewApi) throws IOException, InterruptedException {
         if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("generating Testcases");
-        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/TCG/generate", generateConfiguration, null);
+        RemoteServiceResponse response;
+        if (isNewApi) {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+
+            String config = mapper.writeValueAsString(generateConfiguration);
+            response = RemoteService.post(launcher, apiPort, "/TCG/generate", config, null);
+        } else {
+            response = RemoteService.post(launcher, apiPort, "/TCG/generate", generateConfiguration, null);
+        }
         handleResponseError(response);
+    }
+
+    /**
+     * Gets the API Version of the TCG API.
+     *
+     * @return ApiVersion
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    public ApiVersion getTCGVersion() throws InterruptedException, IOException {
+        if (!clientConnected) {
+            logger.println("WARNING: no EXAM connected");
+            return null;
+        }
+        logger.println("getting TCG Api Version.");
+        RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/workspace/apiVersion", ApiVersion.class);
+        handleResponseError(response);
+
+        return (response == null) ? null : (ApiVersion) response.getEntity();
     }
 
     /**
@@ -293,11 +325,11 @@ public class ClientRequest {
         }
         logger.println("stopping testrun");
         RemoteServiceResponse response;
-        if(Compatibility.isVersionHigher200()){
+        if (Compatibility.isVersionHigher200()) {
             response = RemoteService.put(launcher, apiPort, "/testrun/stop?timeout=300");
         } else {
             response = RemoteService
-                    .post(launcher, apiPort, "/testrun/stop?timeout=300", null,null);
+                    .post(launcher, apiPort, "/testrun/stop?timeout=300", null, null);
         }
         handleResponseError(response);
     }
@@ -323,7 +355,7 @@ public class ClientRequest {
             postUrl = "/workspace/delete?projectName=" + projectName;
         }
         RemoteServiceResponse response;
-        if(Compatibility.isVersionHigher200()){
+        if (Compatibility.isVersionHigher200()) {
             response = RemoteService.delete(launcher, apiPort, postUrl);
         } else {
             response = RemoteService.get(launcher, apiPort, postUrl, null);

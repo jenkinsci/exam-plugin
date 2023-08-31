@@ -102,7 +102,7 @@ public class ClientRequestTest {
 
     @After
     public void tearDown() throws Exception {
-        if(server != null) {
+        if (server != null) {
             server.shutdown();
         }
         launcher = null;
@@ -263,7 +263,7 @@ public class ClientRequestTest {
     @WithoutJenkins
     public void generateTestcases() {
         try {
-            testObject.generateTestcases(null);
+            testObject.generateTestcases(null, false);
             verify(printMock).println("generating Testcases");
         } catch (Exception e) {
             fail("Exception was thrown: " + e.toString());
@@ -274,7 +274,7 @@ public class ClientRequestTest {
     public void generateTestcasesWithException() throws IOException, InterruptedException {
         dispatcher.removeResponse("/examRest/TCG/generate");
         exception.expect(IOException.class);
-        testObject.generateTestcases(null);
+        testObject.generateTestcases(null, false);
         verify(printMock).println("executing Groovy Script");
     }
 
@@ -302,11 +302,11 @@ public class ClientRequestTest {
     public void clearWorkspace() {
         try {
             String strAll = "deleting all projects and pcode from EXAM workspace";
-            Compatibility.setClientApiVersion(new ApiVersion(2,0,0));
+            Compatibility.setClientApiVersion(new ApiVersion(2, 0, 0));
             testObject.clearWorkspace(null);
             verify(printMock).println(strAll);
 
-            Compatibility.setClientApiVersion(new ApiVersion(1,0,0));
+            Compatibility.setClientApiVersion(new ApiVersion(1, 0, 0));
             clearInvocations(printMock);
             testObject.clearWorkspace("");
             verify(printMock).println(strAll);
@@ -324,7 +324,7 @@ public class ClientRequestTest {
 
     @Test
     public void clearWorkspaceWithException() throws IOException, InterruptedException {
-        Compatibility.setClientApiVersion(new ApiVersion(2,0,0));
+        Compatibility.setClientApiVersion(new ApiVersion(2, 0, 0));
         dispatcher.clearAllResponse();
         exception.expect(IOException.class);
         testObject.clearWorkspace("");
@@ -609,7 +609,7 @@ public class ClientRequestTest {
         verify(printMock).println("WARNING: no EXAM connected");
 
         clearInvocations(printMock);
-        testObject.generateTestcases(null);
+        testObject.generateTestcases(null, false);
         verify(printMock).println("WARNING: no EXAM connected");
     }
 
