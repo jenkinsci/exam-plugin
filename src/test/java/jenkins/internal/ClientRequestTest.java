@@ -242,7 +242,7 @@ public class ClientRequestTest {
 
     @Test
     @WithoutJenkins
-    public void executeGoovyScript() {
+    public void executeGroovyScript() {
         try {
             testObject.executeGoovyScript(null);
             verify(printMock).println("executing Groovy Script");
@@ -252,7 +252,7 @@ public class ClientRequestTest {
     }
 
     @Test
-    public void executeGoovyScriptWithException() throws IOException, InterruptedException {
+    public void executeGroovyScriptWithException() throws IOException, InterruptedException {
         dispatcher.removeResponse("/examRest/groovy/executeGroovyScript");
         exception.expect(IOException.class);
         testObject.executeGoovyScript(null);
@@ -641,6 +641,22 @@ public class ClientRequestTest {
         assertEquals(toTest.getFix(), apiVersion.getFix());
         assertEquals(toTest.getMinor(), apiVersion.getMinor());
         assertEquals(toTest.getMajor(), apiVersion.getMajor());
+    }
+
+    @Test
+    @WithoutJenkins
+    public void getTCGVersion() {
+        ApiVersion apiVersion = null;
+
+        try {
+            apiVersion = testObject.getTCGVersion();
+        } catch (IOException | InterruptedException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+        assertNotNull(apiVersion);
+        assertEquals(2, apiVersion.getFix());
+        assertEquals(0, apiVersion.getMinor());
+        assertEquals(3, apiVersion.getMajor());
     }
 
     // Note:

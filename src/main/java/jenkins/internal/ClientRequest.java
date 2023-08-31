@@ -287,7 +287,7 @@ public class ClientRequest {
             return null;
         }
         logger.println("getting TCG Api Version.");
-        RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/workspace/apiVersion", ApiVersion.class);
+        RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/TCG/apiVersion", ApiVersion.class);
         handleResponseError(response);
 
         return (response == null) ? null : (ApiVersion) response.getEntity();

@@ -8,6 +8,7 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 import jenkins.internal.ClientRequest;
+import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GenerateConfiguration;
 import jenkins.internal.enumeration.TestCaseState;
 import jenkins.model.Jenkins;
@@ -413,7 +414,7 @@ public class GenerateTaskTest {
     }
 
     @Test
-    public void testExecuteTask() throws IOException, InterruptedException {
+    public void testExecuteTaskPre203() throws IOException, InterruptedException {
         MockitoAnnotations.openMocks(this);
 
         ExamModelConfig mod = new ExamModelConfig(examModel);
@@ -430,6 +431,7 @@ public class GenerateTaskTest {
 
         ClientRequest clientRequestMock = Mockito.mock(ClientRequest.class);
         Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.FALSE);
+        Mockito.when(clientRequestMock.getTCGVersion()).thenReturn(new ApiVersion(2, 0, 2));
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.never()).clearWorkspace(Mockito.any());
 
