@@ -45,7 +45,7 @@ public class ServerDispatcher extends Dispatcher {
     private ApiVersion tcgversion = new ApiVersion(2, 0, 3);
     private Map<String, MockResponse> mResponse;
 
-    public ServerDispatcher() {
+    public ServerDispatcher() throws JsonProcessingException {
         mResponse = new HashMap<>();
         setDefaults();
     }
