@@ -31,6 +31,7 @@ package jenkins.internal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import hudson.AbortException;
 import hudson.Launcher;
 import hudson.model.Executor;
@@ -276,6 +277,7 @@ public class ClientRequest {
 
     /**
      * Gets the API Version of the TCG API.
+     * If the request fails, which is supposed to happen pre version 2.0.3 we return version 2.0.2 so the rest uses the old api
      *
      * @return ApiVersion
      * @throws InterruptedException
@@ -288,8 +290,10 @@ public class ClientRequest {
         }
         logger.println("getting TCG Api Version.");
         RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/TCG/apiVersion", ApiVersion.class);
+        if (response.getStatus() == 404) {
+            return new ApiVersion(2, 0, 2);
+        }
         handleResponseError(response);
-
         return (response == null) ? null : (ApiVersion) response.getEntity();
     }
 

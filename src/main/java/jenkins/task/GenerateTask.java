@@ -174,11 +174,16 @@ public class GenerateTask extends Task implements SimpleBuildStep {
 
     @DataBoundSetter
     public void setTestCaseStates(List<String> testCaseStates) {
+        List<String> tcValues = new ArrayList<>();
         if (testCaseStates.isEmpty()) {
             DescriptorGenerateTask descriptor = (DescriptorGenerateTask) getDescriptor();
             this.testCaseStates = descriptor.getDefaultTestCaseStates();
         } else {
-            this.testCaseStates = testCaseStates;
+            for (String state : testCaseStates) {
+                TestCaseState convert = TestCaseState.get(state);
+                tcValues.add(convert.getName());
+            }
+            this.testCaseStates = tcValues;
         }
     }
 
@@ -245,13 +250,14 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     protected void doExecuteTask(ClientRequest clientRequest) throws IOException, InterruptedException {
         if (clientRequest.isClientConnected()) {
             ModelConfiguration modelConfig = createModelConfig();
-            GenerateConfiguration generateConfiguration = createGenerateConfig();
 
             clientRequest.createExamProject(modelConfig);
             // check tcg api version
             ApiVersion tcgVersion = clientRequest.getTCGVersion();
             TaskListener listener = getTaskHelper().getTaskListener();
             boolean isApiCompatible = Compatibility.checkMinTCGVersion(listener, new ApiVersion(2, 0, 3), tcgVersion);
+
+            GenerateConfiguration generateConfiguration = createGenerateConfig(isApiCompatible);
             clientRequest.generateTestcases(generateConfiguration, isApiCompatible);
         }
     }
@@ -270,7 +276,10 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         getTaskHelper().perform(this, launcher, new ApiVersion(1, 0, 3));
     }
 
-    private GenerateConfiguration createGenerateConfig() {
+    private GenerateConfiguration createGenerateConfig(boolean newApi) {
+        if (newApi) {
+            return generateNew();
+        }
         GenerateConfiguration configuration = new GenerateConfiguration();
         configuration.setElement(getElement());
         configuration.setOverwriteDescriptionSource(getOverwriteDescriptionSource());
@@ -280,6 +289,32 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         configuration.setOverwriteFrameSteps(getOverwriteFrameSteps());
         configuration.setFrameFunctions(getFrameSteps());
         configuration.setOverwriteMappingList(getOverwriteMappingList());
+        configuration.setMappingList(convertToList(getMappingList()));
+        configuration.setTestCaseStates(getTestCaseStates());
+        configuration.setVariant(getVariant());
+
+        return configuration;
+    }
+
+    private GenerateConfiguration generateNew() {
+        GenerateConfiguration configuration = new GenerateConfiguration();
+        configuration.setElement(getElement());
+        configuration.setOverwriteDescriptionSource(getOverwriteDescriptionSource());
+        if (!getOverwriteDescriptionSource()) {
+            this.descriptionSource = "";
+        }
+        configuration.setDescriptionSource(getDescriptionSource());
+        configuration.setDocumentInReport(getDocumentInReport());
+        configuration.setErrorHandling(getErrorHandling());
+        configuration.setOverwriteFrameSteps(getOverwriteFrameSteps());
+        if (!getOverwriteFrameSteps()) {
+            this.frameSteps = new ArrayList<>();
+        }
+        configuration.setFrameFunctions(getFrameSteps());
+        configuration.setOverwriteMappingList(getOverwriteMappingList());
+        if (!getOverwriteMappingList()) {
+            this.mappingList = "";
+        }
         configuration.setMappingList(convertToList(getMappingList()));
         configuration.setTestCaseStates(getTestCaseStates());
         configuration.setVariant(getVariant());

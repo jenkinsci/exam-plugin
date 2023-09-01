@@ -220,7 +220,7 @@ public class RemoteService implements Serializable {
                     if (postObject instanceof String) {
                         String json = (String) postObject;
                         clientResponse = service.request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-                                .post(Entity.entity(new ByteArrayInputStream(json.getBytes()), MediaType.APPLICATION_JSON));
+                                .post(Entity.entity(json, MediaType.APPLICATION_JSON));
                     } else {
                         clientResponse = service.request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                                 .post(Entity.json(postObject));
