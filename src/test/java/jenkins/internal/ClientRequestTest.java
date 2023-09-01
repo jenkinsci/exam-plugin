@@ -264,7 +264,7 @@ public class ClientRequestTest {
     @WithoutJenkins
     public void generateTestcases() {
         try {
-            testObject.generateTestcases(null, false);
+            testObject.generateTestcases(null);
             verify(printMock).println("generating Testcases");
         } catch (Exception e) {
             fail("Exception was thrown: " + e.toString());
@@ -277,7 +277,7 @@ public class ClientRequestTest {
         try {
             GenerateConfiguration config = getGenerateConfiguration();
 
-            testObject.generateTestcases(config, true);
+            testObject.generateTestcasesPost203(config);
             RecordedRequest latestRequest = server.takeRequest();
             String body = latestRequest.getBody().readUtf8();
 
@@ -300,7 +300,7 @@ public class ClientRequestTest {
     public void generateTestcasesWithException() throws IOException, InterruptedException {
         dispatcher.removeResponse("/examRest/TCG/generate");
         exception.expect(IOException.class);
-        testObject.generateTestcases(null, false);
+        testObject.generateTestcases(null);
         verify(printMock).println("executing Groovy Script");
     }
 
@@ -635,7 +635,7 @@ public class ClientRequestTest {
         verify(printMock).println("WARNING: no EXAM connected");
 
         clearInvocations(printMock);
-        testObject.generateTestcases(null, false);
+        testObject.generateTestcases(null);
         verify(printMock).println("WARNING: no EXAM connected");
     }
 

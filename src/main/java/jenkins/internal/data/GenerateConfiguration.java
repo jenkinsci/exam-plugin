@@ -91,11 +91,47 @@ public class GenerateConfiguration implements Serializable {
      * UUID, ID or FSN of the Variant
      */
     private String variant;
+    /**
+     * if states are relevant for generation.
+     */
+    private boolean setStates;
+    /**
+     * TestCaseState for successful generation.
+     */
+    private String stateForSuccess;
+    /**
+     * TestCaseState for failed generation.
+     */
+    private String stateForFail;
 
     /**
      * Constructor
      */
     public GenerateConfiguration() {
+    }
+
+    public void setSetStates(boolean setStates) {
+        this.setStates = setStates;
+    }
+
+    public boolean getSetStates() {
+        return setStates;
+    }
+
+    public void setStateForFail(String stateForFail) {
+        this.stateForFail = stateForFail;
+    }
+
+    public String getStateForFail() {
+        return stateForFail;
+    }
+
+    public void setStateForSuccess(String stateForSuccess) {
+        this.stateForSuccess = stateForSuccess;
+    }
+
+    public String getStateForSuccess() {
+        return stateForSuccess;
     }
 
     public String getElement() {

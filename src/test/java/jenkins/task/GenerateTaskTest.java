@@ -10,6 +10,7 @@ import hudson.model.Run;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GenerateConfiguration;
+import jenkins.internal.data.LegacyGenerateConfiguration;
 import jenkins.internal.enumeration.TestCaseState;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
@@ -381,7 +382,7 @@ public class GenerateTaskTest {
 
     @Test
     public void testCreateGenerateConfig() throws Exception {
-        GenerateConfiguration expected = new GenerateConfiguration();
+        LegacyGenerateConfiguration expected = new LegacyGenerateConfiguration();
         expected.setElement(element);
         expected.setDescriptionSource(descriptionSource);
         expected.setDocumentInReport(documentInReport);
@@ -400,7 +401,7 @@ public class GenerateTaskTest {
         Whitebox.setInternalState(testObject, "mappingList", mappingList);
         Whitebox.setInternalState(testObject, "testCaseStates", testCaseStates);
 
-        GenerateConfiguration actual = Whitebox.invokeMethod(testObject, "createGenerateConfig");
+        LegacyGenerateConfiguration actual = Whitebox.invokeMethod(testObject, "createGenerateConfig");
         TUtil.assertGenerateConfig(expected, actual);
 
         Whitebox.setInternalState(testObject, "element", "anotherElement");
@@ -438,7 +439,7 @@ public class GenerateTaskTest {
         Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.TRUE);
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.times(1)).createExamProject(Mockito.any());
-        Mockito.verify(clientRequestMock, Mockito.times(1)).generateTestcases(Mockito.any(), Mockito.anyBoolean());
+        Mockito.verify(clientRequestMock, Mockito.times(1)).generateTestcases(Mockito.any());
     }
 
     @Test

@@ -107,6 +107,9 @@ public class Compatibility {
     public static boolean checkMinTCGVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion,
                                              ApiVersion tcgVersion) {
         taskListener.getLogger().println("TCG api version: " + tcgVersion.toString());
+        if (tcgVersion == null) {
+            return false;
+        }
         if (minRequiredVersion.compareTo(tcgVersion) > 0) {
             return false;
         }

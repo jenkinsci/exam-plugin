@@ -58,6 +58,14 @@
                 <f:textbox/>
             </f:entry>
         </f:optionalBlock>
+        <f:optionalBlock title="${%set States for generation}" field="setStates" inline="true" help="${helpPath}/help-setStates.html">
+            <f:entry title="${%State for Success}" field="stateForSuccess" help="${helpPath}/help-stateForSuccess.html">
+                <f:textbox/>
+            </f:entry>
+            <f:entry title="${%State for Fail}" field="stateForFail" help="${helpPath}/help-stateForFail.html">
+                <f:textbox/>
+            </f:entry>
+        </f:optionalBlock>
 
         <f:entry title="${%Document in Report}" field="documentInReport" help="${helpPath}/help-documentInReport.html">
             <f:checkbox/>

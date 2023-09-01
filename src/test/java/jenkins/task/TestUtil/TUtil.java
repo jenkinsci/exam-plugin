@@ -3,7 +3,7 @@ package jenkins.task.TestUtil;
 import Utils.Whitebox;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
-import jenkins.internal.data.GenerateConfiguration;
+import jenkins.internal.data.LegacyGenerateConfiguration;
 import jenkins.internal.data.GroovyConfiguration;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.model.Jenkins;
@@ -206,7 +206,7 @@ public class TUtil {
         fail();
     }
 
-    public static void assertGenerateConfig(GenerateConfiguration c1, GenerateConfiguration c2) {
+    public static void assertGenerateConfig(LegacyGenerateConfiguration c1, LegacyGenerateConfiguration c2) {
         if (c1 != null && c2 != null) {
             assertEquals(c1.getElement(), c2.getElement());
             assertEquals(c1.getDescriptionSource(), c2.getDescriptionSource());
@@ -231,7 +231,7 @@ public class TUtil {
 
         FormValidation validResult = Whitebox.invokeMethod(targetClass, method, input);
 
-        if(errorExpected) {
+        if (errorExpected) {
             assertEquals(FormValidation.error(expectedErrorMsg).getMessage(), validResult.getMessage());
         } else {
             assertEquals(FormValidation.ok(), validResult);

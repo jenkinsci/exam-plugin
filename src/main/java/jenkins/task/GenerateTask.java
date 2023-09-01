@@ -42,6 +42,7 @@ import jenkins.internal.Compatibility;
 import jenkins.internal.Util;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GenerateConfiguration;
+import jenkins.internal.data.LegacyGenerateConfiguration;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.descriptor.ExamModelDescriptorTask;
 import jenkins.internal.enumeration.DescriptionSource;
@@ -83,12 +84,40 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     private String mappingList;
     private List<String> testCaseStates;
     private String variant;
+    private boolean setStates;
+    private String stateForSuccess;
+    private String stateForFail;
 
+    public boolean isSetStates() {
+        return setStates;
+    }
+
+    @DataBoundSetter
+    public void setSetStates(boolean setStates) {
+        this.setStates = setStates;
+    }
+
+    public String getStateForFail() {
+        return stateForFail;
+    }
+
+    @DataBoundSetter
+    public void setStateForFail(String stateForFail) {
+        this.stateForFail = stateForFail;
+    }
+
+    public String getStateForSuccess() {
+        return stateForSuccess;
+    }
+
+    @DataBoundSetter
+    public void setStateForSuccess(String stateForSuccess) {
+        this.stateForSuccess = stateForSuccess;
+    }
 
     public String getElement() {
         return element;
     }
-
 
     @DataBoundSetter
     public void setElement(String element) {
@@ -181,7 +210,11 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         } else {
             for (String state : testCaseStates) {
                 TestCaseState convert = TestCaseState.get(state);
-                tcValues.add(convert.getName());
+                if (convert != null) {
+                    tcValues.add(convert.getName());
+                } else {
+                    tcValues.add(state);
+                }
             }
             this.testCaseStates = tcValues;
         }
@@ -250,15 +283,19 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     protected void doExecuteTask(ClientRequest clientRequest) throws IOException, InterruptedException {
         if (clientRequest.isClientConnected()) {
             ModelConfiguration modelConfig = createModelConfig();
-
-            clientRequest.createExamProject(modelConfig);
-            // check tcg api version
             ApiVersion tcgVersion = clientRequest.getTCGVersion();
+            clientRequest.createExamProject(modelConfig);
+
+            // check tcg api version
             TaskListener listener = getTaskHelper().getTaskListener();
             boolean isApiCompatible = Compatibility.checkMinTCGVersion(listener, new ApiVersion(2, 0, 3), tcgVersion);
-
-            GenerateConfiguration generateConfiguration = createGenerateConfig(isApiCompatible);
-            clientRequest.generateTestcases(generateConfiguration, isApiCompatible);
+            if (isApiCompatible) {
+                GenerateConfiguration config = generateNewConfig();
+                clientRequest.generateTestcasesPost203(config);
+            } else {
+                LegacyGenerateConfiguration generateConfiguration = createGenerateConfig();
+                clientRequest.generateTestcases(generateConfiguration);
+            }
         }
     }
 
@@ -276,11 +313,8 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         getTaskHelper().perform(this, launcher, new ApiVersion(1, 0, 3));
     }
 
-    private GenerateConfiguration createGenerateConfig(boolean newApi) {
-        if (newApi) {
-            return generateNew();
-        }
-        GenerateConfiguration configuration = new GenerateConfiguration();
+    private LegacyGenerateConfiguration createGenerateConfig() {
+        LegacyGenerateConfiguration configuration = new LegacyGenerateConfiguration();
         configuration.setElement(getElement());
         configuration.setOverwriteDescriptionSource(getOverwriteDescriptionSource());
         configuration.setDescriptionSource(getDescriptionSource());
@@ -296,7 +330,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         return configuration;
     }
 
-    private GenerateConfiguration generateNew() {
+    private GenerateConfiguration generateNewConfig() {
         GenerateConfiguration configuration = new GenerateConfiguration();
         configuration.setElement(getElement());
         configuration.setOverwriteDescriptionSource(getOverwriteDescriptionSource());
@@ -318,6 +352,9 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         configuration.setMappingList(convertToList(getMappingList()));
         configuration.setTestCaseStates(getTestCaseStates());
         configuration.setVariant(getVariant());
+        configuration.setSetStates(isSetStates());
+        configuration.setStateForFail(getStateForFail());
+        configuration.setStateForSuccess(getStateForSuccess());
 
         return configuration;
     }

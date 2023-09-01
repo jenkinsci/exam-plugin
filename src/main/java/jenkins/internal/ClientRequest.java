@@ -252,26 +252,40 @@ public class ClientRequest {
     /**
      * Generates Testcases with the TCG at the Exam Client.
      *
-     * @param generateConfiguration GenerateConfiguration
+     * @param generateConfiguration LegacyGenerateConfiguration
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
-    public void generateTestcases(GenerateConfiguration generateConfiguration, boolean isNewApi) throws IOException, InterruptedException {
+    public void generateTestcases(LegacyGenerateConfiguration generateConfiguration) throws IOException, InterruptedException {
         if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("generating Testcases");
         RemoteServiceResponse response;
-        if (isNewApi) {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        response = RemoteService.post(launcher, apiPort, "/TCG/generate", generateConfiguration, null);
+        handleResponseError(response);
+    }
 
-            String config = mapper.writeValueAsString(generateConfiguration);
-            response = RemoteService.post(launcher, apiPort, "/TCG/generate", config, null);
-        } else {
-            response = RemoteService.post(launcher, apiPort, "/TCG/generate", generateConfiguration, null);
+    /**
+     * Generates Testcases with the TCG at the Exam Client.
+     *
+     * @param generateConfiguration GenerateConfiguration
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
+     */
+    public void generateTestcasesPost203(GenerateConfiguration generateConfiguration) throws IOException, InterruptedException {
+        if (!clientConnected) {
+            logger.println("WARNING: no EXAM connected");
+            return;
         }
+        logger.println("generating Testcases");
+        RemoteServiceResponse response;
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+
+        String config = mapper.writeValueAsString(generateConfiguration);
+        response = RemoteService.post(launcher, apiPort, "/TCG/generate", config, null);
         handleResponseError(response);
     }
 
