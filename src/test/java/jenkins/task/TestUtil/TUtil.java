@@ -3,6 +3,7 @@ package jenkins.task.TestUtil;
 import Utils.Whitebox;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
+import jenkins.internal.data.GenerateConfiguration;
 import jenkins.internal.data.LegacyGenerateConfiguration;
 import jenkins.internal.data.GroovyConfiguration;
 import jenkins.internal.data.ModelConfiguration;
@@ -216,6 +217,27 @@ public class TUtil {
             assertTrue(c1.getFrameFunctions().equals(c2.getFrameFunctions()));
             assertTrue(c1.getMappingList().equals(c2.getMappingList()));
             assertTrue(c1.getTestCaseStates().equals(c2.getTestCaseStates()));
+            return;
+        }
+        fail();
+    }
+
+    public static void assertGenerateConfig(GenerateConfiguration c1, GenerateConfiguration c2) {
+        if (c1 != null && c2 != null) {
+            assertEquals(c1.getElement(), c2.getElement());
+            assertEquals(c1.getDescriptionSource(), c2.getDescriptionSource());
+            assertEquals(c1.getOverwriteDescriptionSource(), c2.getOverwriteDescriptionSource());
+            assertEquals(c1.isDocumentInReport(), c2.isDocumentInReport());
+            assertEquals(c1.getErrorHandling(), c2.getErrorHandling());
+            assertEquals(c1.getVariant(), c2.getVariant());
+            assertEquals(c1.isOverwriteFrameSteps(), c2.isOverwriteFrameSteps());
+            assertTrue(c1.getFrameFunctions().equals(c2.getFrameFunctions()));
+            assertEquals(c1.isOverwriteMappingList(), c2.isOverwriteMappingList());
+            assertTrue(c1.getMappingList().equals(c2.getMappingList()));
+            assertTrue(c1.getTestCaseStates().equals(c2.getTestCaseStates()));
+            assertEquals(c1.getSetStates(), c2.getSetStates());
+            assertEquals(c1.getStateForSuccess(), c2.getStateForSuccess());
+            assertEquals(c1.getStateForFail(), c2.getStateForFail());
             return;
         }
         fail();

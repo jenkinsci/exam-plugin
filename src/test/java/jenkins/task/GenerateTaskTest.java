@@ -106,8 +106,7 @@ public class GenerateTaskTest {
 
         Jenkins instance = jenkinsRule.getInstance();
         examHome = instance == null ? "examHome" : instance.getRootPath().getRemote();
-        testObject = new GenerateTask(examModel, examName, modelConfiguration, element, descriptionSource, documentInReport,
-                errorHandling, frameSteps, mappingList, testCaseStates, variant, setStates, stateForFail, stateForSuccess);
+        testObject = new GenerateTask(examModel, examName, modelConfiguration, element, descriptionSource, documentInReport, errorHandling, frameSteps, mappingList, testCaseStates, variant, setStates, stateForFail, stateForSuccess);
     }
 
     @After
@@ -314,11 +313,9 @@ public class GenerateTaskTest {
 
     @Test
     public void testGetExam() {
-        assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
-                .getInstallations().length);
+        assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations().length);
         ExamTool newExamTool = TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
-        assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
-                .getInstallations().length);
+        assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations().length);
 
         ExamTool setTool = testObject.getExam();
         assertEquals(newExamTool, setTool);
@@ -365,9 +362,7 @@ public class GenerateTaskTest {
 
         List<String> log = build.getLog(1000);
         String workspacePath = jenkinsRule.getInstance().getRootPath().getRemote();
-        assertThat(log, CoreMatchers.hasItem("ERROR: " + Messages.EXAM_NotExamConfigDirectory(
-                workspacePath + File.separator + "examRelativePath" + File.separator + "configuration"
-                        + File.separator + "config.ini")));
+        assertThat(log, CoreMatchers.hasItem("ERROR: " + Messages.EXAM_NotExamConfigDirectory(workspacePath + File.separator + "examRelativePath" + File.separator + "configuration" + File.separator + "config.ini")));
     }
 
     @Test
@@ -416,6 +411,52 @@ public class GenerateTaskTest {
         Whitebox.setInternalState(testObject, "descriptionSource", DescriptionSource.BESCHREIBUNG.name());
         Whitebox.setInternalState(testObject, "documentInReport", false);
         actual = Whitebox.invokeMethod(testObject, "createGenerateConfig");
+        expected.setElement("anotherElement");
+        expected.setDescriptionSource(DescriptionSource.BESCHREIBUNG.getDisplayString());
+        expected.setDocumentInReport(false);
+        TUtil.assertGenerateConfig(expected, actual);
+    }
+
+    @Test
+    public void testGenerateNewConfig() throws Exception {
+        GenerateConfiguration expected = new GenerateConfiguration();
+        expected.setElement(element);
+        expected.setOverwriteDescriptionSource(true);
+        expected.setDescriptionSource(descriptionSource);
+        expected.setDocumentInReport(documentInReport);
+        expected.setErrorHandling(errorHandling);
+        expected.setVariant(variant);
+        expected.setOverwriteFrameSteps(true);
+        expected.setFrameFunctions(frameSteps);
+        expected.setOverwriteMappingList(true);
+        expected.setMappingList(Collections.singletonList(mappingList));
+        expected.setTestCaseStates(testCaseStates);
+        expected.setSetStates(true);
+        expected.setStateForSuccess(TestCaseState.NOT_YET_SPECIFIED.getName());
+        expected.setStateForFail(TestCaseState.INVALID.getName());
+
+        Whitebox.setInternalState(testObject, "element", element);
+        Whitebox.setInternalState(testObject, "overwriteDescriptionSource", true);
+        Whitebox.setInternalState(testObject, "descriptionSource", descriptionSource);
+        Whitebox.setInternalState(testObject, "documentInReport", documentInReport);
+        Whitebox.setInternalState(testObject, "errorHandling", errorHandling);
+        Whitebox.setInternalState(testObject, "variant", variant);
+        Whitebox.setInternalState(testObject, "overwriteFrameSteps", true);
+        Whitebox.setInternalState(testObject, "frameSteps", frameSteps);
+        Whitebox.setInternalState(testObject, "overwriteMappingList", true);
+        Whitebox.setInternalState(testObject, "mappingList", mappingList);
+        Whitebox.setInternalState(testObject, "testCaseStates", testCaseStates);
+        Whitebox.setInternalState(testObject, "setStates", true);
+        Whitebox.setInternalState(testObject, "stateForSuccess", TestCaseState.NOT_YET_SPECIFIED.getName());
+        Whitebox.setInternalState(testObject, "stateForFail", TestCaseState.INVALID.getName());
+
+        GenerateConfiguration actual = Whitebox.invokeMethod(testObject, "generateNewConfig");
+        TUtil.assertGenerateConfig(expected, actual);
+
+        Whitebox.setInternalState(testObject, "element", "anotherElement");
+        Whitebox.setInternalState(testObject, "descriptionSource", DescriptionSource.BESCHREIBUNG.getDisplayString());
+        Whitebox.setInternalState(testObject, "documentInReport", false);
+        actual = Whitebox.invokeMethod(testObject, "generateNewConfig");
         expected.setElement("anotherElement");
         expected.setDescriptionSource(DescriptionSource.BESCHREIBUNG.getDisplayString());
         expected.setDocumentInReport(false);

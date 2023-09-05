@@ -318,15 +318,12 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     private LegacyGenerateConfiguration createGenerateConfig() {
         LegacyGenerateConfiguration configuration = new LegacyGenerateConfiguration();
         configuration.setElement(getElement());
-        // configuration.setOverwriteDescriptionSource(getOverwriteDescriptionSource());
         DescriptionSource dc = DescriptionSource.valueOf(getDescriptionSource());
         configuration.setDescriptionSource(dc.getDisplayString());
         configuration.setDocumentInReport(getDocumentInReport());
         ErrorHandling eh = ErrorHandling.valueOf(getErrorHandling());
         configuration.setErrorHandling(eh.displayString());
-        //configuration.setOverwriteFrameSteps(getOverwriteFrameSteps());
         configuration.setFrameFunctions(getFrameSteps());
-        //configuration.setOverwriteMappingList(getOverwriteMappingList());
         configuration.setMappingList(convertToList(getMappingList()));
 
         configuration.setTestCaseStates(getTestCaseStates());
