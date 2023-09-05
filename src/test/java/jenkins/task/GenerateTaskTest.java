@@ -101,8 +101,8 @@ public class GenerateTaskTest {
         testCaseStates.add("tCStates");
         variant = "var";
         setStates = true;
-        stateForFail = "NotYetSpecified";
-        stateForSuccess = "Reviewed";
+        stateForFail = TestCaseState.NOT_YET_SPECIFIED.getName();
+        stateForSuccess = TestCaseState.IMPLEMENTED.getName();
 
         Jenkins instance = jenkinsRule.getInstance();
         examHome = instance == null ? "examHome" : instance.getRootPath().getRemote();
@@ -447,8 +447,8 @@ public class GenerateTaskTest {
         Whitebox.setInternalState(testObject, "mappingList", mappingList);
         Whitebox.setInternalState(testObject, "testCaseStates", testCaseStates);
         Whitebox.setInternalState(testObject, "setStates", true);
-        Whitebox.setInternalState(testObject, "stateForSuccess", TestCaseState.NOT_YET_SPECIFIED.getName());
-        Whitebox.setInternalState(testObject, "stateForFail", TestCaseState.INVALID.getName());
+        Whitebox.setInternalState(testObject, "stateForSuccess", TestCaseState.NOT_YET_SPECIFIED.getLiteral());
+        Whitebox.setInternalState(testObject, "stateForFail", TestCaseState.INVALID.getLiteral());
 
         GenerateConfiguration actual = Whitebox.invokeMethod(testObject, "generateNewConfig");
         TUtil.assertGenerateConfig(expected, actual);
@@ -510,12 +510,14 @@ public class GenerateTaskTest {
 
         ClientRequest clientRequestMock = Mockito.mock(ClientRequest.class);
         Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.FALSE);
-        Mockito.when(clientRequestMock.getTCGVersion()).thenReturn(new ApiVersion(2, 0, 2));
+        Mockito.when(clientRequestMock.getTCGVersion()).thenReturn(new ApiVersion(2, 0, 3));
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.never()).clearWorkspace(Mockito.any());
 
         Mockito.when(clientRequestMock.getTCGVersion()).thenReturn(new ApiVersion(2, 0, 3));
         Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.TRUE);
+        testObject.setStateForFail(TestCaseState.REVIEWED.getLiteral());
+        testObject.setStateForSuccess(TestCaseState.NOT_YET_SPECIFIED.getLiteral());
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.times(1)).createExamProject(Mockito.any());
         Mockito.verify(clientRequestMock, Mockito.times(1)).generateTestcasesPost203(Mockito.any());

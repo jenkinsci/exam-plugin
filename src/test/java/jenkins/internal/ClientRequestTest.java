@@ -275,6 +275,16 @@ public class ClientRequestTest {
     @WithoutJenkins
     public void generateTestcasesNewApi() {
         try {
+            TCGResult res = new TCGResult();
+            res.setCode(200);
+            res.setMessage("fine");
+
+            ObjectMapper mapper = new ObjectMapper();
+            String response = mapper.writeValueAsString(res);
+
+            dispatcher.setResponse("/examRest/TCG/generate",
+                    new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                            .addHeader("Cache-Control", "no-cache").setBody(response));
             GenerateConfiguration config = getGenerateConfiguration();
 
             testObject.generateTestcasesPost203(config);
@@ -745,6 +755,9 @@ public class ClientRequestTest {
         config.setOverwriteMappingList(true);
         config.setMappingList(Collections.singletonList("test"));
         config.setVariant("variant");
+        config.setSetStates(true);
+        config.setStateForSuccess("test");
+        config.setStateForFail("test2");
         return config;
     }
 
