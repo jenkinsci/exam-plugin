@@ -85,8 +85,8 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     private List<String> testCaseStates;
     private String variant;
     private boolean setStates;
-    private String stateForSuccess;
-    private String stateForFail;
+    private TestCaseState stateForSuccess;
+    private TestCaseState stateForFail;
 
     public boolean isSetStates() {
         return setStates;
@@ -97,21 +97,21 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         this.setStates = setStates;
     }
 
-    public String getStateForFail() {
+    public TestCaseState getStateForFail() {
         return stateForFail;
     }
 
     @DataBoundSetter
-    public void setStateForFail(String stateForFail) {
+    public void setStateForFail(TestCaseState stateForFail) {
         this.stateForFail = stateForFail;
     }
 
-    public String getStateForSuccess() {
+    public TestCaseState getStateForSuccess() {
         return stateForSuccess;
     }
 
     @DataBoundSetter
-    public void setStateForSuccess(String stateForSuccess) {
+    public void setStateForSuccess(TestCaseState stateForSuccess) {
         this.stateForSuccess = stateForSuccess;
     }
 
@@ -355,8 +355,8 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         configuration.setTestCaseStates(getTestCaseStates());
         configuration.setVariant(getVariant());
         configuration.setSetStates(isSetStates());
-        configuration.setStateForFail(getStateForFail());
-        configuration.setStateForSuccess(getStateForSuccess());
+        configuration.setStateForFail(getStateForFail().getName());
+        configuration.setStateForSuccess(getStateForSuccess().getName());
 
         return configuration;
     }
@@ -513,6 +513,36 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          */
         public TestCaseState[] doFillTestCaseStatesItems() {
             return TestCaseState.values();
+        }
+
+        /**
+         * fills the ListBoxModel ErrorHandle with all ErrorHandless
+         *
+         * @return ListBoxModel
+         */
+        public ListBoxModel doFillStateForSuccessItems() {
+            ListBoxModel items = new ListBoxModel();
+            for (TestCaseState tcs : TestCaseState.values()) {
+                items.add(tcs.getName(), tcs.getLiteral());
+            }
+            return items;
+        }
+
+
+        public ListBoxModel doFillStateForFailItems() {
+            ListBoxModel items = new ListBoxModel();
+            for (TestCaseState tcs : TestCaseState.values()) {
+                items.add(tcs.getName(), tcs.getLiteral());
+            }
+            return items;
+        }
+
+        public String getDefaultStateForSuccess() {
+            return TestCaseState.REVIEWED.getName();
+        }
+
+        public String getDefaultStateForFail() {
+            return TestCaseState.NOT_YET_SPECIFIED.getName();
         }
 
         /**

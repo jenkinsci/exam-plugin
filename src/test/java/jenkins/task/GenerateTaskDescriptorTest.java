@@ -168,17 +168,17 @@ public class GenerateTaskDescriptorTest {
 
     @Test
     public void testGetDefaultErrorHandling() {
-        assertEquals(ErrorHandling.GENERATE_ERROR_STEP.name(), testObjectDescriptor.getDefaultErrorHandling());
+        assertEquals(ErrorHandling.GENERATE_ERROR_STEP.displayString(), testObjectDescriptor.getDefaultErrorHandling());
     }
 
     @Test
     public void testGetDefaultDescriptionSource() {
-        assertEquals(DescriptionSource.DESCRIPTION.name(), testObjectDescriptor.getDefaultDescriptionSource());
+        assertEquals(DescriptionSource.DESCRIPTION.getDisplayString(), testObjectDescriptor.getDefaultDescriptionSource());
     }
 
     @Test
     public void testGetDefaultTestCaseStates() {
-        assertArrayEquals(new String[]{TestCaseState.NOT_YET_IMPLEMENTED.toString()},testObjectDescriptor.getDefaultTestCaseStates().toArray());
+        assertArrayEquals(new String[]{TestCaseState.NOT_YET_IMPLEMENTED.toString()}, testObjectDescriptor.getDefaultTestCaseStates().toArray());
     }
 
     @Test
@@ -241,7 +241,7 @@ public class GenerateTaskDescriptorTest {
 
     // HELP METHOD
 
-    private void fillExamModel(String name, int version){
+    private void fillExamModel(String name, int version) {
         ExamPluginConfig descriptor = (ExamPluginConfig) jenkinsRule.getInstance()
                 .getDescriptor(ExamPluginConfig.class);
         List<ExamModelConfig> modelConfigs = new ArrayList<>();
@@ -268,6 +268,7 @@ public class GenerateTaskDescriptorTest {
         TUtil.doCheckSearchElement(testObjectDescriptor, method, validID + "," + invalidID + "," + validUUID, true);
         TUtil.doCheckSearchElement(testObjectDescriptor, method, invalidFSN + "," + validFSN + "," + invalidUUID, true);
     }
+
     // HELP METHOD
     private void doCheckValidEmpty(String method) throws Exception {
         FormValidation fv_result = Whitebox.invokeMethod(testObjectDescriptor, method, "");
@@ -281,7 +282,7 @@ public class GenerateTaskDescriptorTest {
 
         for (int i = 0; i < expectedArray.length; i++) {
             Object elmt = expectedArray[i];
-            if(elmt instanceof Enum) {
+            if (elmt instanceof Enum) {
                 expected[i] = ((Enum<?>) elmt).name();
             }
         }
