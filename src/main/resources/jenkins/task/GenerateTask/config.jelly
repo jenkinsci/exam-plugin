@@ -78,7 +78,7 @@
         <f:entry title="${%TestCase States}" field="testCaseStates" help="${helpPath}/help-testCaseStates.html">
             <select class="jenkins-input" name="testCaseStates" multiple="true" size="5" default="${descriptor.getDefaultTestCaseStates}">
                 <j:forEach var="it" items="${descriptor.doFillTestCaseStatesItems()}">
-                    <option value="${it.getLiteral()}" selected="${instance.isTestCaseStateSelected(it.getLiteral()) ? 'selected' : null}">${it.getName()}</option>
+                    <option value="${it.getLiteral()}" selected="${instance.isTestCaseStateSelected(it.getName()) ? 'selected' : null}">${it.getName()}</option>
                 </j:forEach>
             </select>
         </f:entry>

@@ -355,8 +355,10 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         configuration.setTestCaseStates(getTestCaseStates());
         configuration.setVariant(getVariant());
         configuration.setSetStates(isSetStates());
-        configuration.setStateForFail(getStateForFail());
-        configuration.setStateForSuccess(getStateForSuccess());
+        TestCaseState fail = TestCaseState.get(getStateForFail());
+        configuration.setStateForFail(fail.getName());
+        TestCaseState success = TestCaseState.get(getStateForSuccess());
+        configuration.setStateForSuccess(success.getName());
 
         return configuration;
     }
