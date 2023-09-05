@@ -283,8 +283,11 @@ public class ClientRequest {
         mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
         String config = mapper.writeValueAsString(generateConfiguration);
-        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/TCG/generate", config, null);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/TCG/generate", config, TCGResult.class);
         handleResponseError(response);
+
+        TCGResult res = (TCGResult) response.getEntity();
+        logger.println("INFO: " + res.getMessage());
     }
 
     /**
