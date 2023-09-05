@@ -153,7 +153,7 @@ public class GroovyTask extends Task implements SimpleBuildStep {
 
             clientRequest.clearWorkspace(null);
             clientRequest.createExamProject(modelConfig);
-            clientRequest.executeGoovyScript(config);
+            clientRequest.executeGroovyScript(config);
         }
     }
 

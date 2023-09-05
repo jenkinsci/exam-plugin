@@ -262,8 +262,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
      * @param variant            variant
      */
     @DataBoundConstructor
-    public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource,
-                        boolean documentInReport, String errorHandling, List<String> frameSteps, String mappingList, List<String> testCaseStates, String variant) {
+    public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource, boolean documentInReport, String errorHandling, List<String> frameSteps, String mappingList, List<String> testCaseStates, String variant) {
         this.examModel = examModel;
         this.examName = examName;
         this.modelConfiguration = modelConfiguration;
@@ -316,14 +315,17 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     private LegacyGenerateConfiguration createGenerateConfig() {
         LegacyGenerateConfiguration configuration = new LegacyGenerateConfiguration();
         configuration.setElement(getElement());
-        configuration.setOverwriteDescriptionSource(getOverwriteDescriptionSource());
-        configuration.setDescriptionSource(getDescriptionSource());
+        // configuration.setOverwriteDescriptionSource(getOverwriteDescriptionSource());
+        DescriptionSource dc = DescriptionSource.valueOf(getDescriptionSource());
+        configuration.setDescriptionSource(dc.getDisplayString());
         configuration.setDocumentInReport(getDocumentInReport());
-        configuration.setErrorHandling(getErrorHandling());
-        configuration.setOverwriteFrameSteps(getOverwriteFrameSteps());
+        ErrorHandling eh = ErrorHandling.valueOf(getErrorHandling());
+        configuration.setErrorHandling(eh.displayString());
+        //configuration.setOverwriteFrameSteps(getOverwriteFrameSteps());
         configuration.setFrameFunctions(getFrameSteps());
-        configuration.setOverwriteMappingList(getOverwriteMappingList());
+        //configuration.setOverwriteMappingList(getOverwriteMappingList());
         configuration.setMappingList(convertToList(getMappingList()));
+
         configuration.setTestCaseStates(getTestCaseStates());
         configuration.setVariant(getVariant());
 
@@ -470,7 +472,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          * @return the default errorHandle
          */
         public String getDefaultErrorHandling() {
-            return ErrorHandling.GENERATE_ERROR_STEP.name();
+            return ErrorHandling.GENERATE_ERROR_STEP.displayString();
         }
 
         /**
@@ -490,7 +492,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          * @return the default description source
          */
         public String getDefaultDescriptionSource() {
-            return DescriptionSource.DESCRIPTION.name();
+            return DescriptionSource.DESCRIPTION.getDisplayString();
         }
 
         /**

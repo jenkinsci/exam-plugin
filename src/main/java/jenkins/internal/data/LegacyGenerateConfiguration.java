@@ -16,7 +16,8 @@ public class LegacyGenerateConfiguration implements Serializable {
     /**
      * if overwrite the models default
      */
-    private boolean overwriteDescriptionSource;
+    //@JsonIgnore
+    //private boolean overwriteDescriptionSource;
     /**
      * Type of the DescriptionSource (has to be one of the following: [BESCHREIBUNG, DESCRIPTION])
      */
@@ -32,7 +33,8 @@ public class LegacyGenerateConfiguration implements Serializable {
     /**
      * if overwrite the models default
      */
-    private boolean overwriteFrameSteps;
+    //@JsonIgnore
+    //private boolean overwriteFrameSteps;
     /**
      * List of FrameFunctions (possible values are: ["PRECONDITION_BEFORE", "PRECONDITION_AFTER", "ACTION_BEFORE", "ACTION_AFTER", "POSTCONDITION_BEFORE", "POSTCONDITION_AFTER", "EXPECTED_RESULT_BEFORE", "EXPECTED_RESULT_AFTER", "NUMBERED_FRAME_STEP"])
      */
@@ -40,7 +42,8 @@ public class LegacyGenerateConfiguration implements Serializable {
     /**
      * if overwrite the models default
      */
-    private boolean overwriteMappingList;
+    //@JsonIgnore
+    //private boolean overwriteMappingList;
     /**
      * List of OperationMappings consisting out of UUID, ID or FSN
      */
@@ -124,28 +127,28 @@ public class LegacyGenerateConfiguration implements Serializable {
         this.variant = variant;
     }
 
-    public boolean getOverwriteDescriptionSource() {
-        return overwriteDescriptionSource;
-    }
-
-    public void setOverwriteDescriptionSource(boolean overwriteDescriptionSource) {
-        this.overwriteDescriptionSource = overwriteDescriptionSource;
-    }
-
-    public boolean isOverwriteFrameSteps() {
-        return overwriteFrameSteps;
-    }
-
-    public void setOverwriteFrameSteps(boolean overwriteFrameSteps) {
-        this.overwriteFrameSteps = overwriteFrameSteps;
-    }
-
-    public boolean isOverwriteMappingList() {
-        return overwriteMappingList;
-    }
-
-    public void setOverwriteMappingList(boolean overwriteMappingList) {
-        this.overwriteMappingList = overwriteMappingList;
-    }
+//    public boolean getOverwriteDescriptionSource() {
+//        return overwriteDescriptionSource;
+//    }
+//
+//    public void setOverwriteDescriptionSource(boolean overwriteDescriptionSource) {
+//        this.overwriteDescriptionSource = overwriteDescriptionSource;
+//    }
+//
+//    public boolean isOverwriteFrameSteps() {
+//        return overwriteFrameSteps;
+//    }
+//
+//    public void setOverwriteFrameSteps(boolean overwriteFrameSteps) {
+//        this.overwriteFrameSteps = overwriteFrameSteps;
+//    }
+//
+//    public boolean isOverwriteMappingList() {
+//        return overwriteMappingList;
+//    }
+//
+//    public void setOverwriteMappingList(boolean overwriteMappingList) {
+//        this.overwriteMappingList = overwriteMappingList;
+//    }
 
 }

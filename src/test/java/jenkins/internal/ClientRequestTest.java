@@ -245,7 +245,7 @@ public class ClientRequestTest {
     @WithoutJenkins
     public void executeGroovyScript() {
         try {
-            testObject.executeGoovyScript(null);
+            testObject.executeGroovyScript(null);
             verify(printMock).println("executing Groovy Script");
         } catch (IOException | InterruptedException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
@@ -256,7 +256,7 @@ public class ClientRequestTest {
     public void executeGroovyScriptWithException() throws IOException, InterruptedException {
         dispatcher.removeResponse("/examRest/groovy/executeGroovyScript");
         exception.expect(IOException.class);
-        testObject.executeGoovyScript(null);
+        testObject.executeGroovyScript(null);
         verify(printMock).println("executing Groovy Script");
     }
 
@@ -631,7 +631,7 @@ public class ClientRequestTest {
         verify(printMock).println("WARNING: no EXAM connected");
 
         clearInvocations(printMock);
-        testObject.executeGoovyScript(null);
+        testObject.executeGroovyScript(null);
         verify(printMock).println("WARNING: no EXAM connected");
 
         clearInvocations(printMock);

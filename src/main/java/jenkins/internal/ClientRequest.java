@@ -31,12 +31,9 @@ package jenkins.internal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import hudson.AbortException;
 import hudson.Launcher;
 import hudson.model.Executor;
-import jakarta.json.Json;
-import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import jenkins.internal.data.*;
 
@@ -238,7 +235,7 @@ public class ClientRequest {
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
-    public void executeGoovyScript(GroovyConfiguration groovyConfiguration) throws IOException, InterruptedException {
+    public void executeGroovyScript(GroovyConfiguration groovyConfiguration) throws IOException, InterruptedException {
         if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
@@ -262,8 +259,10 @@ public class ClientRequest {
             return;
         }
         logger.println("generating Testcases");
-        RemoteServiceResponse response;
-        response = RemoteService.post(launcher, apiPort, "/TCG/generate", generateConfiguration, null);
+        ObjectMapper mapper = new ObjectMapper();
+
+        String config = mapper.writeValueAsString(generateConfiguration);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/TCG/generate", config, null);
         handleResponseError(response);
     }
 
@@ -280,12 +279,11 @@ public class ClientRequest {
             return;
         }
         logger.println("generating Testcases");
-        RemoteServiceResponse response;
         ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
         String config = mapper.writeValueAsString(generateConfiguration);
-        response = RemoteService.post(launcher, apiPort, "/TCG/generate", config, null);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/TCG/generate", config, null);
         handleResponseError(response);
     }
 
