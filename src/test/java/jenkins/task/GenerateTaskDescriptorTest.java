@@ -43,6 +43,11 @@ public class GenerateTaskDescriptorTest {
     private List<String> testCaseStates;
     private String variant;
 
+    private boolean setStates;
+
+    private String stateForSuccess;
+    private String stateForFail;
+
     @Before
     public void setUp() throws IOException {
         examName = "examName";
@@ -59,9 +64,12 @@ public class GenerateTaskDescriptorTest {
         testCaseStates = new ArrayList<>();
         testCaseStates.add("tCStates");
         variant = "var";
+        setStates = true;
+        stateForFail = "NotYetSpecified";
+        stateForSuccess = "Reviewed";
         freeStyleProject = jenkinsRule.createFreeStyleProject();
         testObject = new GenerateTask(examModel, examName, modelConfiguration, element, descriptionSource, documentInReport,
-                errorHandling, frameFunctions, mappingList, testCaseStates, variant);
+                errorHandling, frameFunctions, mappingList, testCaseStates, variant, setStates, stateForFail, stateForSuccess);
         testObjectDescriptor = (GenerateTask.DescriptorGenerateTask) testObject.getDescriptor();
     }
 

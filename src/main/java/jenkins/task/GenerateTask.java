@@ -85,8 +85,8 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     private List<String> testCaseStates;
     private String variant;
     private boolean setStates;
-    private TestCaseState stateForSuccess;
-    private TestCaseState stateForFail;
+    private String stateForSuccess;
+    private String stateForFail;
 
     public boolean isSetStates() {
         return setStates;
@@ -97,21 +97,21 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         this.setStates = setStates;
     }
 
-    public TestCaseState getStateForFail() {
+    public String getStateForFail() {
         return stateForFail;
     }
 
     @DataBoundSetter
-    public void setStateForFail(TestCaseState stateForFail) {
+    public void setStateForFail(String stateForFail) {
         this.stateForFail = stateForFail;
     }
 
-    public TestCaseState getStateForSuccess() {
+    public String getStateForSuccess() {
         return stateForSuccess;
     }
 
     @DataBoundSetter
-    public void setStateForSuccess(TestCaseState stateForSuccess) {
+    public void setStateForSuccess(String stateForSuccess) {
         this.stateForSuccess = stateForSuccess;
     }
 
@@ -262,7 +262,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
      * @param variant            variant
      */
     @DataBoundConstructor
-    public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource, boolean documentInReport, String errorHandling, List<String> frameSteps, String mappingList, List<String> testCaseStates, String variant) {
+    public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource, boolean documentInReport, String errorHandling, List<String> frameSteps, String mappingList, List<String> testCaseStates, String variant, boolean setStates, String stateForFail, String stateForSuccess) {
         this.examModel = examModel;
         this.examName = examName;
         this.modelConfiguration = modelConfiguration;
@@ -275,6 +275,9 @@ public class GenerateTask extends Task implements SimpleBuildStep {
 
         this.frameSteps = frameSteps;
         this.mappingList = mappingList;
+        this.setStates = setStates;
+        this.stateForFail = stateForFail;
+        this.stateForSuccess = stateForSuccess;
         setTestCaseStates(testCaseStates);
     }
 
@@ -355,8 +358,8 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         configuration.setTestCaseStates(getTestCaseStates());
         configuration.setVariant(getVariant());
         configuration.setSetStates(isSetStates());
-        configuration.setStateForFail(getStateForFail().getName());
-        configuration.setStateForSuccess(getStateForSuccess().getName());
+        configuration.setStateForFail(getStateForFail());
+        configuration.setStateForSuccess(getStateForSuccess());
 
         return configuration;
     }

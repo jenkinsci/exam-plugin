@@ -11,6 +11,8 @@ import jenkins.internal.ClientRequest;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GenerateConfiguration;
 import jenkins.internal.data.LegacyGenerateConfiguration;
+import jenkins.internal.enumeration.DescriptionSource;
+import jenkins.internal.enumeration.ErrorHandling;
 import jenkins.internal.enumeration.TestCaseState;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
@@ -75,6 +77,9 @@ public class GenerateTaskTest {
     private String mappingList;
     private List<String> testCaseStates;
     private String variant;
+    private boolean setStates;
+    private String stateForFail;
+    private String stateForSuccess;
 
     List<File> createdFiles = new ArrayList<>();
 
@@ -86,20 +91,23 @@ public class GenerateTaskTest {
         examRelativePath = "examRelativePath";
 
         element = "testElement";
-        descriptionSource = "descSource";
+        descriptionSource = DescriptionSource.DESCRIPTION.name();
         documentInReport = true;
-        errorHandling = "error";
+        errorHandling = ErrorHandling.GENERATE_ERROR_STEP.name();
         frameSteps = new ArrayList<>();
         frameSteps.add("frame");
         mappingList = "mList";
         testCaseStates = new ArrayList<>();
         testCaseStates.add("tCStates");
         variant = "var";
+        setStates = true;
+        stateForFail = "NotYetSpecified";
+        stateForSuccess = "Reviewed";
 
         Jenkins instance = jenkinsRule.getInstance();
         examHome = instance == null ? "examHome" : instance.getRootPath().getRemote();
         testObject = new GenerateTask(examModel, examName, modelConfiguration, element, descriptionSource, documentInReport,
-                errorHandling, frameSteps, mappingList, testCaseStates, variant);
+                errorHandling, frameSteps, mappingList, testCaseStates, variant, setStates, stateForFail, stateForSuccess);
     }
 
     @After
@@ -384,9 +392,9 @@ public class GenerateTaskTest {
     public void testCreateGenerateConfig() throws Exception {
         LegacyGenerateConfiguration expected = new LegacyGenerateConfiguration();
         expected.setElement(element);
-        expected.setDescriptionSource(descriptionSource);
+        expected.setDescriptionSource(DescriptionSource.valueOf(descriptionSource).getDisplayString());
         expected.setDocumentInReport(documentInReport);
-        expected.setErrorHandling(errorHandling);
+        expected.setErrorHandling(ErrorHandling.valueOf(errorHandling).displayString());
         expected.setVariant(variant);
         expected.setFrameFunctions(frameSteps);
         expected.setMappingList(Collections.singletonList(mappingList));
@@ -405,11 +413,11 @@ public class GenerateTaskTest {
         TUtil.assertGenerateConfig(expected, actual);
 
         Whitebox.setInternalState(testObject, "element", "anotherElement");
-        Whitebox.setInternalState(testObject, "descriptionSource", "anotherDescriptionSource");
+        Whitebox.setInternalState(testObject, "descriptionSource", DescriptionSource.BESCHREIBUNG.name());
         Whitebox.setInternalState(testObject, "documentInReport", false);
         actual = Whitebox.invokeMethod(testObject, "createGenerateConfig");
         expected.setElement("anotherElement");
-        expected.setDescriptionSource("anotherDescriptionSource");
+        expected.setDescriptionSource(DescriptionSource.BESCHREIBUNG.getDisplayString());
         expected.setDocumentInReport(false);
         TUtil.assertGenerateConfig(expected, actual);
     }
@@ -436,10 +444,40 @@ public class GenerateTaskTest {
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.never()).clearWorkspace(Mockito.any());
 
+        Mockito.when(clientRequestMock.getTCGVersion()).thenReturn(new ApiVersion(2, 0, 2));
         Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.TRUE);
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.times(1)).createExamProject(Mockito.any());
         Mockito.verify(clientRequestMock, Mockito.times(1)).generateTestcases(Mockito.any());
+    }
+
+    @Test
+    public void testExecuteTaskPost203() throws IOException, InterruptedException {
+        MockitoAnnotations.openMocks(this);
+
+        ExamModelConfig mod = new ExamModelConfig(examModel);
+        mod.setName(examModel);
+        testObject.getDescriptor().getModelConfigs().add(mod);
+
+        FakeTaskListener taskListener = new FakeTaskListener();
+        ExamTaskHelper taskHelper = new ExamTaskHelper();
+        taskHelper.setRun(runMock);
+        taskHelper.setWorkspace(new FilePath(new File("c:\\my\\path")));
+        taskHelper.setLauncher(new Launcher.DummyLauncher(taskListener));
+        taskHelper.setTaskListener(taskListener);
+        Whitebox.setInternalState(testObject, "taskHelper", taskHelper);
+
+        ClientRequest clientRequestMock = Mockito.mock(ClientRequest.class);
+        Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.FALSE);
+        Mockito.when(clientRequestMock.getTCGVersion()).thenReturn(new ApiVersion(2, 0, 2));
+        testObject.doExecuteTask(clientRequestMock);
+        Mockito.verify(clientRequestMock, Mockito.never()).clearWorkspace(Mockito.any());
+
+        Mockito.when(clientRequestMock.getTCGVersion()).thenReturn(new ApiVersion(2, 0, 3));
+        Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.TRUE);
+        testObject.doExecuteTask(clientRequestMock);
+        Mockito.verify(clientRequestMock, Mockito.times(1)).createExamProject(Mockito.any());
+        Mockito.verify(clientRequestMock, Mockito.times(1)).generateTestcasesPost203(Mockito.any());
     }
 
     @Test
