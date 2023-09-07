@@ -95,8 +95,7 @@ public class ClientRequest {
      */
     @Nullable
     public ExamStatus getStatus() throws IOException, InterruptedException {
-        RemoteServiceResponse response = RemoteService
-                .getJSON(launcher, apiPort, "/testrun/status", ExamStatus.class);
+        RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/testrun/status", ExamStatus.class);
         handleResponseError(response);
 
         return (response == null) ? null : (ExamStatus) response.getEntity();
@@ -115,8 +114,7 @@ public class ClientRequest {
             logger.println("WARNING: no EXAM connected");
             return null;
         }
-        RemoteServiceResponse response = RemoteService
-                .getJSON(launcher, apiPort, "/workspace/apiVersion", ApiVersion.class);
+        RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/workspace/apiVersion", ApiVersion.class);
         handleResponseError(response);
 
         return (response == null) ? null : (ApiVersion) response.getEntity();
@@ -159,8 +157,7 @@ public class ClientRequest {
         }
         logger.println("creating Exam Project");
 
-        RemoteServiceResponse response = RemoteService
-                .post(launcher, apiPort, "/workspace/createProject", modelConfiguration, null);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/workspace/createProject", modelConfiguration, null);
         handleResponseError(response);
     }
 
@@ -172,8 +169,7 @@ public class ClientRequest {
      * @throws InterruptedException InterruptedException
      * @throws IOException          IOException
      */
-    public void setTestrunFilter(FilterConfiguration filterConfig)
-            throws IOException, AbortException, InterruptedException {
+    public void setTestrunFilter(FilterConfiguration filterConfig) throws IOException, AbortException, InterruptedException {
         if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
@@ -188,8 +184,7 @@ public class ClientRequest {
             logger.println(i + ") activ: " + filter.isActivateTestcases());
             logger.println();
         }
-        RemoteServiceResponse response = RemoteService
-                .post(launcher, apiPort, "/testrun/setFilter", filterConfig, null);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/testrun/setFilter", filterConfig, null);
         handleResponseError(response);
     }
 
@@ -206,8 +201,7 @@ public class ClientRequest {
             return;
         }
         logger.println("convert to junit");
-        RemoteServiceResponse response = RemoteService
-                .getJSON(launcher, apiPort, "/testrun/convertToJunit/" + reportProject, null);
+        RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/testrun/convertToJunit/" + reportProject, null);
         handleResponseError(response);
     }
 
@@ -241,8 +235,7 @@ public class ClientRequest {
             return;
         }
         logger.println("executing Groovy Script");
-        RemoteServiceResponse response = RemoteService
-                .post(launcher, apiPort, "/groovy/executeGroovyScript", groovyConfiguration, null);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/groovy/executeGroovyScript", groovyConfiguration, null);
         handleResponseError(response);
     }
 
@@ -305,7 +298,7 @@ public class ClientRequest {
         }
         logger.println("getting TCG Api Version.");
         RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/TCG/apiVersion", ApiVersion.class);
-        if (response.getStatus() == 404) {
+        if (response != null && response.getStatus() == 404) {
             return new ApiVersion(2, 0, 2);
         }
         handleResponseError(response);
@@ -347,8 +340,7 @@ public class ClientRequest {
         if (Compatibility.isVersionHigher200()) {
             response = RemoteService.put(launcher, apiPort, "/testrun/stop?timeout=300");
         } else {
-            response = RemoteService
-                    .post(launcher, apiPort, "/testrun/stop?timeout=300", null, null);
+            response = RemoteService.post(launcher, apiPort, "/testrun/stop?timeout=300", null, null);
         }
         handleResponseError(response);
     }
