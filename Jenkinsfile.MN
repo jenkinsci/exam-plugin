@@ -4,6 +4,11 @@ String branch = env.BRANCH_NAME
 branch = java.net.URLEncoder.encode(branch, "UTF-8")
 branch = branch.replaceAll("%", "%%")
 
+def getVersion() {
+    def matcher = readFile('pom.xml') =~ '<version>(.+?)</version>'
+    matcher ? matcher[0][1] : null
+}
+
 pipeline{
     agent {
         node {
@@ -40,6 +45,27 @@ pipeline{
 				}
             }
         }
+		stage ('license scan client') {
+			steps {
+				script {
+					withCredentials([usernamePassword(credentialsId: 'blackduck', passwordVariable: 'bd_apikey', usernameVariable: 'bd_user')]) {
+						configFileProvider([configFile(fileId: 'TCC', targetLocation: 'settings.xml', variable: 'settings')]) {
+							version = getVersion();
+							if(env.BLACKDUCK_STATE == "online"){
+								def returnvalue = bat(returnStatus: true, script: """
+									set OPTS=--detect.maven.build.command='-s %settings% -Plokalp2'
+									set OPTS=%OPTS% --detect.project.name='Jenkins Exam plugin' --detect.project.version.name=${version}
+									%BLACKDUCK_GENERAL% --blackduck.api.token=${bd_apikey} %OPTS%
+									""", label: 'bdScan')
+								if(returnvalue != 0) {
+									unstable 'BlackDuck scan failed'
+								}
+							}
+						}
+					}
+				}
+			}
+		}
     }
     post {
         always {
