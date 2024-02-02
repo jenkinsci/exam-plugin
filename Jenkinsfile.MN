@@ -1,9 +1,9 @@
 boolean isFastlane = false
 Date today = new Date();
 String now = today.getTime().toString();
-String branch = env.BRANCH_NAME
-branch = java.net.URLEncoder.encode(branch, "UTF-8")
-branch = branch.replaceAll("%", "%%")
+String branchName = env.BRANCH_NAME
+branchName = java.net.URLEncoder.encode(branchName, "UTF-8")
+branchName = branchName.replaceAll("%", "%%")
 
 def getVersion() {
     def matcher = readFile('pom.xml') =~ '<version>(.+?)</version>'
@@ -29,7 +29,7 @@ pipeline{
         timestamps()
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '60', numToKeepStr: '60')
     }
-    stages{
+    stages {
 		stage('prepare fast lane') {
             when {
                 not {
@@ -54,7 +54,7 @@ pipeline{
 					configFileProvider([configFile(fileId: 'JENKINS', targetLocation: 'settings.xml', variable: 'settings')]) {
                         bat """
                             set jenkinsCiOpts=--batch-mode --show-version --errors --no-transfer-progress --update-snapshots -Dmaven.test.failure.ignore -Dspotbugs.failOnError=false -Dcheckstyle.failOnViolation=false -Dcheckstyle.failsOnError=false
-                            set opts=-Dts.user=%ts_user% -Dts.url=\"%ts.url%\" -Dts.apikey=%ts_key% -Dcurl.path=\"%CURL_PATH%\\curl.exe\" -Dts.branch=${branch} -Dbuild.time=${now}
+                            set opts=-Dts.user=%ts_user% -Dts.url=\"%ts.url%\" -Dts.apikey=%ts_key% -Dcurl.path=\"%CURL_PATH%\\curl.exe\" -Dts.branch=${branchName} -Dbuild.time=${now}
                             
                             set profiles=-Penable-jacoco,teamscale
                             
