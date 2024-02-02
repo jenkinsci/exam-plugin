@@ -49,7 +49,7 @@ pipeline{
 			steps {
 				script {
 					withCredentials([usernamePassword(credentialsId: 'blackduck', passwordVariable: 'bd_apikey', usernameVariable: 'bd_user')]) {
-						configFileProvider([configFile(fileId: 'TCC', targetLocation: 'settings.xml', variable: 'settings')]) {
+						configFileProvider([configFile(fileId: 'JENKINS', targetLocation: 'settings.xml', variable: 'settings')]) {
 							version = getVersion();
 							if(env.BLACKDUCK_STATE == "online"){
 								def returnvalue = bat(returnStatus: true, script: """
