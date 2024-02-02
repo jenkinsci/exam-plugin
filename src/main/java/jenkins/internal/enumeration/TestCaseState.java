@@ -32,7 +32,7 @@ package jenkins.internal.enumeration;
 /**
  * A representation of the literals of the enumeration '<em><b>Test Case State</b></em>',
  * and utility methods for working with them.
- * 
+ * <p>
  * Möglicher Wert für state und shadowState eines
  * generated
  */
@@ -42,8 +42,9 @@ public enum TestCaseState {
     /**
      * The '<em><b>Not Yet Specified</b></em>' literal object, whose name, value and literal are
      * NotYetSpecified, 1 and "notSpec".
-     * 
+     * <p>
      * Der TestCase wird erst noch spezifiziert.
+     *
      * @see #NOT_YET_SPECIFIED_VALUE
      * generated
      * ordered
@@ -53,9 +54,10 @@ public enum TestCaseState {
     /**
      * The '<em><b>Specified</b></em>' literal object, whose name, value and literal are
      * Specified, 2 and "spec".
-     * 
+     * <p>
      * Die Spezifikation des TestCase ist abgeschlossen, wurde aber
      * noch keinem Review unterzogen.
+     *
      * @see #SPECIFIED_VALUE
      * generated
      * ordered
@@ -65,9 +67,10 @@ public enum TestCaseState {
     /**
      * The '<em><b>Reviewed</b></em>' literal object, whose name, value and literal are
      * Reviewed, 3 and "reviewd".
-     * 
+     * <p>
      * Die Spezifikation des TestCase wurde einem Review
      * unterzogen.
+     *
      * @see #REVIEWED_VALUE
      * generated
      * ordered
@@ -77,8 +80,9 @@ public enum TestCaseState {
     /**
      * The '<em><b>Not Yet Implemented</b></em>' literal object, whose name, value and literal are
      * NotYetImplemented, 4 and "notImpl".
-     * 
+     * <p>
      * Der TestCase wird implementiert.
+     *
      * @see #NOT_YET_IMPLEMENTED_VALUE
      * generated
      * ordered
@@ -88,9 +92,10 @@ public enum TestCaseState {
     /**
      * The '<em><b>Implemented</b></em>' literal object, whose name, value and literal are
      * Implemented, 5 and "impl".
-     * 
+     * <p>
      * Die Implementierung des TestCase ist abgeschlossen, wurde
      * aber noch nicht freigegeben.
+     *
      * @see #IMPLEMENTED_VALUE
      * generated
      * ordered
@@ -100,8 +105,9 @@ public enum TestCaseState {
     /**
      * The '<em><b>Productive</b></em>' literal object, whose name, value and literal are
      * Productive, 6 and "product".
-     * 
+     * <p>
      * Die Implementierung des TestCase ist einsetzbar.
+     *
      * @see #PRODUCTIVE_VALUE
      * generated
      * ordered
@@ -111,9 +117,10 @@ public enum TestCaseState {
     /**
      * The '<em><b>Invalid</b></em>' literal object, whose name, value and literal are
      * Invalid, 7 and "inv".
-     * 
+     * <p>
      * Die Spezifikation des TestCase ist fehlerhaft oder nicht
      * umsetzbar.
+     *
      * @see #INVALID_VALUE
      * generated
      * ordered
@@ -122,8 +129,9 @@ public enum TestCaseState {
 
     /**
      * The '<em><b>Not Yet Specified</b></em>' literal value, which is 1.
-     * 
+     * <p>
      * Der TestCase wird erst noch spezifiziert.
+     *
      * @see #NOT_YET_SPECIFIED
      * generated
      * ordered
@@ -132,9 +140,10 @@ public enum TestCaseState {
 
     /**
      * The '<em><b>Specified</b></em>' literal value, which is 2.
-     * 
+     * <p>
      * Die Spezifikation des TestCase ist abgeschlossen, wurde aber
      * noch keinem Review unterzogen.
+     *
      * @see #SPECIFIED
      * generated
      * ordered
@@ -143,9 +152,10 @@ public enum TestCaseState {
 
     /**
      * The '<em><b>Reviewed</b></em>' literal value, which is 3.
-     * 
+     * <p>
      * Die Spezifikation des TestCase wurde einem Review
      * unterzogen.
+     *
      * @see #REVIEWED
      * generated
      * ordered
@@ -154,8 +164,9 @@ public enum TestCaseState {
 
     /**
      * The '<em><b>Not Yet Implemented</b></em>' literal value, which is 4.
-     * 
+     * <p>
      * Der TestCase wird implementiert.
+     *
      * @see #NOT_YET_IMPLEMENTED
      * generated
      * ordered
@@ -164,9 +175,10 @@ public enum TestCaseState {
 
     /**
      * The '<em><b>Implemented</b></em>' literal value, which is 5.
-     * 
+     * <p>
      * Die Implementierung des TestCase ist abgeschlossen, wurde
      * aber noch nicht freigegeben.
+     *
      * @see #IMPLEMENTED
      * generated
      * ordered
@@ -175,8 +187,9 @@ public enum TestCaseState {
 
     /**
      * The '<em><b>Productive</b></em>' literal value, which is 6.
-     * 
+     * <p>
      * Die Implementierung des TestCase ist einsetzbar.
+     *
      * @see #PRODUCTIVE
      * generated
      * ordered
@@ -185,9 +198,10 @@ public enum TestCaseState {
 
     /**
      * The '<em><b>Invalid</b></em>' literal value, which is 7.
-     * 
+     * <p>
      * Die Spezifikation des TestCase ist fehlerhaft oder nicht
      * umsetzbar.
+     *
      * @see #INVALID
      * generated
      * ordered
@@ -197,14 +211,14 @@ public enum TestCaseState {
 
     /**
      * Returns the '<em><b>Test Case State</b></em>' literal with the specified literal value.
-     * @param literal
-     *            the literal value
+     *
+     * @param literal the literal value
      * @return the literal with that value, or null if no literal has that value
      * generated
      */
     public static TestCaseState get(String literal) {
-        for (TestCaseState state: TestCaseState.values()){
-            if(literal.equals(state.getLiteral())){
+        for (TestCaseState state : TestCaseState.values()) {
+            if (literal.equals(state.getLiteral())) {
                 return state;
             }
         }
@@ -213,14 +227,14 @@ public enum TestCaseState {
 
     /**
      * Returns the '<em><b>Test Case State</b></em>' literal with the specified name.
-     * @param name
-     *            the literal name
+     *
+     * @param name the literal name
      * @return the literal with that name, or null if no literal has that name
      * generated
      */
     public static TestCaseState getByName(String name) {
-        for (TestCaseState state: TestCaseState.values()){
-            if(name.equals(state.getName())){
+        for (TestCaseState state : TestCaseState.values()) {
+            if (name.equals(state.getName())) {
                 return state;
             }
         }
@@ -228,13 +242,19 @@ public enum TestCaseState {
     }
 
 
-    /** generated */
+    /**
+     * generated
+     */
     private final int value;
 
-    /** generated */
+    /**
+     * generated
+     */
     private final String name;
 
-    /** generated */
+    /**
+     * generated
+     */
     private final String literal;
 
     /**
@@ -247,17 +267,23 @@ public enum TestCaseState {
         this.literal = literal;
     }
 
-    /** generated */
+    /**
+     * generated
+     */
     public int getValue() {
         return this.value;
     }
 
-    /** generated */
+    /**
+     * generated
+     */
     public String getName() {
         return this.name;
     }
 
-    /** generated */
+    /**
+     * generated
+     */
     public String getLiteral() {
         return this.literal;
     }

@@ -66,10 +66,9 @@ public class Compatibility {
      *
      * @param taskListener       taskListener for logging
      * @param minRequiredVersion minimum Version required
-     * @throws IOException          IOException
+     * @throws IOException IOException
      */
-    public static void checkMinRestApiVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion)
-            throws IOException {
+    public static void checkMinRestApiVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion) throws IOException {
         checkMinRestApiVersion(taskListener, minRequiredVersion, "EXAM REST-API");
     }
 
@@ -78,10 +77,9 @@ public class Compatibility {
      *
      * @param taskListener       taskListener for logging
      * @param minRequiredVersion minimum Version required
-     * @throws IOException          IOException
+     * @throws IOException IOException
      */
-    private static void checkMinRestApiVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion,
-                                               String text) throws IOException {
+    private static void checkMinRestApiVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion, String text) throws IOException {
         ApiVersion actualRestVersion = getClientApiVersion();
         String sApiVersion = (actualRestVersion == null) ? "unknown" : actualRestVersion.toString();
         taskListener.getLogger().println("EXAM api version: " + sApiVersion);
@@ -96,30 +94,42 @@ public class Compatibility {
         }
     }
 
+    /**
+     * Checks whether the TCG-REST-API of EXAM has the minimum required version
+     *
+     * @param taskListener       taskListener for logging
+     * @param minRequiredVersion minimum Version required
+     * @param tcgVersion         the ApiVersion of the TCG
+     * @throws IOException IOException
+     */
+    public static boolean checkMinTCGVersion(@Nonnull TaskListener taskListener, ApiVersion minRequiredVersion, ApiVersion tcgVersion) {
+        taskListener.getLogger().println("TCG api version: " + tcgVersion.toString());
+        if (minRequiredVersion.compareTo(tcgVersion) > 0) {
+            return false;
+        }
+        return true;
+    }
 
     /**
      * Checks whether TestConfig ist compatible with the REST API version
      *
-     * @throws IOException          IOException
+     * @throws IOException IOException
      */
     public static void checkTestConfig(TaskListener listener, TestConfiguration tc) throws IOException {
-
-        if(tc.getModelProject() == null){
+        if (tc.getModelProject() == null) {
             return;
         }
 
         String modelConfigUUID = tc.getModelProject().getModelConfigUUID();
-        if(!Util.isUuidValid(modelConfigUUID)) {
+        if (!Util.isUuidValid(modelConfigUUID)) {
             checkMinRestApiVersion(listener, new ApiVersion(2, 0, 0), "ModelConfig with name");
         }
     }
 
-
     /**
      * Returns true is the REST-API version is equal or higher 2.0.0
-     *
      */
-    public static boolean isVersionHigher200(){
+    public static boolean isVersionHigher200() {
         ApiVersion minApiVersion = new ApiVersion(2, 0, 0);
         return minApiVersion.compareTo(getClientApiVersion()) <= 0;
     }

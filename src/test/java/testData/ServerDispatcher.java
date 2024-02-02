@@ -29,6 +29,7 @@
  */
 package testData;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import jenkins.internal.data.ApiVersion;
@@ -40,15 +41,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ServerDispatcher extends Dispatcher {
-    
+
+    private ApiVersion tcgVersion = new ApiVersion(2, 0, 3);
     private Map<String, MockResponse> mResponse;
-    
-    public ServerDispatcher() {
+
+    public ServerDispatcher() throws JsonProcessingException {
         mResponse = new HashMap<>();
         setDefaults();
     }
-    
-    public void setDefaults() {
+
+    public void setDefaults() throws JsonProcessingException {
         clearAllResponse();
 
         setResponse("/examRest/workspace/apiVersion",
@@ -60,25 +62,25 @@ public class ServerDispatcher extends Dispatcher {
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache")
                         .setBody("{\"jobName\":\"myTestJob\",\"jobRunning\":\"true\",\"testRunState\":-1}"));
-        
+
         setResponse("/examRest/testrun/start",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache").setBody("{}"));
-        
+
         setResponse("/examRest/testrun/stop",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache").setBody("{}"));
-        
+
         setApiResponse(2, 5, 7);
-        
+
         setResponse("/examRest/testrun/setFilter",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache").setBody("{}"));
-        
+
         setResponse("/examRest/testrun/convertToJunit/testProject",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache"));
-        
+
         setResponse("/examRest/workspace/createProject",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache"));
@@ -90,34 +92,39 @@ public class ServerDispatcher extends Dispatcher {
         setResponse("/examRest/TCG/generate",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache"));
+        ObjectMapper mapper = new ObjectMapper();
+        String version = mapper.writeValueAsString(tcgVersion);
+        setResponse("/examRest/TCG/apiVersion",
+                new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                        .addHeader("Cache-Control", "no-cache").setBody(version));
 
         setResponse("/examRest/workspace/delete", new MockResponse().setResponseCode(200));
         setResponse("/examRest/workspace/shutdown", new MockResponse().setResponseCode(200));
     }
-    
+
     public void setResponse(String path, MockResponse response) {
         mResponse.put(path, response);
     }
-    
+
     public void removeResponse(String path) {
         if (mResponse.containsKey(path)) {
             mResponse.remove(path);
         }
     }
-    
+
     public void clearAllResponse() {
         mResponse.clear();
     }
-    
+
     // Helper Method for ApiVersion Response
     public void setApiResponse(int major, int minor, int fix) {
         setResponse("/examRest/workspace/apiVersion",
                 new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
                         .addHeader("Cache-Control", "no-cache")
                         .setBody(this.getApiVersionResponseString(major, minor, fix)));
-        
+
     }
-    
+
     private String getApiVersionResponseString(int major, int minor, int fix) {
         ApiVersion apiVersion = new ApiVersion();
         apiVersion.setMajor(major);
@@ -131,7 +138,7 @@ public class ServerDispatcher extends Dispatcher {
             return "{ major: \"" + major + "\", minor: \"" + minor + "\", fix: \"" + fix + "\" }";
         }
     }
-    
+
     @Override
     public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
         String path = request.getPath();

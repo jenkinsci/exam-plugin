@@ -82,6 +82,21 @@ public class CompatibilityTest {
     }
 
     @Test
+    public void checkMinTCGVersionTest() throws Exception {
+        FakeTaskListener taskListenerMock = mock(FakeTaskListener.class);
+        when(taskListenerMock.getLogger()).thenReturn(System.out);
+        ApiVersion tcgVersion = new ApiVersion(2, 1, 3);
+        ApiVersion minVersion = new ApiVersion(1, 1, 1);
+        String message = "minVersion: %s, tcgVersion: %s";
+
+        assertTrue(String.format(message, minVersion, tcgVersion), Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, tcgVersion));
+        assertTrue(String.format(message, minVersion, tcgVersion), Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 1)));
+        assertTrue(String.format(message, minVersion, tcgVersion), Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 1)));
+        assertTrue(String.format(message, minVersion, tcgVersion), Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 2)));
+        assertFalse(String.format(message, minVersion, tcgVersion), Compatibility.checkMinTCGVersion(taskListenerMock, minVersion, new ApiVersion(1, 1, 0)));
+    }
+
+    @Test
     public void checkMinRestApiVersionExceptionMajor() throws IOException {
         checkMinRestApiVersionException(new ApiVersion(3, 2, 2));
     }
@@ -106,15 +121,15 @@ public class CompatibilityTest {
         mc.setModelConfigUUID("configName");
         TestConfiguration tc = new TestConfiguration();
 
-        Compatibility.checkTestConfig(taskListenerMock,tc);
+        Compatibility.checkTestConfig(taskListenerMock, tc);
 
         tc.setModelProject(mc);
 
-        Compatibility.checkTestConfig(taskListenerMock,tc);
+        Compatibility.checkTestConfig(taskListenerMock, tc);
 
         Compatibility.setClientApiVersion(new ApiVersion(1, 2, 0));
         exception.expect(AbortException.class);
-        Compatibility.checkTestConfig(taskListenerMock,tc);
+        Compatibility.checkTestConfig(taskListenerMock, tc);
     }
 
     @Test
@@ -129,18 +144,18 @@ public class CompatibilityTest {
         TestConfiguration tc = new TestConfiguration();
         tc.setModelProject(mc);
 
-        Compatibility.checkTestConfig(taskListenerMock,tc);
+        Compatibility.checkTestConfig(taskListenerMock, tc);
         when(clientRequestMock.getApiVersion()).thenReturn(new ApiVersion(1, 2, 0));
-        Compatibility.checkTestConfig(taskListenerMock,tc);
+        Compatibility.checkTestConfig(taskListenerMock, tc);
     }
 
     @Test
-    public void isVersionHigher200(){
-        Compatibility.setClientApiVersion(new ApiVersion(1,9,9));
+    public void isVersionHigher200() {
+        Compatibility.setClientApiVersion(new ApiVersion(1, 9, 9));
         assertFalse(Compatibility.isVersionHigher200());
-        Compatibility.setClientApiVersion(new ApiVersion(2,0,0));
+        Compatibility.setClientApiVersion(new ApiVersion(2, 0, 0));
         assertTrue(Compatibility.isVersionHigher200());
-        Compatibility.setClientApiVersion(new ApiVersion(9,9,9));
+        Compatibility.setClientApiVersion(new ApiVersion(9, 9, 9));
         assertTrue(Compatibility.isVersionHigher200());
     }
 }

@@ -38,9 +38,11 @@ import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.internal.ClientRequest;
+import jenkins.internal.Compatibility;
 import jenkins.internal.Util;
 import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GenerateConfiguration;
+import jenkins.internal.data.LegacyGenerateConfiguration;
 import jenkins.internal.data.ModelConfiguration;
 import jenkins.internal.descriptor.ExamModelDescriptorTask;
 import jenkins.internal.enumeration.DescriptionSource;
@@ -82,12 +84,40 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     private String mappingList;
     private List<String> testCaseStates;
     private String variant;
+    private boolean setStates;
+    private String stateForSuccess;
+    private String stateForFail;
 
+    public boolean isSetStates() {
+        return setStates;
+    }
+
+    @DataBoundSetter
+    public void setSetStates(boolean setStates) {
+        this.setStates = setStates;
+    }
+
+    public String getStateForFail() {
+        return stateForFail;
+    }
+
+    @DataBoundSetter
+    public void setStateForFail(String stateForFail) {
+        this.stateForFail = stateForFail;
+    }
+
+    public String getStateForSuccess() {
+        return stateForSuccess;
+    }
+
+    @DataBoundSetter
+    public void setStateForSuccess(String stateForSuccess) {
+        this.stateForSuccess = stateForSuccess;
+    }
 
     public String getElement() {
         return element;
     }
-
 
     @DataBoundSetter
     public void setElement(String element) {
@@ -124,7 +154,6 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     public void setOverwriteFrameSteps(boolean overwriteFrameSteps) {
         this.overwriteFrameSteps = overwriteFrameSteps;
     }
-
 
 
     public String getDescriptionSource() {
@@ -174,11 +203,20 @@ public class GenerateTask extends Task implements SimpleBuildStep {
 
     @DataBoundSetter
     public void setTestCaseStates(List<String> testCaseStates) {
-        if(testCaseStates.isEmpty()){
+        List<String> tcValues = new ArrayList<>();
+        if (testCaseStates.isEmpty()) {
             DescriptorGenerateTask descriptor = (DescriptorGenerateTask) getDescriptor();
             this.testCaseStates = descriptor.getDefaultTestCaseStates();
         } else {
-            this.testCaseStates = testCaseStates;
+            for (String state : testCaseStates) {
+                TestCaseState convert = TestCaseState.get(state);
+                if (convert != null) {
+                    tcValues.add(convert.getName());
+                } else {
+                    tcValues.add(state);
+                }
+            }
+            this.testCaseStates = tcValues;
         }
     }
 
@@ -218,14 +256,13 @@ public class GenerateTask extends Task implements SimpleBuildStep {
      * @param descriptionSource  descriptionSource
      * @param documentInReport   documentInReport
      * @param errorHandling      errorHandling
-     * @param frameSteps     frameFunctions
+     * @param frameSteps         frameFunctions
      * @param mappingList        mappingList
      * @param testCaseStates     testCaseStates
      * @param variant            variant
      */
     @DataBoundConstructor
-    public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource,
-                        boolean documentInReport, String errorHandling, List<String> frameSteps, String mappingList, List<String> testCaseStates, String variant) {
+    public GenerateTask(String examModel, String examName, String modelConfiguration, String element, String descriptionSource, boolean documentInReport, String errorHandling, List<String> frameSteps, String mappingList, List<String> testCaseStates, String variant, boolean setStates, String stateForFail, String stateForSuccess) {
         this.examModel = examModel;
         this.examName = examName;
         this.modelConfiguration = modelConfiguration;
@@ -238,6 +275,9 @@ public class GenerateTask extends Task implements SimpleBuildStep {
 
         this.frameSteps = frameSteps;
         this.mappingList = mappingList;
+        this.setStates = setStates;
+        this.stateForFail = stateForFail;
+        this.stateForSuccess = stateForSuccess;
         setTestCaseStates(testCaseStates);
     }
 
@@ -245,10 +285,19 @@ public class GenerateTask extends Task implements SimpleBuildStep {
     protected void doExecuteTask(ClientRequest clientRequest) throws IOException, InterruptedException {
         if (clientRequest.isClientConnected()) {
             ModelConfiguration modelConfig = createModelConfig();
-            GenerateConfiguration generateConfiguration = createGenerateConfig();
-
+            ApiVersion tcgVersion = clientRequest.getTCGVersion();
             clientRequest.createExamProject(modelConfig);
-            clientRequest.generateTestcases(generateConfiguration);
+
+            // check tcg api version
+            TaskListener listener = getTaskHelper().getTaskListener();
+            boolean isApiCompatible = Compatibility.checkMinTCGVersion(listener, new ApiVersion(2, 0, 3), tcgVersion);
+            if (isApiCompatible) {
+                GenerateConfiguration config = generateNewConfig();
+                clientRequest.generateTestcasesPost203(config);
+            } else {
+                LegacyGenerateConfiguration generateConfiguration = createGenerateConfig();
+                clientRequest.generateTestcases(generateConfiguration);
+            }
         }
     }
 
@@ -266,19 +315,50 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         getTaskHelper().perform(this, launcher, new ApiVersion(1, 0, 3));
     }
 
-    private GenerateConfiguration createGenerateConfig() {
+    private LegacyGenerateConfiguration createGenerateConfig() {
+        LegacyGenerateConfiguration configuration = new LegacyGenerateConfiguration();
+        configuration.setElement(getElement());
+        DescriptionSource dc = DescriptionSource.valueOf(getDescriptionSource());
+        configuration.setDescriptionSource(dc.getDisplayString());
+        configuration.setDocumentInReport(getDocumentInReport());
+        ErrorHandling eh = ErrorHandling.valueOf(getErrorHandling());
+        configuration.setErrorHandling(eh.displayString());
+        configuration.setFrameFunctions(getFrameSteps());
+        configuration.setMappingList(convertToList(getMappingList()));
+
+        configuration.setTestCaseStates(getTestCaseStates());
+        configuration.setVariant(getVariant());
+
+        return configuration;
+    }
+
+    private GenerateConfiguration generateNewConfig() {
         GenerateConfiguration configuration = new GenerateConfiguration();
         configuration.setElement(getElement());
         configuration.setOverwriteDescriptionSource(getOverwriteDescriptionSource());
+        if (!getOverwriteDescriptionSource()) {
+            this.descriptionSource = "";
+        }
         configuration.setDescriptionSource(getDescriptionSource());
         configuration.setDocumentInReport(getDocumentInReport());
         configuration.setErrorHandling(getErrorHandling());
         configuration.setOverwriteFrameSteps(getOverwriteFrameSteps());
+        if (!getOverwriteFrameSteps()) {
+            this.frameSteps = new ArrayList<>();
+        }
         configuration.setFrameFunctions(getFrameSteps());
         configuration.setOverwriteMappingList(getOverwriteMappingList());
+        if (!getOverwriteMappingList()) {
+            this.mappingList = "";
+        }
         configuration.setMappingList(convertToList(getMappingList()));
         configuration.setTestCaseStates(getTestCaseStates());
         configuration.setVariant(getVariant());
+        configuration.setSetStates(isSetStates());
+        TestCaseState fail = TestCaseState.get(getStateForFail());
+        configuration.setStateForFail(fail.getName());
+        TestCaseState success = TestCaseState.get(getStateForSuccess());
+        configuration.setStateForSuccess(success.getName());
 
         return configuration;
     }
@@ -291,11 +371,11 @@ public class GenerateTask extends Task implements SimpleBuildStep {
         return Arrays.asList(split);
     }
 
-    public boolean isTestCaseStateSelected(String value){
+    public boolean isTestCaseStateSelected(String value) {
         return this.testCaseStates.contains(value);
     }
 
-    public boolean isFrameStepsSelected(String value){
+    public boolean isFrameStepsSelected(String value) {
         return this.frameSteps.contains(value);
     }
 
@@ -351,7 +431,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          */
         public FormValidation doCheckExamModel(@QueryParameter String value) {
             ExamModelConfig m = getModel(value);
-            if(m == null || m.getExamVersion() < 50){
+            if (m == null || m.getExamVersion() < 50) {
                 return FormValidation.error(Messages.TCG_EXAM_MIN_VERSION());
             }
             return FormValidation.ok();
@@ -368,9 +448,9 @@ public class GenerateTask extends Task implements SimpleBuildStep {
             if (value.isEmpty()) {
                 return ok;
             }
-            for(String elmt : value.split(",")){
+            for (String elmt : value.split(",")) {
                 FormValidation elmtValid = Util.validateElementForSearch(elmt);
-                if(!ok.equals(elmtValid)){
+                if (!ok.equals(elmtValid)) {
                     return elmtValid;
                 }
             }
@@ -394,7 +474,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          * @return the default errorHandle
          */
         public String getDefaultErrorHandling() {
-            return ErrorHandling.GENERATE_ERROR_STEP.name();
+            return ErrorHandling.GENERATE_ERROR_STEP.displayString();
         }
 
         /**
@@ -414,7 +494,7 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          * @return the default description source
          */
         public String getDefaultDescriptionSource() {
-            return DescriptionSource.DESCRIPTION.name();
+            return DescriptionSource.DESCRIPTION.getDisplayString();
         }
 
         /**
@@ -435,6 +515,36 @@ public class GenerateTask extends Task implements SimpleBuildStep {
          */
         public TestCaseState[] doFillTestCaseStatesItems() {
             return TestCaseState.values();
+        }
+
+        /**
+         * fills the ListBoxModel ErrorHandle with all ErrorHandless
+         *
+         * @return ListBoxModel
+         */
+        public ListBoxModel doFillStateForSuccessItems() {
+            ListBoxModel items = new ListBoxModel();
+            for (TestCaseState tcs : TestCaseState.values()) {
+                items.add(tcs.getName(), tcs.getLiteral());
+            }
+            return items;
+        }
+
+
+        public ListBoxModel doFillStateForFailItems() {
+            ListBoxModel items = new ListBoxModel();
+            for (TestCaseState tcs : TestCaseState.values()) {
+                items.add(tcs.getName(), tcs.getLiteral());
+            }
+            return items;
+        }
+
+        public String getDefaultStateForSuccess() {
+            return TestCaseState.REVIEWED.getName();
+        }
+
+        public String getDefaultStateForFail() {
+            return TestCaseState.NOT_YET_SPECIFIED.getName();
         }
 
         /**

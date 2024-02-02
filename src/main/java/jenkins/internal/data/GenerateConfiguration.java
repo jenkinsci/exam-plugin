@@ -29,6 +29,9 @@
  */
 package jenkins.internal.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -45,10 +48,12 @@ public class GenerateConfiguration implements Serializable {
     /**
      * if overwrite the models default
      */
+    @JsonIgnore
     private boolean overwriteDescriptionSource;
     /**
      * Type of the DescriptionSource (has to be one of the following: [BESCHREIBUNG, DESCRIPTION])
      */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String descriptionSource;
     /**
      * boolean if the document should be in the Report.
@@ -61,18 +66,22 @@ public class GenerateConfiguration implements Serializable {
     /**
      * if overwrite the models default
      */
+    @JsonIgnore
     private boolean overwriteFrameSteps;
     /**
      * List of FrameFunctions (possible values are: ["PRECONDITION_BEFORE", "PRECONDITION_AFTER", "ACTION_BEFORE", "ACTION_AFTER", "POSTCONDITION_BEFORE", "POSTCONDITION_AFTER", "EXPECTED_RESULT_BEFORE", "EXPECTED_RESULT_AFTER", "NUMBERED_FRAME_STEP"])
      */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> frameFunctions;
     /**
      * if overwrite the models default
      */
+    @JsonIgnore
     private boolean overwriteMappingList;
     /**
      * List of OperationMappings consisting out of UUID, ID or FSN
      */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> mappingList;
     /**
      * List of TestCaseStates to consider during the generation (has to be one of the following. [NOT_YET_SPECIFIED, SPECIFIED, REVIEWED, NOT_YET_IMPLEMENTED, IMPLEMENTED, PRODUCTIVE, INVALID])
@@ -82,11 +91,48 @@ public class GenerateConfiguration implements Serializable {
      * UUID, ID or FSN of the Variant
      */
     private String variant;
+    /**
+     * if states are relevant for generation.
+     */
+    private boolean setStates;
+    /**
+     * TestCaseState for successful generation.
+     */
+    private String stateForSuccess;
+    /**
+     * TestCaseState for failed generation.
+     */
+    private String stateForFail;
 
     /**
      * Constructor
      */
-    public GenerateConfiguration() {}
+    public GenerateConfiguration() {
+    }
+
+    public void setSetStates(boolean setStates) {
+        this.setStates = setStates;
+    }
+
+    public boolean getSetStates() {
+        return setStates;
+    }
+
+    public void setStateForFail(String stateForFail) {
+        this.stateForFail = stateForFail;
+    }
+
+    public String getStateForFail() {
+        return stateForFail;
+    }
+
+    public void setStateForSuccess(String stateForSuccess) {
+        this.stateForSuccess = stateForSuccess;
+    }
+
+    public String getStateForSuccess() {
+        return stateForSuccess;
+    }
 
     public String getElement() {
         return element;

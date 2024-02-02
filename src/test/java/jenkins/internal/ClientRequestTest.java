@@ -48,6 +48,7 @@ import testData.ServerDispatcher;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Collections;
 import java.util.Random;
 
 import static org.junit.Assert.*;
@@ -75,7 +76,7 @@ public class ClientRequestTest {
     private PrintStream printMock;
 
     @BeforeClass
-    public static void oneTimeSetup() {
+    public static void oneTimeSetup() throws Exception {
         dispatcher = new ServerDispatcher();
     }
 
@@ -102,7 +103,7 @@ public class ClientRequestTest {
 
     @After
     public void tearDown() throws Exception {
-        if(server != null) {
+        if (server != null) {
             server.shutdown();
         }
         launcher = null;
@@ -242,9 +243,9 @@ public class ClientRequestTest {
 
     @Test
     @WithoutJenkins
-    public void executeGoovyScript() {
+    public void executeGroovyScript() {
         try {
-            testObject.executeGoovyScript(null);
+            testObject.executeGroovyScript(null);
             verify(printMock).println("executing Groovy Script");
         } catch (IOException | InterruptedException e) {
             assertTrue("Exception was thrown: " + e.toString(), false);
@@ -252,10 +253,10 @@ public class ClientRequestTest {
     }
 
     @Test
-    public void executeGoovyScriptWithException() throws IOException, InterruptedException {
+    public void executeGroovyScriptWithException() throws IOException, InterruptedException {
         dispatcher.removeResponse("/examRest/groovy/executeGroovyScript");
         exception.expect(IOException.class);
-        testObject.executeGoovyScript(null);
+        testObject.executeGroovyScript(null);
         verify(printMock).println("executing Groovy Script");
     }
 
@@ -264,6 +265,41 @@ public class ClientRequestTest {
     public void generateTestcases() {
         try {
             testObject.generateTestcases(null);
+            verify(printMock).println("generating Testcases");
+        } catch (Exception e) {
+            fail("Exception was thrown: " + e.toString());
+        }
+    }
+
+    @Test
+    @WithoutJenkins
+    public void generateTestcasesNewApi() {
+        try {
+            TCGResult res = new TCGResult();
+            res.setCode(200);
+            res.setMessage("fine");
+
+            ObjectMapper mapper = new ObjectMapper();
+            String response = mapper.writeValueAsString(res);
+
+            dispatcher.setResponse("/examRest/TCG/generate",
+                    new MockResponse().setResponseCode(200).addHeader("Content-Type", "application/json; charset=utf-8")
+                            .addHeader("Cache-Control", "no-cache").setBody(response));
+            GenerateConfiguration config = getGenerateConfiguration();
+
+            testObject.generateTestcasesPost203(config);
+            RecordedRequest latestRequest = server.takeRequest();
+            String body = latestRequest.getBody().readUtf8();
+
+            // any of those properties are not supposed to be in the JSON due to api changes with 2.0.3
+            assertFalse(body.contains("overwriteDescriptionSource"));
+            assertFalse(body.contains("overwriteFrameSteps"));
+            assertFalse(body.contains("overwriteMappingList"));
+            // following properties are supposed to be contained
+            assertTrue(body.contains("descriptionSource"));
+            assertTrue(body.contains("frameFunctions"));
+            assertTrue(body.contains("mappingList"));
+
             verify(printMock).println("generating Testcases");
         } catch (Exception e) {
             fail("Exception was thrown: " + e.toString());
@@ -302,11 +338,11 @@ public class ClientRequestTest {
     public void clearWorkspace() {
         try {
             String strAll = "deleting all projects and pcode from EXAM workspace";
-            Compatibility.setClientApiVersion(new ApiVersion(2,0,0));
+            Compatibility.setClientApiVersion(new ApiVersion(2, 0, 0));
             testObject.clearWorkspace(null);
             verify(printMock).println(strAll);
 
-            Compatibility.setClientApiVersion(new ApiVersion(1,0,0));
+            Compatibility.setClientApiVersion(new ApiVersion(1, 0, 0));
             clearInvocations(printMock);
             testObject.clearWorkspace("");
             verify(printMock).println(strAll);
@@ -324,7 +360,7 @@ public class ClientRequestTest {
 
     @Test
     public void clearWorkspaceWithException() throws IOException, InterruptedException {
-        Compatibility.setClientApiVersion(new ApiVersion(2,0,0));
+        Compatibility.setClientApiVersion(new ApiVersion(2, 0, 0));
         dispatcher.clearAllResponse();
         exception.expect(IOException.class);
         testObject.clearWorkspace("");
@@ -605,7 +641,7 @@ public class ClientRequestTest {
         verify(printMock).println("WARNING: no EXAM connected");
 
         clearInvocations(printMock);
-        testObject.executeGoovyScript(null);
+        testObject.executeGroovyScript(null);
         verify(printMock).println("WARNING: no EXAM connected");
 
         clearInvocations(printMock);
@@ -630,6 +666,22 @@ public class ClientRequestTest {
         assertEquals(toTest.getFix(), apiVersion.getFix());
         assertEquals(toTest.getMinor(), apiVersion.getMinor());
         assertEquals(toTest.getMajor(), apiVersion.getMajor());
+    }
+
+    @Test
+    @WithoutJenkins
+    public void getTCGVersion() {
+        ApiVersion apiVersion = null;
+
+        try {
+            apiVersion = testObject.getTCGVersion();
+        } catch (IOException | InterruptedException e) {
+            assertTrue("Exception was thrown: " + e.toString(), false);
+        }
+        assertNotNull(apiVersion);
+        assertEquals(2, apiVersion.getMajor());
+        assertEquals(0, apiVersion.getMinor());
+        assertEquals(3, apiVersion.getFix());
     }
 
     // Note:
@@ -690,4 +742,23 @@ public class ClientRequestTest {
         assertEquals(path + testReportProject, requestRoute);
         assertEquals("", requestBody);
     }
+
+    private static GenerateConfiguration getGenerateConfiguration() {
+        GenerateConfiguration config = new GenerateConfiguration();
+        config.setElement("testElement");
+        config.setOverwriteDescriptionSource(true);
+        config.setDescriptionSource("DESCRIPTION");
+        config.setDocumentInReport(false);
+        config.setErrorHandling("errorHandling");
+        config.setOverwriteFrameSteps(true);
+        config.setFrameFunctions(Collections.singletonList("ACTION_BEFORE"));
+        config.setOverwriteMappingList(true);
+        config.setMappingList(Collections.singletonList("test"));
+        config.setVariant("variant");
+        config.setSetStates(true);
+        config.setStateForSuccess("test");
+        config.setStateForFail("test2");
+        return config;
+    }
+
 }

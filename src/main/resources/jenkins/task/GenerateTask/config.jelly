@@ -59,6 +59,15 @@
             </f:entry>
         </f:optionalBlock>
 
+        <f:optionalBlock title="${%set States for generation}" field="setStates" inline="true" help="${helpPath}/help-setStates.html">
+            <f:entry title="${%State for Success}" field="stateForSuccess" help="${helpPath}/help-stateForSuccess.html">
+                <f:select default="${descriptor.getDefaultStateForSuccess()}" />
+            </f:entry>
+            <f:entry title="${%State for Fail}" field="stateForFail" help="${helpPath}/help-stateForFail.html">
+                <f:select default="${descriptor.getDefaultStateForFail()}" />
+            </f:entry>
+        </f:optionalBlock>
+
         <f:entry title="${%Document in Report}" field="documentInReport" help="${helpPath}/help-documentInReport.html">
             <f:checkbox/>
         </f:entry>
@@ -69,7 +78,7 @@
         <f:entry title="${%TestCase States}" field="testCaseStates" help="${helpPath}/help-testCaseStates.html">
             <select class="jenkins-input" name="testCaseStates" multiple="true" size="5" default="${descriptor.getDefaultTestCaseStates}">
                 <j:forEach var="it" items="${descriptor.doFillTestCaseStatesItems()}">
-                    <option value="${it.getLiteral()}" selected="${instance.isTestCaseStateSelected(it.getLiteral()) ? 'selected' : null}">${it.getName()}</option>
+                    <option value="${it.getLiteral()}" selected="${instance.isTestCaseStateSelected(it.getName()) ? 'selected' : null}">${it.getName()}</option>
                 </j:forEach>
             </select>
         </f:entry>

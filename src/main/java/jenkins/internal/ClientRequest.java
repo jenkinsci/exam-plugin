@@ -29,6 +29,8 @@
  */
 package jenkins.internal;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.AbortException;
 import hudson.Launcher;
 import hudson.model.Executor;
@@ -93,8 +95,7 @@ public class ClientRequest {
      */
     @Nullable
     public ExamStatus getStatus() throws IOException, InterruptedException {
-        RemoteServiceResponse response = RemoteService
-                .getJSON(launcher, apiPort, "/testrun/status", ExamStatus.class);
+        RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/testrun/status", ExamStatus.class);
         handleResponseError(response);
 
         return (response == null) ? null : (ExamStatus) response.getEntity();
@@ -113,8 +114,7 @@ public class ClientRequest {
             logger.println("WARNING: no EXAM connected");
             return null;
         }
-        RemoteServiceResponse response = RemoteService
-                .getJSON(launcher, apiPort, "/workspace/apiVersion", ApiVersion.class);
+        RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/workspace/apiVersion", ApiVersion.class);
         handleResponseError(response);
 
         return (response == null) ? null : (ApiVersion) response.getEntity();
@@ -157,8 +157,7 @@ public class ClientRequest {
         }
         logger.println("creating Exam Project");
 
-        RemoteServiceResponse response = RemoteService
-                .post(launcher, apiPort, "/workspace/createProject", modelConfiguration, null);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/workspace/createProject", modelConfiguration, null);
         handleResponseError(response);
     }
 
@@ -170,8 +169,7 @@ public class ClientRequest {
      * @throws InterruptedException InterruptedException
      * @throws IOException          IOException
      */
-    public void setTestrunFilter(FilterConfiguration filterConfig)
-            throws IOException, AbortException, InterruptedException {
+    public void setTestrunFilter(FilterConfiguration filterConfig) throws IOException, AbortException, InterruptedException {
         if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
@@ -186,8 +184,7 @@ public class ClientRequest {
             logger.println(i + ") activ: " + filter.isActivateTestcases());
             logger.println();
         }
-        RemoteServiceResponse response = RemoteService
-                .post(launcher, apiPort, "/testrun/setFilter", filterConfig, null);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/testrun/setFilter", filterConfig, null);
         handleResponseError(response);
     }
 
@@ -204,8 +201,7 @@ public class ClientRequest {
             return;
         }
         logger.println("convert to junit");
-        RemoteServiceResponse response = RemoteService
-                .getJSON(launcher, apiPort, "/testrun/convertToJunit/" + reportProject, null);
+        RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/testrun/convertToJunit/" + reportProject, null);
         handleResponseError(response);
     }
 
@@ -233,14 +229,33 @@ public class ClientRequest {
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
-    public void executeGoovyScript(GroovyConfiguration groovyConfiguration) throws IOException, InterruptedException {
+    public void executeGroovyScript(GroovyConfiguration groovyConfiguration) throws IOException, InterruptedException {
         if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("executing Groovy Script");
-        RemoteServiceResponse response = RemoteService
-                .post(launcher, apiPort, "/groovy/executeGroovyScript", groovyConfiguration, null);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/groovy/executeGroovyScript", groovyConfiguration, null);
+        handleResponseError(response);
+    }
+
+    /**
+     * Generates Testcases with the TCG at the Exam Client.
+     *
+     * @param generateConfiguration LegacyGenerateConfiguration
+     * @throws IOException          IOException
+     * @throws InterruptedException InterruptedException
+     */
+    public void generateTestcases(LegacyGenerateConfiguration generateConfiguration) throws IOException, InterruptedException {
+        if (!clientConnected) {
+            logger.println("WARNING: no EXAM connected");
+            return;
+        }
+        logger.println("generating Testcases");
+        ObjectMapper mapper = new ObjectMapper();
+
+        String config = mapper.writeValueAsString(generateConfiguration);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/TCG/generate", config, null);
         handleResponseError(response);
     }
 
@@ -251,14 +266,43 @@ public class ClientRequest {
      * @throws IOException          IOException
      * @throws InterruptedException InterruptedException
      */
-    public void generateTestcases(GenerateConfiguration generateConfiguration) throws IOException, InterruptedException {
+    public void generateTestcasesPost203(GenerateConfiguration generateConfiguration) throws IOException, InterruptedException {
         if (!clientConnected) {
             logger.println("WARNING: no EXAM connected");
             return;
         }
         logger.println("generating Testcases");
-        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/TCG/generate", generateConfiguration, null);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+
+        String config = mapper.writeValueAsString(generateConfiguration);
+        RemoteServiceResponse response = RemoteService.post(launcher, apiPort, "/TCG/generate", config, TCGResult.class);
         handleResponseError(response);
+
+        TCGResult res = (TCGResult) response.getEntity();
+        logger.println("INFO: " + res.getMessage());
+    }
+
+    /**
+     * Gets the API Version of the TCG API.
+     * If the request fails, which is supposed to happen pre version 2.0.3 we return version 2.0.2 so the rest uses the old api
+     *
+     * @return ApiVersion
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    public ApiVersion getTCGVersion() throws InterruptedException, IOException {
+        if (!clientConnected) {
+            logger.println("WARNING: no EXAM connected");
+            return null;
+        }
+        logger.println("getting TCG Api Version.");
+        RemoteServiceResponse response = RemoteService.getJSON(launcher, apiPort, "/TCG/apiVersion", ApiVersion.class);
+        if (response != null && response.getStatus() == 404) {
+            return new ApiVersion(2, 0, 2);
+        }
+        handleResponseError(response);
+        return (response == null) ? null : (ApiVersion) response.getEntity();
     }
 
     /**
@@ -293,11 +337,10 @@ public class ClientRequest {
         }
         logger.println("stopping testrun");
         RemoteServiceResponse response;
-        if(Compatibility.isVersionHigher200()){
+        if (Compatibility.isVersionHigher200()) {
             response = RemoteService.put(launcher, apiPort, "/testrun/stop?timeout=300");
         } else {
-            response = RemoteService
-                    .post(launcher, apiPort, "/testrun/stop?timeout=300", null,null);
+            response = RemoteService.post(launcher, apiPort, "/testrun/stop?timeout=300", null, null);
         }
         handleResponseError(response);
     }
@@ -323,7 +366,7 @@ public class ClientRequest {
             postUrl = "/workspace/delete?projectName=" + projectName;
         }
         RemoteServiceResponse response;
-        if(Compatibility.isVersionHigher200()){
+        if (Compatibility.isVersionHigher200()) {
             response = RemoteService.delete(launcher, apiPort, postUrl);
         } else {
             response = RemoteService.get(launcher, apiPort, postUrl, null);

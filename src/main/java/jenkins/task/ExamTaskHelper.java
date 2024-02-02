@@ -420,7 +420,7 @@ public class ExamTaskHelper {
                 Compatibility.checkMinRestApiVersion(taskListener, minApiVersion);
                 task.doExecuteTask(clientRequest);
 
-            } catch (IOException e) {
+            } catch (Exception e) {
                 failTask("ERROR: " + e.toString());
             } finally {
                 disconnectAndCloseEXAM(clientRequest, proc, task.getTimeout());

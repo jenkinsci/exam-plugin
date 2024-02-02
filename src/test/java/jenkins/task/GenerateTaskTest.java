@@ -8,7 +8,11 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 import jenkins.internal.ClientRequest;
+import jenkins.internal.data.ApiVersion;
 import jenkins.internal.data.GenerateConfiguration;
+import jenkins.internal.data.LegacyGenerateConfiguration;
+import jenkins.internal.enumeration.DescriptionSource;
+import jenkins.internal.enumeration.ErrorHandling;
 import jenkins.internal.enumeration.TestCaseState;
 import jenkins.model.Jenkins;
 import jenkins.plugins.exam.ExamTool;
@@ -44,7 +48,8 @@ public class GenerateTaskTest {
     @ClassRule
     public static BuildWatcher buildWatcher = new BuildWatcher();
 
-    @Mock Run runMock;
+    @Mock
+    Run runMock;
 
     /**
      * Exam properties
@@ -72,33 +77,40 @@ public class GenerateTaskTest {
     private String mappingList;
     private List<String> testCaseStates;
     private String variant;
+    private boolean setStates;
+    private String stateForFail;
+    private String stateForSuccess;
 
     List<File> createdFiles = new ArrayList<>();
 
-    @Before public void setUp() {
+    @Before
+    public void setUp() {
         examName = "examName";
         examModel = "examModel";
         modelConfiguration = "config";
         examRelativePath = "examRelativePath";
 
         element = "testElement";
-        descriptionSource = "descSource";
+        descriptionSource = DescriptionSource.DESCRIPTION.name();
         documentInReport = true;
-        errorHandling = "error";
+        errorHandling = ErrorHandling.GENERATE_ERROR_STEP.name();
         frameSteps = new ArrayList<>();
         frameSteps.add("frame");
         mappingList = "mList";
         testCaseStates = new ArrayList<>();
         testCaseStates.add("tCStates");
         variant = "var";
+        setStates = true;
+        stateForFail = TestCaseState.NOT_YET_SPECIFIED.getName();
+        stateForSuccess = TestCaseState.IMPLEMENTED.getName();
 
         Jenkins instance = jenkinsRule.getInstance();
         examHome = instance == null ? "examHome" : instance.getRootPath().getRemote();
-        testObject = new GenerateTask(examModel, examName, modelConfiguration, element, descriptionSource, documentInReport,
-                errorHandling, frameSteps, mappingList, testCaseStates, variant);
+        testObject = new GenerateTask(examModel, examName, modelConfiguration, element, descriptionSource, documentInReport, errorHandling, frameSteps, mappingList, testCaseStates, variant, setStates, stateForFail, stateForSuccess);
     }
 
-    @After public void tearDown() {
+    @After
+    public void tearDown() {
         TUtil.cleanUpExamTools(jenkinsRule);
         TUtil.cleanUpPythonInstallations(jenkinsRule);
 
@@ -110,98 +122,137 @@ public class GenerateTaskTest {
         });
     }
 
-    @Test @WithoutJenkins public void testGetElement() {
+    @Test
+    @WithoutJenkins
+    public void testGetElement() {
         Whitebox.setInternalState(testObject, "element", element);
         assertEquals(testObject.getElement(), element);
     }
 
-    @Test @WithoutJenkins public void testSetElement() {
+    @Test
+    @WithoutJenkins
+    public void testSetElement() {
         testObject.setElement(element);
         assertEquals(testObject.getElement(), element);
     }
 
-    @Test @WithoutJenkins public void testGetDescriptionSource() {
+    @Test
+    @WithoutJenkins
+    public void testGetDescriptionSource() {
         Whitebox.setInternalState(testObject, "descriptionSource", descriptionSource);
         assertEquals(testObject.getDescriptionSource(), descriptionSource);
     }
 
-    @Test @WithoutJenkins public void testSetDescriptionSource() {
+    @Test
+    @WithoutJenkins
+    public void testSetDescriptionSource() {
         testObject.setDescriptionSource(descriptionSource);
         Object internalState = Whitebox.getInternalState(testObject, "descriptionSource");
         assertEquals(descriptionSource, internalState);
     }
 
-    @Test @WithoutJenkins public void testGetDocumentInReport() throws Exception {
+    @Test
+    @WithoutJenkins
+    public void testGetDocumentInReport() throws Exception {
         testGetBoolean("documentInReport", "getDocumentInReport");
     }
 
-    @Test @WithoutJenkins public void testSetDocumentInReport() throws Exception {
+    @Test
+    @WithoutJenkins
+    public void testSetDocumentInReport() throws Exception {
         testSetBoolean("documentInReport", "setDocumentInReport");
     }
 
-    @Test @WithoutJenkins public void testGetOverwriteDescriptionSource() throws Exception {
-        testGetBoolean("overwriteDescriptionSource","getOverwriteDescriptionSource");
+    @Test
+    @WithoutJenkins
+    public void testGetOverwriteDescriptionSource() throws Exception {
+        testGetBoolean("overwriteDescriptionSource", "getOverwriteDescriptionSource");
     }
 
-    @Test @WithoutJenkins public void testSetOverwriteDescriptionSource() throws Exception {
+    @Test
+    @WithoutJenkins
+    public void testSetOverwriteDescriptionSource() throws Exception {
         testSetBoolean("overwriteDescriptionSource", "setOverwriteDescriptionSource");
     }
 
-    @Test @WithoutJenkins public void testGetOverwriteFrameSteps() throws Exception {
+    @Test
+    @WithoutJenkins
+    public void testGetOverwriteFrameSteps() throws Exception {
         testGetBoolean("overwriteFrameSteps", "getOverwriteFrameSteps");
     }
 
-    @Test @WithoutJenkins public void testSetOverwriteFrameSteps() throws Exception {
+    @Test
+    @WithoutJenkins
+    public void testSetOverwriteFrameSteps() throws Exception {
         testSetBoolean("overwriteFrameSteps", "setOverwriteFrameSteps");
     }
 
-    @Test @WithoutJenkins public void testGetOverwriteMappingList() throws Exception {
+    @Test
+    @WithoutJenkins
+    public void testGetOverwriteMappingList() throws Exception {
         testGetBoolean("overwriteMappingList", "getOverwriteMappingList");
     }
 
-    @Test @WithoutJenkins public void testSetOverwriteMappingList() throws Exception {
+    @Test
+    @WithoutJenkins
+    public void testSetOverwriteMappingList() throws Exception {
         testSetBoolean("overwriteMappingList", "setOverwriteMappingList");
     }
 
-    @Test @WithoutJenkins public void testGetErrorHandling() {
+    @Test
+    @WithoutJenkins
+    public void testGetErrorHandling() {
         Whitebox.setInternalState(testObject, "errorHandling", errorHandling);
         assertEquals(testObject.getErrorHandling(), errorHandling);
     }
 
-    @Test @WithoutJenkins public void testSetErrorHandling() {
+    @Test
+    @WithoutJenkins
+    public void testSetErrorHandling() {
         testObject.setErrorHandling(errorHandling);
         Object internalState = Whitebox.getInternalState(testObject, "errorHandling");
         assertEquals(errorHandling, internalState);
     }
 
-    @Test @WithoutJenkins public void testGetFrameFunctions() {
+    @Test
+    @WithoutJenkins
+    public void testGetFrameFunctions() {
         Whitebox.setInternalState(testObject, "frameSteps", frameSteps);
         assertArrayEquals(testObject.getFrameSteps().toArray(), frameSteps.toArray());
     }
 
-    @Test @WithoutJenkins public void testSetFrameFunctions() {
+    @Test
+    @WithoutJenkins
+    public void testSetFrameFunctions() {
         testObject.setFrameSteps(frameSteps);
         List<String> internalState = Whitebox.getInternalState(testObject, "frameSteps");
         assertArrayEquals(frameSteps.toArray(), internalState.toArray());
     }
 
-    @Test @WithoutJenkins public void testGetMappingList() {
+    @Test
+    @WithoutJenkins
+    public void testGetMappingList() {
         Whitebox.setInternalState(testObject, "mappingList", mappingList);
         assertEquals(testObject.getMappingList(), mappingList);
     }
 
-    @Test @WithoutJenkins public void testSetMappingList() {
+    @Test
+    @WithoutJenkins
+    public void testSetMappingList() {
         testObject.setMappingList(mappingList);
         Object internalState = Whitebox.getInternalState(testObject, "mappingList");
         assertEquals(mappingList, internalState);
     }
 
-    @Test @WithoutJenkins public void testGetTestCaseStates() {
+    @Test
+    @WithoutJenkins
+    public void testGetTestCaseStates() {
         Whitebox.setInternalState(testObject, "testCaseStates", testCaseStates);
         assertArrayEquals(testObject.getTestCaseStates().toArray(), testCaseStates.toArray());
     }
 
-    @Test public void testSetTestCaseStates() {
+    @Test
+    public void testSetTestCaseStates() {
         testObject.setTestCaseStates(testCaseStates);
         List<String> internalState = Whitebox.getInternalState(testObject, "testCaseStates");
         assertArrayEquals(testCaseStates.toArray(), internalState.toArray());
@@ -212,57 +263,71 @@ public class GenerateTaskTest {
         assertEquals(TestCaseState.NOT_YET_IMPLEMENTED.toString(), internalState.get(0));
     }
 
-    @Test @WithoutJenkins public void testGetVariant() {
+    @Test
+    @WithoutJenkins
+    public void testGetVariant() {
         Whitebox.setInternalState(testObject, "variant", variant);
         assertEquals(testObject.getVariant(), variant);
     }
 
-    @Test @WithoutJenkins public void testSetVariant() {
+    @Test
+    @WithoutJenkins
+    public void testSetVariant() {
         testObject.setVariant(variant);
         Object internalState = Whitebox.getInternalState(testObject, "variant");
         assertEquals(variant, internalState);
     }
 
 
-    @Test @WithoutJenkins public void testGetModelConfiguration() {
+    @Test
+    @WithoutJenkins
+    public void testGetModelConfiguration() {
         Whitebox.setInternalState(testObject, "modelConfiguration", modelConfiguration);
         assertEquals(modelConfiguration, testObject.getModelConfiguration());
     }
-    @Test @WithoutJenkins public void testSetModelConfiguration() {
+
+    @Test
+    @WithoutJenkins
+    public void testSetModelConfiguration() {
         testObject.setModelConfiguration(modelConfiguration);
         Object internalState = Whitebox.getInternalState(testObject, "modelConfiguration");
 
         assertEquals(modelConfiguration, internalState);
     }
 
-    @Test @WithoutJenkins public void testGetExamModel() {
+    @Test
+    @WithoutJenkins
+    public void testGetExamModel() {
         Whitebox.setInternalState(testObject, "examModel", examModel);
         assertEquals(examModel, testObject.getExamModel());
     }
 
-    @Test @WithoutJenkins public void testSetExamModel() {
+    @Test
+    @WithoutJenkins
+    public void testSetExamModel() {
         testObject.setExamModel(examModel);
         String element = Whitebox.getInternalState(testObject, "examModel");
 
         assertEquals(examModel, element);
     }
 
-    @Test public void testGetExam() {
-        assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
-                .getInstallations().length);
+    @Test
+    public void testGetExam() {
+        assertEquals(0, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations().length);
         ExamTool newExamTool = TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
-        assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class)
-                .getInstallations().length);
+        assertEquals(1, jenkinsRule.getInstance().getDescriptorByType(ExamTool.DescriptorImpl.class).getInstallations().length);
 
         ExamTool setTool = testObject.getExam();
         assertEquals(newExamTool, setTool);
     }
 
-    @Test public void testGetExamNoExam() {
+    @Test
+    public void testGetExamNoExam() {
         assertNull(testObject.getExam());
     }
 
-    @Test public void testGetModel() {
+    @Test
+    public void testGetModel() {
         ExamModelConfig examModelConfig = testObject.getModel(examModel);
         assertNull(examModelConfig);
 
@@ -280,7 +345,8 @@ public class GenerateTaskTest {
         assertEquals(mod2, examModelConfig);
     }
 
-    @Test public void testPerform_noConfig() throws Exception {
+    @Test
+    public void testPerform_noConfig() throws Exception {
         TUtil.createAndRegisterExamTool(jenkinsRule, examName, examHome, examRelativePath);
 
         File file = new File(examHome + File.separator + "EXAM.exe");
@@ -296,12 +362,11 @@ public class GenerateTaskTest {
 
         List<String> log = build.getLog(1000);
         String workspacePath = jenkinsRule.getInstance().getRootPath().getRemote();
-        assertThat(log, CoreMatchers.hasItem("ERROR: " + Messages.EXAM_NotExamConfigDirectory(
-                workspacePath + File.separator + "examRelativePath" + File.separator + "configuration"
-                        + File.separator + "config.ini")));
+        assertThat(log, CoreMatchers.hasItem("ERROR: " + Messages.EXAM_NotExamConfigDirectory(workspacePath + File.separator + "examRelativePath" + File.separator + "configuration" + File.separator + "config.ini")));
     }
 
-    @Test public void testPerform_noTool() throws Exception {
+    @Test
+    public void testPerform_noTool() throws Exception {
         examTestProject = jenkinsRule.createFreeStyleProject();
         examTestProject.getBuildersList().add(testObject);
         FreeStyleBuild build = examTestProject.scheduleBuild2(0).get();
@@ -318,12 +383,13 @@ public class GenerateTaskTest {
         assertThat(log, CoreMatchers.hasItem("ERROR: " + Messages.EXAM_ExecutableNotFound(examName)));
     }
 
-    @Test public void testCreateGenerateConfig() throws Exception {
-        GenerateConfiguration expected = new GenerateConfiguration();
+    @Test
+    public void testCreateGenerateConfig() throws Exception {
+        LegacyGenerateConfiguration expected = new LegacyGenerateConfiguration();
         expected.setElement(element);
-        expected.setDescriptionSource(descriptionSource);
+        expected.setDescriptionSource(DescriptionSource.valueOf(descriptionSource).getDisplayString());
         expected.setDocumentInReport(documentInReport);
-        expected.setErrorHandling(errorHandling);
+        expected.setErrorHandling(ErrorHandling.valueOf(errorHandling).displayString());
         expected.setVariant(variant);
         expected.setFrameFunctions(frameSteps);
         expected.setMappingList(Collections.singletonList(mappingList));
@@ -338,20 +404,67 @@ public class GenerateTaskTest {
         Whitebox.setInternalState(testObject, "mappingList", mappingList);
         Whitebox.setInternalState(testObject, "testCaseStates", testCaseStates);
 
-        GenerateConfiguration actual = Whitebox.invokeMethod(testObject, "createGenerateConfig");
+        LegacyGenerateConfiguration actual = Whitebox.invokeMethod(testObject, "createGenerateConfig");
         TUtil.assertGenerateConfig(expected, actual);
 
         Whitebox.setInternalState(testObject, "element", "anotherElement");
-        Whitebox.setInternalState(testObject, "descriptionSource", "anotherDescriptionSource");
+        Whitebox.setInternalState(testObject, "descriptionSource", DescriptionSource.BESCHREIBUNG.name());
         Whitebox.setInternalState(testObject, "documentInReport", false);
         actual = Whitebox.invokeMethod(testObject, "createGenerateConfig");
         expected.setElement("anotherElement");
-        expected.setDescriptionSource("anotherDescriptionSource");
+        expected.setDescriptionSource(DescriptionSource.BESCHREIBUNG.getDisplayString());
         expected.setDocumentInReport(false);
         TUtil.assertGenerateConfig(expected, actual);
     }
 
-    @Test public void testExecuteTask() throws IOException, InterruptedException {
+    @Test
+    public void testGenerateNewConfig() throws Exception {
+        GenerateConfiguration expected = new GenerateConfiguration();
+        expected.setElement(element);
+        expected.setOverwriteDescriptionSource(true);
+        expected.setDescriptionSource(descriptionSource);
+        expected.setDocumentInReport(documentInReport);
+        expected.setErrorHandling(errorHandling);
+        expected.setVariant(variant);
+        expected.setOverwriteFrameSteps(true);
+        expected.setFrameFunctions(frameSteps);
+        expected.setOverwriteMappingList(true);
+        expected.setMappingList(Collections.singletonList(mappingList));
+        expected.setTestCaseStates(testCaseStates);
+        expected.setSetStates(true);
+        expected.setStateForSuccess(TestCaseState.NOT_YET_SPECIFIED.getName());
+        expected.setStateForFail(TestCaseState.INVALID.getName());
+
+        Whitebox.setInternalState(testObject, "element", element);
+        Whitebox.setInternalState(testObject, "overwriteDescriptionSource", true);
+        Whitebox.setInternalState(testObject, "descriptionSource", descriptionSource);
+        Whitebox.setInternalState(testObject, "documentInReport", documentInReport);
+        Whitebox.setInternalState(testObject, "errorHandling", errorHandling);
+        Whitebox.setInternalState(testObject, "variant", variant);
+        Whitebox.setInternalState(testObject, "overwriteFrameSteps", true);
+        Whitebox.setInternalState(testObject, "frameSteps", frameSteps);
+        Whitebox.setInternalState(testObject, "overwriteMappingList", true);
+        Whitebox.setInternalState(testObject, "mappingList", mappingList);
+        Whitebox.setInternalState(testObject, "testCaseStates", testCaseStates);
+        Whitebox.setInternalState(testObject, "setStates", true);
+        Whitebox.setInternalState(testObject, "stateForSuccess", TestCaseState.NOT_YET_SPECIFIED.getLiteral());
+        Whitebox.setInternalState(testObject, "stateForFail", TestCaseState.INVALID.getLiteral());
+
+        GenerateConfiguration actual = Whitebox.invokeMethod(testObject, "generateNewConfig");
+        TUtil.assertGenerateConfig(expected, actual);
+
+        Whitebox.setInternalState(testObject, "element", "anotherElement");
+        Whitebox.setInternalState(testObject, "descriptionSource", DescriptionSource.BESCHREIBUNG.getDisplayString());
+        Whitebox.setInternalState(testObject, "documentInReport", false);
+        actual = Whitebox.invokeMethod(testObject, "generateNewConfig");
+        expected.setElement("anotherElement");
+        expected.setDescriptionSource(DescriptionSource.BESCHREIBUNG.getDisplayString());
+        expected.setDocumentInReport(false);
+        TUtil.assertGenerateConfig(expected, actual);
+    }
+
+    @Test
+    public void testExecuteTaskPre203() throws IOException, InterruptedException {
         MockitoAnnotations.openMocks(this);
 
         ExamModelConfig mod = new ExamModelConfig(examModel);
@@ -368,13 +481,46 @@ public class GenerateTaskTest {
 
         ClientRequest clientRequestMock = Mockito.mock(ClientRequest.class);
         Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.FALSE);
+        Mockito.when(clientRequestMock.getTCGVersion()).thenReturn(new ApiVersion(2, 0, 2));
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.never()).clearWorkspace(Mockito.any());
 
+        Mockito.when(clientRequestMock.getTCGVersion()).thenReturn(new ApiVersion(2, 0, 2));
         Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.TRUE);
         testObject.doExecuteTask(clientRequestMock);
         Mockito.verify(clientRequestMock, Mockito.times(1)).createExamProject(Mockito.any());
         Mockito.verify(clientRequestMock, Mockito.times(1)).generateTestcases(Mockito.any());
+    }
+
+    @Test
+    public void testExecuteTaskPost203() throws IOException, InterruptedException {
+        MockitoAnnotations.openMocks(this);
+
+        ExamModelConfig mod = new ExamModelConfig(examModel);
+        mod.setName(examModel);
+        testObject.getDescriptor().getModelConfigs().add(mod);
+
+        FakeTaskListener taskListener = new FakeTaskListener();
+        ExamTaskHelper taskHelper = new ExamTaskHelper();
+        taskHelper.setRun(runMock);
+        taskHelper.setWorkspace(new FilePath(new File("c:\\my\\path")));
+        taskHelper.setLauncher(new Launcher.DummyLauncher(taskListener));
+        taskHelper.setTaskListener(taskListener);
+        Whitebox.setInternalState(testObject, "taskHelper", taskHelper);
+
+        ClientRequest clientRequestMock = Mockito.mock(ClientRequest.class);
+        Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.FALSE);
+        Mockito.when(clientRequestMock.getTCGVersion()).thenReturn(new ApiVersion(2, 0, 3));
+        testObject.doExecuteTask(clientRequestMock);
+        Mockito.verify(clientRequestMock, Mockito.never()).clearWorkspace(Mockito.any());
+
+        Mockito.when(clientRequestMock.getTCGVersion()).thenReturn(new ApiVersion(2, 0, 3));
+        Mockito.when(clientRequestMock.isClientConnected()).thenReturn(Boolean.TRUE);
+        testObject.setStateForFail(TestCaseState.REVIEWED.getLiteral());
+        testObject.setStateForSuccess(TestCaseState.NOT_YET_SPECIFIED.getLiteral());
+        testObject.doExecuteTask(clientRequestMock);
+        Mockito.verify(clientRequestMock, Mockito.times(1)).createExamProject(Mockito.any());
+        Mockito.verify(clientRequestMock, Mockito.times(1)).generateTestcasesPost203(Mockito.any());
     }
 
     @Test
@@ -404,11 +550,11 @@ public class GenerateTaskTest {
     }
 
     private void testSetBoolean(String varName, String methodName) throws Exception {
-        Whitebox.invokeMethod(testObject, methodName, Boolean.TYPE,true);
+        Whitebox.invokeMethod(testObject, methodName, Boolean.TYPE, true);
         boolean internalState = Whitebox.getInternalState(testObject, varName);
         assertTrue(internalState);
 
-        Whitebox.invokeMethod(testObject, methodName, Boolean.TYPE,false);
+        Whitebox.invokeMethod(testObject, methodName, Boolean.TYPE, false);
         internalState = Whitebox.getInternalState(testObject, varName);
         assertFalse(internalState);
     }
