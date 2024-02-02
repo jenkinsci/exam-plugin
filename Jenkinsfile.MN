@@ -1,3 +1,4 @@
+boolean isFastlane = false
 Date today = new Date();
 String now = today.getTime().toString();
 String branch = env.BRANCH_NAME
@@ -29,6 +30,24 @@ pipeline{
         buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '60', numToKeepStr: '60')
     }
     stages{
+		stage('prepare fast lane') {
+            when {
+                not {
+                    anyOf {
+                        branch 'master'
+                        branch 'develop'
+                        branch 'release/*'
+                    }
+                }
+                beforeAgent true
+            }
+            steps {
+                script {
+                    echo "prepare fast lane"
+                    isFastlane = true
+                }
+            }
+        }
         stage('Build') {
             steps {
 				withCredentials([usernamePassword(credentialsId: 'teamscale', passwordVariable: 'ts_key', usernameVariable: 'ts_user')]) {
@@ -46,6 +65,12 @@ pipeline{
             }
         }
 		stage ('license scan client') {
+			when {
+				allOf {
+					expression { isFastlane == false }
+				}
+				beforeAgent true
+			}
 			steps {
 				script {
 					withCredentials([usernamePassword(credentialsId: 'blackduck', passwordVariable: 'bd_apikey', usernameVariable: 'bd_user')]) {
