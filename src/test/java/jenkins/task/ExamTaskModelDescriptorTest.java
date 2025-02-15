@@ -1,13 +1,10 @@
 package jenkins.task;
 
-import Utils.Whitebox;
-import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.task.TestUtil.TUtil;
-import jenkins.task._exam.Messages;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;

@@ -1,14 +1,11 @@
 package jenkins.task;
 
-import Utils.Whitebox;
 import hudson.model.FreeStyleProject;
-import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
 import jenkins.task.TestUtil.TUtil;
-import jenkins.task._exam.Messages;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;

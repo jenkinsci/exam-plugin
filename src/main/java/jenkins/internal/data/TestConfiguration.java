@@ -29,10 +29,7 @@
  */
 package jenkins.internal.data;
 
-import jakarta.json.JsonObject;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
-import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringEscapeUtils;
 
 import java.io.Serializable;
 

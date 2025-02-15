@@ -10,7 +10,6 @@ import hudson.model.*;
 import hudson.util.Secret;
 import jenkins.internal.ClientRequest;
 import jenkins.internal.Compatibility;
-import jenkins.internal.RemoteService;
 import jenkins.internal.data.TestConfiguration;
 import jenkins.internal.enumeration.RestAPILogLevelEnum;
 import jenkins.model.Jenkins;
@@ -27,7 +26,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.io.File;

@@ -28,7 +28,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.40</version>
+        <version>4.51</version>
         <relativePath />
     </parent>
     <artifactId>exam</artifactId>
@@ -51,13 +51,13 @@
     </licenses>
     <properties>
         <jersey.version>3.0.4</jersey.version>
+        <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
+        <jenkins.baseline>2.346</jenkins.baseline>
         <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
-        <jenkins.version>2.332.1</jenkins.version>
-        <!-- Java Level to use. Java 7 required when using core >= 1.612 -->
-        <java.level>8</java.level>
+        <jenkins.version>${jenkins.baseline}.3</jenkins.version>
         <!-- Jenkins Test Harness version you use to test the plugin. -->
         <!-- For Jenkins version >= 1.580.1 use JTH 2.x or higher. -->
-        <jenkins-test-harness.version>2.72</jenkins-test-harness.version>
+        <jenkins-test-harness.version>1900.v9e128c991ef4</jenkins-test-harness.version>
         <!-- Other properties you may want to use:
              ~ hpi-plugin.version: The HPI Maven Plugin version used by the plugin..
              ~ stapler-plugin.version: The Stapler Maven plugin version required by the plugin.
@@ -142,6 +142,18 @@
     </build>
     <dependencyManagement>
         <dependencies>
+      <dependency>
+        <groupId>org.ow2.asm</groupId>
+        <artifactId>asm-commons</artifactId>
+        <version>9.2</version>
+      </dependency>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-${jenkins.baseline}.x</artifactId>
+        <version>1763.v092b_8980a_f5e</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey</groupId>
                 <artifactId>jersey-bom</artifactId>
@@ -160,22 +172,18 @@
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-commons</artifactId>
-            <version>9.2</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
-            <version>2.2</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>junit</artifactId>
-            <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
@@ -185,7 +193,6 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-step-api</artifactId>
-            <version>2.2</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
@@ -203,7 +210,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -221,12 +227,10 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.2.3</version>
         </dependency>
         <dependency>
             <groupId>org.kohsuke</groupId>
             <artifactId>access-modifier-annotation</artifactId>
-            <version>1.25</version>
         </dependency>
         <dependency>
             <groupId>com.sun.activation</groupId>
@@ -251,7 +255,6 @@
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-jaxb</artifactId>
-            <version>3.0.4</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.inject</groupId>

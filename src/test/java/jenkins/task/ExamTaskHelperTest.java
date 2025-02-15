@@ -30,7 +30,6 @@ import org.jvnet.hudson.test.SimpleCommandLauncher;
 import org.jvnet.hudson.test.WithoutJenkins;
 import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;

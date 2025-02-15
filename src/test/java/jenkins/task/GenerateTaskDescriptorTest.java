@@ -4,7 +4,10 @@ import Utils.Whitebox;
 import hudson.model.FreeStyleProject;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import jenkins.internal.enumeration.*;
+import jenkins.internal.enumeration.DescriptionSource;
+import jenkins.internal.enumeration.ErrorHandling;
+import jenkins.internal.enumeration.StepType;
+import jenkins.internal.enumeration.TestCaseState;
 import jenkins.plugins.exam.ExamTool;
 import jenkins.plugins.exam.config.ExamModelConfig;
 import jenkins.plugins.exam.config.ExamPluginConfig;
@@ -21,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 public class GenerateTaskDescriptorTest {
 

@@ -30,14 +30,11 @@
 package jenkins.internal;
 
 import Utils.Whitebox;
-import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Node;
 import hudson.slaves.DumbSlave;
 import hudson.util.FormValidation;
-import jenkins.internal.data.ApiVersion;
-import jenkins.task.TestUtil.FakeTaskListener;
 import jenkins.task.TestUtil.TUtil;
 import jenkins.task._exam.Messages;
 import org.junit.Rule;
@@ -46,13 +43,10 @@ import org.junit.rules.ExpectedException;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class UtilTest {
 
